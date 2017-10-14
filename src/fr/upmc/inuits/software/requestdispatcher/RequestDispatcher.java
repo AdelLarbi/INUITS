@@ -3,18 +3,20 @@ package fr.upmc.inuits.software.requestdispatcher;
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.exceptions.ComponentShutdownException;
 import fr.upmc.datacenter.software.interfaces.RequestI;
-import fr.upmc.datacenter.software.interfaces.RequestSubmissionHandlerI;
-import fr.upmc.datacenter.software.interfaces.RequestSubmissionI;
 import fr.upmc.datacenter.software.interfaces.RequestNotificationHandlerI;
 import fr.upmc.datacenter.software.interfaces.RequestNotificationI;
+import fr.upmc.datacenter.software.interfaces.RequestSubmissionHandlerI;
+import fr.upmc.datacenter.software.interfaces.RequestSubmissionI;
+import fr.upmc.datacenter.software.ports.RequestNotificationInboundPort;
+import fr.upmc.datacenter.software.ports.RequestNotificationOutboundPort;
 import fr.upmc.datacenter.software.ports.RequestSubmissionInboundPort;
 import fr.upmc.datacenter.software.ports.RequestSubmissionOutboundPort;
 import fr.upmc.datacenterclient.utils.TimeProcessing;
-import fr.upmc.datacenter.software.ports.RequestNotificationInboundPort;
-import fr.upmc.datacenter.software.ports.RequestNotificationOutboundPort;
 
-public class RequestDispatcher extends AbstractComponent implements	RequestSubmissionHandlerI, RequestNotificationHandlerI {
+public class RequestDispatcher extends AbstractComponent implements RequestSubmissionHandlerI, RequestNotificationHandlerI {
 
+	public static int DEBUG_LEVEL = 1;
+	
 	protected final String rdURI;
 	
 	protected RequestSubmissionInboundPort rsip;
@@ -67,7 +69,7 @@ public class RequestDispatcher extends AbstractComponent implements	RequestSubmi
 	}
 
 	@Override
-	public void	shutdown() throws ComponentShutdownException {
+	public void shutdown() throws ComponentShutdownException {
 		
 		try {
 			/* Error : Attempt to disconnect a server component port rdrsip from a client component port 
@@ -98,28 +100,39 @@ public class RequestDispatcher extends AbstractComponent implements	RequestSubmi
 	@Override
 	public void acceptRequestSubmission(RequestI r) throws Exception {
 		
-		this.logMessage(				
-				"Request dispatcher " + this.rdURI + " submitting request " + r.getRequestURI() + " at " +
-				TimeProcessing.toString(System.currentTimeMillis()) + " with number of instructions " + 
-				r.getPredictedNumberOfInstructions());
+		if (RequestDispatcher.DEBUG_LEVEL == 1) {
+			this.logMessage(				
+					"Request dispatcher " + this.rdURI + " submitting request " + r.getRequestURI() + " at " +
+					TimeProcessing.toString(System.currentTimeMillis()) + " with number of instructions " + 
+					r.getPredictedNumberOfInstructions());
+		}
 		
 		this.rsop.submitRequest(r);		
 	}
 
 	@Override
 	public void acceptRequestSubmissionAndNotify(RequestI r) throws Exception {
-					
-		this.logMessage(				
-				"Request dispatcher " + this.rdURI + " submitting request " + r.getRequestURI() + " at " +
-				TimeProcessing.toString(System.currentTimeMillis()) + " with number of instructions " + 
-				r.getPredictedNumberOfInstructions());
+		
+		if (RequestDispatcher.DEBUG_LEVEL == 1) {
+			this.logMessage(				
+					"Request dispatcher " + this.rdURI + " submitting request " + r.getRequestURI() + " at " +
+					TimeProcessing.toString(System.currentTimeMillis()) + " with number of instructions " + 
+					r.getPredictedNumberOfInstructions());
+		}
 		
 		this.rsop.submitRequestAndNotify(r);
 	}
 
 	@Override
 	public void acceptRequestTerminationNotification(RequestI r) throws Exception {
-		// TODO Auto-generated method stub
+		// TODO Question au prof : pourquoi on à besoin d'une liste de tasksToNotify?
 		
+		if (RequestDispatcher.DEBUG_LEVEL == 1) {			
+			this.logMessage("Request dispatcher " + this.rdURI + " notifying request " + r.getRequestURI() + " at " +
+					TimeProcessing.toString(System.currentTimeMillis()) + " with number of instructions " + 
+					r.getPredictedNumberOfInstructions());
+		}
+				
+		this.rnop.notifyRequestTermination(r);
 	}
 }

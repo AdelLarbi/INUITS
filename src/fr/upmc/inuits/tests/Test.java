@@ -45,8 +45,8 @@ public class Test extends AbstractCVM {
 	public static final String RG_REQUEST_SUBMISSION_OUT_PORT_URI = "rgrsop";
 	public static final String RG_REQUEST_NOTIFICATION_IN_PORT_URI = "rgrnip";
 	
-	public static final String	RequestGeneratorManagementInboundPortURI = "rgmip";
-	public static final String	RequestGeneratorManagementOutboundPortURI = "rgmop";
+	public static final String RequestGeneratorManagementInboundPortURI = "rgmip";
+	public static final String RequestGeneratorManagementOutboundPortURI = "rgmop";
 	
 	protected ComputerServicesOutboundPort csOutPort;
 	protected ComputerMonitor computerMonitor;
@@ -178,8 +178,9 @@ public class Test extends AbstractCVM {
 		
 		this.addDeployedComponent(requestDispatcher);
 		
-		//this.requestDispatcher.toggleTracing();
-		//this.requestDispatcher.toggleLogging();
+		//RequestDispatcher.DEBUG_LEVEL = 0;
+		this.requestDispatcher.toggleTracing();
+		this.requestDispatcher.toggleLogging();
 		
 		this.requestGenerator.doPortConnection(
 				RG_REQUEST_SUBMISSION_OUT_PORT_URI,
