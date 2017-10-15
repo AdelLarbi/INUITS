@@ -6,9 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import fr.upmc.components.AbstractComponent;
-import fr.upmc.components.connectors.DataConnector;
 import fr.upmc.components.cvm.AbstractCVM;
-import fr.upmc.datacenter.connectors.ControlledDataConnector;
 import fr.upmc.datacenter.hardware.computers.Computer;
 import fr.upmc.datacenter.hardware.computers.Computer.AllocatedCore;
 import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
@@ -25,7 +23,7 @@ import fr.upmc.datacenterclient.requestgenerator.connectors.RequestGeneratorMana
 import fr.upmc.datacenterclient.requestgenerator.ports.RequestGeneratorManagementOutboundPort;
 import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 
-public class Test extends AbstractCVM {
+public class TestPartOneQuestionOne extends AbstractCVM {
 
 	public static final String ComputerServicesInboundPortURI = "cs-ibp";
 	public static final String ComputerServicesOutboundPortURI = "cs-obp";
@@ -56,7 +54,7 @@ public class Test extends AbstractCVM {
 	protected ApplicationVMManagementOutboundPort avmOutPort;
 	protected RequestGeneratorManagementOutboundPort rgmOutPort;
 
-	public Test() throws Exception {
+	public TestPartOneQuestionOne() throws Exception {
 		super();
 	}
 
@@ -89,7 +87,7 @@ public class Test extends AbstractCVM {
 				ComputerDynamicStateDataInboundPortURI);
 		
 		this.addDeployedComponent(computer);	
-		// --------------------------------------------------------------------
+		
 		this.csOutPort = new ComputerServicesOutboundPort(
 				ComputerServicesOutboundPortURI, 
 				new AbstractComponent(0, 0){});
@@ -98,13 +96,16 @@ public class Test extends AbstractCVM {
 				ComputerServicesInboundPortURI, 
 				ComputerServicesConnector.class.getCanonicalName());
 		// --------------------------------------------------------------------
-		this.computerMonitor = new ComputerMonitor(
+		/*this.computerMonitor = new ComputerMonitor(
 				computerURI, 
 				true, 
 				ComputerStaticStateDataOutboundPortURI, 
 				ComputerDynamicStateDataOutboundPortURI);
 		
 		this.addDeployedComponent(this.computerMonitor);
+		
+		this.computerMonitor.toggleTracing();
+		this.computerMonitor.toggleLogging();
 		
 		this.computerMonitor.doPortConnection(
 				ComputerStaticStateDataOutboundPortURI,
@@ -114,7 +115,7 @@ public class Test extends AbstractCVM {
 		this.computerMonitor.doPortConnection(
 				ComputerDynamicStateDataOutboundPortURI,
 				ComputerDynamicStateDataInboundPortURI,
-				ControlledDataConnector.class.getCanonicalName());
+				ControlledDataConnector.class.getCanonicalName());*/
 		// --------------------------------------------------------------------
 		this.applicationVM = new ApplicationVM(
 				"vm0",
@@ -145,7 +146,7 @@ public class Test extends AbstractCVM {
 		
 		this.addDeployedComponent(requestGenerator);
 	
-		//RequestGenerator.DEBUG_LEVEL = 2;
+		RequestGenerator.DEBUG_LEVEL = 1;
 		this.requestGenerator.toggleTracing();
 		this.requestGenerator.toggleLogging();
 	
@@ -178,7 +179,7 @@ public class Test extends AbstractCVM {
 		
 		this.addDeployedComponent(requestDispatcher);
 		
-		//RequestDispatcher.DEBUG_LEVEL = 0;
+		RequestDispatcher.DEBUG_LEVEL = 0;
 		this.requestDispatcher.toggleTracing();
 		this.requestDispatcher.toggleLogging();
 		
@@ -245,7 +246,7 @@ public class Test extends AbstractCVM {
 	public static void main(String[] args) {
 		
 		try {
-			final Test test = new Test();
+			final TestPartOneQuestionOne test = new TestPartOneQuestionOne();
 			test.deploy();
 			
 			System.out.println("starting...");

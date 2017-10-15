@@ -13,7 +13,9 @@ import fr.upmc.datacenter.software.ports.RequestSubmissionInboundPort;
 import fr.upmc.datacenter.software.ports.RequestSubmissionOutboundPort;
 import fr.upmc.datacenterclient.utils.TimeProcessing;
 
-public class RequestDispatcher extends AbstractComponent implements RequestSubmissionHandlerI, RequestNotificationHandlerI {
+public class RequestDispatcher 
+	extends AbstractComponent 
+	implements RequestSubmissionHandlerI, RequestNotificationHandlerI {
 
 	public static int DEBUG_LEVEL = 1;
 	
@@ -26,38 +28,38 @@ public class RequestDispatcher extends AbstractComponent implements RequestSubmi
 	
 	public RequestDispatcher(
 			String rdURI, 
-			String RequestSubmissionIntboundPortURI, 
-			String RequestSubmissionOutboundPortURI,
-			String RequestNotificationIntboundPortURI, 
-			String RequestNotificationOutboundPortURI) throws Exception {
+			String requestSubmissionIntboundPortURI, 
+			String requestSubmissionOutboundPortURI,
+			String requestNotificationIntboundPortURI, 
+			String requestNotificationOutboundPortURI) throws Exception {
 		
 		super(1, 1);
 		
 		assert rdURI != null;
-		assert RequestSubmissionIntboundPortURI != null;
-		assert RequestSubmissionOutboundPortURI != null;
-		assert RequestNotificationIntboundPortURI != null;
-		assert RequestNotificationOutboundPortURI != null;
+		assert requestSubmissionIntboundPortURI != null && requestSubmissionIntboundPortURI.length() > 0;
+		assert requestSubmissionOutboundPortURI != null && requestSubmissionOutboundPortURI.length() > 0;
+		assert requestNotificationIntboundPortURI != null && requestNotificationIntboundPortURI.length() > 0;
+		assert requestNotificationOutboundPortURI != null && requestNotificationOutboundPortURI.length() > 0;
 		
 		this.rdURI = rdURI;
 
 		this.addOfferedInterface(RequestSubmissionI.class);
-		this.rsip = new RequestSubmissionInboundPort(RequestSubmissionIntboundPortURI, this);
+		this.rsip = new RequestSubmissionInboundPort(requestSubmissionIntboundPortURI, this);
 		this.addPort(this.rsip);
 		this.rsip.publishPort();
 		
 		this.addRequiredInterface(RequestSubmissionI.class);
-		this.rsop = new RequestSubmissionOutboundPort(RequestSubmissionOutboundPortURI, this);
+		this.rsop = new RequestSubmissionOutboundPort(requestSubmissionOutboundPortURI, this);
 		this.addPort(this.rsop);
 		this.rsop.publishPort();
 		
 		this.addOfferedInterface(RequestNotificationI.class);
-		this.rnip = new RequestNotificationInboundPort(RequestNotificationIntboundPortURI, this);
+		this.rnip = new RequestNotificationInboundPort(requestNotificationIntboundPortURI, this);
 		this.addPort(this.rnip);
 		this.rnip.publishPort();
 		
 		this.addRequiredInterface(RequestNotificationI.class);
-		this.rnop = new RequestNotificationOutboundPort(RequestNotificationOutboundPortURI, this);
+		this.rnop = new RequestNotificationOutboundPort(requestNotificationOutboundPortURI, this);
 		this.addPort(this.rnop);
 		this.rnop.publishPort();
 		
@@ -90,8 +92,8 @@ public class RequestDispatcher extends AbstractComponent implements RequestSubmi
 			if (this.rnop.connected()) {
 				this.rnop.doDisconnection();
 			}
-		} catch (Exception e) {
-			throw new ComponentShutdownException(e);
+		} catch (Exception e) {			
+			throw new ComponentShutdownException("Port disconnection error", e);
 		}
 
 		super.shutdown();
