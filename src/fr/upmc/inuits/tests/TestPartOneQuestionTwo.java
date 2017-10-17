@@ -93,10 +93,12 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				computersURI,
 				C_STATIC_STATE_DATA_OUT_PORT_URI, 
 				C_DYNAMIC_STATE_DATA_OUT_PORT_URI,
+				AC_REQUEST_SUBMISSION_IN_PORT_URI,
 				AC_REQUEST_NOTIFICATION_OUT_PORT_URI);
 		
 		this.addDeployedComponent(this.admissionController);
 		
+		//AdmissionController.DEBUG_LEVEL = 0;
 		this.admissionController.toggleTracing();
 		this.admissionController.toggleLogging();
 		
@@ -108,12 +110,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		this.admissionController.doPortConnection(
 				C_DYNAMIC_STATE_DATA_OUT_PORT_URI,
 				C_DYNAMIC_STATE_DATA_IN_PORT_URI,
-				ControlledDataConnector.class.getCanonicalName());
-		
-		this.admissionController.doPortConnection(
-				AC_REQUEST_NOTIFICATION_OUT_PORT_URI,
-				RG_REQUEST_NOTIFICATION_IN_PORT_URI,
-				RequestNotificationConnector.class.getCanonicalName());
+				ControlledDataConnector.class.getCanonicalName());			
 		// --------------------------------------------------------------------		
 		this.requestGenerator = new RequestGenerator(				
 				"rg",
@@ -125,7 +122,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		
 		this.addDeployedComponent(requestGenerator);
 	
-		RequestGenerator.DEBUG_LEVEL = 1;
+		RequestGenerator.DEBUG_LEVEL = 0;
 		this.requestGenerator.toggleTracing();
 		this.requestGenerator.toggleLogging();
 	
@@ -133,6 +130,11 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				RG_REQUEST_SUBMISSION_OUT_PORT_URI,
 				AC_REQUEST_SUBMISSION_IN_PORT_URI,
 				RequestSubmissionConnector.class.getCanonicalName());
+		
+		this.admissionController.doPortConnection(				
+				AC_REQUEST_NOTIFICATION_OUT_PORT_URI,
+				RG_REQUEST_NOTIFICATION_IN_PORT_URI,
+				RequestNotificationConnector.class.getCanonicalName());
 		// --------------------------------------------------------------------
 		this.rgmOutPort = new RequestGeneratorManagementOutboundPort(				
 				RG_MANAGEMENT_OUT_PORT_URI,
