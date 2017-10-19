@@ -27,7 +27,7 @@ public class ApplicationSubmissionInboundPort
 	}
 
 	@Override
-	public void submitApplicationAndNotify() throws Exception {
+	public void submitApplicationAndNotify(String appUri) throws Exception {
 		
 		final ApplicationSubmissionHandlerI appSubmissionHandler = (ApplicationSubmissionHandlerI) this.owner;
 
@@ -35,7 +35,7 @@ public class ApplicationSubmissionInboundPort
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						appSubmissionHandler.acceptApplicationSubmissionAndNotify();
+						appSubmissionHandler.acceptApplicationSubmissionAndNotify(appUri);
 						return null;
 					}
 				});		

@@ -21,8 +21,8 @@ public class ApplicationSubmissionOutboundPort
 	}
 
 	@Override
-	public void submitApplicationAndNotify() throws Exception {
+	public void submitApplicationAndNotify(String appUri) throws Exception {
 		
-		((ApplicationSubmissionI)this.connector).submitApplicationAndNotify();		
+		((ApplicationSubmissionI)this.connector).submitApplicationAndNotify(appUri);		
 	}
 }

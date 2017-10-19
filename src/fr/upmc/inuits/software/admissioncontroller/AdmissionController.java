@@ -242,10 +242,10 @@ public class AdmissionController
 	}
 
 	@Override
-	public void acceptApplicationSubmissionAndNotify() throws Exception {
+	public void acceptApplicationSubmissionAndNotify(String appUri) throws Exception {
 		
-		if (AdmissionController.DEBUG_LEVEL == 3) {
-			this.logMessage("Admission controller checking for available resources.");
+		if (AdmissionController.DEBUG_LEVEL == 1) {
+			this.logMessage("Admission controller checking for available resources to execute " + appUri + ".");
 		}
 		
 		this.anop.notifyApplicationAdmission(true);
