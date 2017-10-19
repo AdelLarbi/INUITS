@@ -12,7 +12,6 @@ import fr.upmc.components.cvm.AbstractCVM;
 import fr.upmc.datacenter.connectors.ControlledDataConnector;
 import fr.upmc.datacenter.hardware.computers.Computer;
 import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
-import fr.upmc.datacenter.hardware.computers.ports.ComputerServicesOutboundPort;
 import fr.upmc.datacenter.hardware.processors.Processor;
 import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
 import fr.upmc.datacenter.software.connectors.RequestSubmissionConnector;
@@ -24,21 +23,21 @@ import fr.upmc.inuits.software.admissioncontroller.AdmissionController;
 public class TestPartOneQuestionTwo extends AbstractCVM {
 
 	public static final String C_SERVICES_IN_PORT_URI = "cs-ip";
-	public static final String C_SERVICES_OUT_PORT_URI = "cs-op";
 	public static final String C_STATIC_STATE_DATA_IN_PORT_URI = "cssd-ip";
-	public static final String C_STATIC_STATE_DATA_OUT_PORT_URI = "cssd-op";
 	public static final String C_DYNAMIC_STATE_DATA_IN_PORT_URI = "cdsd-ip";
-	public static final String C_DYNAMIC_STATE_DATA_OUT_PORT_URI = "cdsd-op";
 	
-	public static final String AC_REQUEST_SUBMISSION_IN_PORT_URI = "ars-ip";
-	public static final String AC_REQUEST_NOTIFICATION_OUT_PORT_URI = "arn-op";
-	
-	public static final String RG_REQUEST_SUBMISSION_OUT_PORT_URI = "rgrs-op";
-	public static final String RG_REQUEST_NOTIFICATION_IN_PORT_URI = "rgrn-ip";
+	public static final String AC_SERVICES_OUT_PORT_URI = "acs-op";
+	public static final String AC_STATIC_STATE_DATA_OUT_PORT_URI = "acssd-op";
+	public static final String AC_DYNAMIC_STATE_DATA_OUT_PORT_URI = "acdsd-op";
+	public static final String AC_REQUEST_SUBMISSION_IN_PORT_URI = "acrs-ip";
+	public static final String AC_REQUEST_NOTIFICATION_OUT_PORT_URI = "acrn-op";
+
 	public static final String RG_MANAGEMENT_IN_PORT_URI = "rgm-ip";
 	public static final String RG_MANAGEMENT_OUT_PORT_URI = "rgm-op";
+	public static final String RG_REQUEST_SUBMISSION_OUT_PORT_URI = "rgrs-op";
+	public static final String RG_REQUEST_NOTIFICATION_IN_PORT_URI = "rgrn-ip";
 	
-	protected ComputerServicesOutboundPort csOutPort;
+	//protected ComputerServicesOutboundPort csOutPort;
 	protected AdmissionController admissionController;
 	protected RequestGenerator requestGenerator;
 	protected RequestGeneratorManagementOutboundPort rgmOutPort;
@@ -79,20 +78,13 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				C_STATIC_STATE_DATA_IN_PORT_URI, 
 				C_DYNAMIC_STATE_DATA_IN_PORT_URI);		
 		
-		this.addDeployedComponent(computer);	
-		
-		this.csOutPort = new ComputerServicesOutboundPort(
-				C_SERVICES_OUT_PORT_URI, 
-				new AbstractComponent(0, 0){});
-		this.csOutPort.publishPort();
-		this.csOutPort.doConnection(
-				C_SERVICES_IN_PORT_URI, 
-				ComputerServicesConnector.class.getCanonicalName());
+		this.addDeployedComponent(computer);
 		// --------------------------------------------------------------------
 		this.admissionController = new AdmissionController(								
 				computersURI,
-				C_STATIC_STATE_DATA_OUT_PORT_URI, 
-				C_DYNAMIC_STATE_DATA_OUT_PORT_URI,
+				AC_SERVICES_OUT_PORT_URI,
+				AC_STATIC_STATE_DATA_OUT_PORT_URI, 
+				AC_DYNAMIC_STATE_DATA_OUT_PORT_URI,
 				AC_REQUEST_SUBMISSION_IN_PORT_URI,
 				AC_REQUEST_NOTIFICATION_OUT_PORT_URI);
 		
@@ -102,13 +94,18 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		this.admissionController.toggleTracing();
 		this.admissionController.toggleLogging();
 		
+		this.admissionController.doPortConnection(				
+				AC_SERVICES_OUT_PORT_URI,
+				C_SERVICES_IN_PORT_URI,
+				ComputerServicesConnector.class.getCanonicalName());
+		
 		this.admissionController.doPortConnection(
-				C_STATIC_STATE_DATA_OUT_PORT_URI,
+				AC_STATIC_STATE_DATA_OUT_PORT_URI,
 				C_STATIC_STATE_DATA_IN_PORT_URI,
 				DataConnector.class.getCanonicalName());
 
 		this.admissionController.doPortConnection(
-				C_DYNAMIC_STATE_DATA_OUT_PORT_URI,
+				AC_DYNAMIC_STATE_DATA_OUT_PORT_URI,
 				C_DYNAMIC_STATE_DATA_IN_PORT_URI,
 				ControlledDataConnector.class.getCanonicalName());			
 		// --------------------------------------------------------------------		
@@ -122,7 +119,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		
 		this.addDeployedComponent(requestGenerator);
 	
-		RequestGenerator.DEBUG_LEVEL = 0;
+		RequestGenerator.DEBUG_LEVEL = 1;
 		this.requestGenerator.toggleTracing();
 		this.requestGenerator.toggleLogging();
 	
@@ -134,7 +131,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		this.admissionController.doPortConnection(				
 				AC_REQUEST_NOTIFICATION_OUT_PORT_URI,
 				RG_REQUEST_NOTIFICATION_IN_PORT_URI,
-				RequestNotificationConnector.class.getCanonicalName());
+				RequestNotificationConnector.class.getCanonicalName());								
 		// --------------------------------------------------------------------
 		this.rgmOutPort = new RequestGeneratorManagementOutboundPort(				
 				RG_MANAGEMENT_OUT_PORT_URI,
@@ -153,18 +150,16 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	public void start() throws Exception {
 		
 		super.start();
-
-		/*AllocatedCore[] ac = this.csOutPort.allocateCores(4);
-		this.avmOutPort.allocateCores(ac);*/
 	}
 	
 	@Override
 	public void shutdown() throws Exception {
-		
-		this.csOutPort.doDisconnection();
-		this.admissionController.doPortDisconnection(C_STATIC_STATE_DATA_OUT_PORT_URI);
-		this.admissionController.doPortDisconnection(C_DYNAMIC_STATE_DATA_OUT_PORT_URI);
+				
+		this.admissionController.doPortDisconnection(AC_SERVICES_OUT_PORT_URI);
+		this.admissionController.doPortDisconnection(AC_STATIC_STATE_DATA_OUT_PORT_URI);
+		this.admissionController.doPortDisconnection(AC_DYNAMIC_STATE_DATA_OUT_PORT_URI);
 		this.admissionController.doPortDisconnection(AC_REQUEST_NOTIFICATION_OUT_PORT_URI);
+		this.requestGenerator.doPortDisconnection(RG_MANAGEMENT_OUT_PORT_URI);
 		this.requestGenerator.doPortDisconnection(RG_REQUEST_SUBMISSION_OUT_PORT_URI);				
 		this.rgmOutPort.doDisconnection();
 
@@ -173,7 +168,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		this.requestDispatcher.printExecutionLogOnFile("requestDispatcher");
 		this.requestGenerator.printExecutionLogOnFile("requestGenerator");*/
 		
-		super.shutdown() ;
+		super.shutdown();
 	}
 	
 	public void testScenario() throws Exception {
@@ -203,7 +198,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				}
 			}).start();
 			
-			Thread.sleep(90000L) ;
+			Thread.sleep(90000L);
 			
 			System.out.println("shutting down...");
 			test.shutdown();
