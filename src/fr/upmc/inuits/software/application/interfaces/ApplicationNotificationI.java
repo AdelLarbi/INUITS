@@ -4,7 +4,7 @@ import fr.upmc.components.interfaces.OfferedI;
 import fr.upmc.components.interfaces.RequiredI;
 
 public interface ApplicationNotificationI
-extends OfferedI, RequiredI {
+	extends OfferedI, RequiredI {
 	
-	public void notifyApplicationAdmission() throws Exception;
+	public void notifyApplicationAdmission(boolean isAccepted) throws Exception;
 }

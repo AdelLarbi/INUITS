@@ -4,8 +4,7 @@ import fr.upmc.components.interfaces.OfferedI;
 import fr.upmc.components.interfaces.RequiredI;
 
 public interface ApplicationSubmissionI 
-extends OfferedI, RequiredI {
-
-	public void submitApplication() throws Exception;
+	extends OfferedI, RequiredI {
+	
 	public void submitApplicationAndNotify() throws Exception;
 }

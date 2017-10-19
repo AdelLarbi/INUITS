@@ -7,8 +7,8 @@ import fr.upmc.inuits.software.application.interfaces.ApplicationSubmissionHandl
 import fr.upmc.inuits.software.application.interfaces.ApplicationSubmissionI;
 
 public class ApplicationSubmissionInboundPort
-extends AbstractInboundPort
-implements ApplicationSubmissionI {
+	extends AbstractInboundPort
+	implements ApplicationSubmissionI {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -24,21 +24,6 @@ implements ApplicationSubmissionI {
 		super(uri, RequestSubmissionI.class, owner);
 
 		assert uri != null && owner instanceof ApplicationSubmissionHandlerI;
-	}
-	
-	@Override
-	public void submitApplication() throws Exception {
-		
-		final ApplicationSubmissionHandlerI appSubmissionHandler = (ApplicationSubmissionHandlerI) this.owner;
-		
-		this.owner.handleRequestAsync(
-				new ComponentI.ComponentService<Void>() {
-					@Override
-					public Void call() throws Exception {
-						appSubmissionHandler.acceptApplicationSubmission();
-						return null;
-					}					
-				});
 	}
 
 	@Override

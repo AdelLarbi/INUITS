@@ -6,8 +6,8 @@ import fr.upmc.inuits.software.application.interfaces.ApplicationNotificationHan
 import fr.upmc.inuits.software.application.interfaces.ApplicationNotificationI;
 
 public class ApplicationNotificationInboundPort 
-extends	AbstractInboundPort
-implements ApplicationNotificationI {
+	extends	AbstractInboundPort
+	implements ApplicationNotificationI {
 
 	private static final long serialVersionUID = 1L;
 
@@ -26,7 +26,7 @@ implements ApplicationNotificationI {
 	}
 	
 	@Override
-	public void notifyApplicationAdmission() throws Exception {
+	public void notifyApplicationAdmission(boolean isAccepted) throws Exception {
 		
 		final ApplicationNotificationHandlerI appNotificationHandlerI = (ApplicationNotificationHandlerI) this.owner;
 		
@@ -34,7 +34,7 @@ implements ApplicationNotificationI {
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						appNotificationHandlerI.acceptApplicationAdmissionNotification();
+						appNotificationHandlerI.acceptApplicationAdmissionNotification(isAccepted);
 						return null;
 					}
 				});		

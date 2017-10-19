@@ -5,8 +5,8 @@ import fr.upmc.components.ports.AbstractOutboundPort;
 import fr.upmc.inuits.software.application.interfaces.ApplicationNotificationI;
 
 public class ApplicationNotificationOutboundPort 
-extends AbstractOutboundPort
-implements ApplicationNotificationI {
+	extends AbstractOutboundPort
+	implements ApplicationNotificationI {
 
 	public ApplicationNotificationOutboundPort(ComponentI owner) throws Exception {
 		
@@ -21,8 +21,8 @@ implements ApplicationNotificationI {
 	}
 	
 	@Override
-	public void notifyApplicationAdmission() throws Exception {
+	public void notifyApplicationAdmission(boolean isAccepted) throws Exception {
 	
-		((ApplicationNotificationI)this.connector).notifyApplicationAdmission();		
+		((ApplicationNotificationI)this.connector).notifyApplicationAdmission(isAccepted);		
 	}
 }

@@ -69,10 +69,12 @@ implements ApplicationNotificationHandlerI {
 	}
 	
 	@Override
-	public void acceptApplicationAdmissionNotification() throws Exception {
-		//FIXME add arg if true or false admission
+	public void acceptApplicationAdmissionNotification(boolean isAccepted) throws Exception {
+		
 		if (Application.DEBUG_LEVEL == 1) {			
-			this.logMessage("Application " + this.appURI + " is notified that admission request has accepted.");
+			this.logMessage("Application " + this.appURI + " is notified that admission request "
+					+ ((isAccepted)? "has" : "hasn't")
+					+ " been accepted.");
 		}		
 	}
 }

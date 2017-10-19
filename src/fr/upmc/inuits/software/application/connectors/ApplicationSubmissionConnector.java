@@ -4,14 +4,8 @@ import fr.upmc.components.connectors.AbstractConnector;
 import fr.upmc.inuits.software.application.interfaces.ApplicationSubmissionI;
 
 public class ApplicationSubmissionConnector
-extends AbstractConnector
-implements ApplicationSubmissionI {
-
-	@Override
-	public void submitApplication() throws Exception {
-		
-		((ApplicationSubmissionI)this.offering).submitApplication();		
-	}
+	extends AbstractConnector
+	implements ApplicationSubmissionI {
 
 	@Override
 	public void submitApplicationAndNotify() throws Exception {

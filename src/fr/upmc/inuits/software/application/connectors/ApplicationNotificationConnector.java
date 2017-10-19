@@ -4,12 +4,12 @@ import fr.upmc.components.connectors.AbstractConnector;
 import fr.upmc.inuits.software.application.interfaces.ApplicationNotificationI;
 
 public class ApplicationNotificationConnector 
-extends AbstractConnector
-implements ApplicationNotificationI {
+	extends AbstractConnector
+	implements ApplicationNotificationI {
 
 	@Override
-	public void notifyApplicationAdmission() throws Exception {
+	public void notifyApplicationAdmission(boolean isAccepted) throws Exception {
 		
-		((ApplicationNotificationI)this.offering).notifyApplicationAdmission();		
+		((ApplicationNotificationI)this.offering).notifyApplicationAdmission(isAccepted);		
 	}
 }

@@ -5,8 +5,8 @@ import fr.upmc.components.ports.AbstractOutboundPort;
 import fr.upmc.inuits.software.application.interfaces.ApplicationSubmissionI;
 
 public class ApplicationSubmissionOutboundPort
-extends AbstractOutboundPort
-implements ApplicationSubmissionI {
+	extends AbstractOutboundPort
+	implements ApplicationSubmissionI {
 
 	public ApplicationSubmissionOutboundPort(ComponentI owner) throws Exception {
 	
@@ -18,12 +18,6 @@ implements ApplicationSubmissionI {
 		super(uri, ApplicationSubmissionI.class, owner);
 
 		assert uri != null;
-	}
-	
-	@Override
-	public void submitApplication() throws Exception {
-		
-		((ApplicationSubmissionI)this.connector).submitApplication();
 	}
 
 	@Override
