@@ -22,13 +22,6 @@ import fr.upmc.datacenter.software.applicationvm.connectors.ApplicationVMManagem
 import fr.upmc.datacenter.software.applicationvm.ports.ApplicationVMManagementOutboundPort;
 import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
 import fr.upmc.datacenter.software.connectors.RequestSubmissionConnector;
-import fr.upmc.datacenter.software.interfaces.RequestI;
-import fr.upmc.datacenter.software.interfaces.RequestNotificationI;
-import fr.upmc.datacenter.software.interfaces.RequestSubmissionHandlerI;
-import fr.upmc.datacenter.software.interfaces.RequestSubmissionI;
-import fr.upmc.datacenter.software.ports.RequestNotificationOutboundPort;
-import fr.upmc.datacenter.software.ports.RequestSubmissionInboundPort;
-import fr.upmc.datacenterclient.utils.TimeProcessing;
 import fr.upmc.inuits.software.application.interfaces.ApplicationNotificationI;
 import fr.upmc.inuits.software.application.interfaces.ApplicationSubmissionHandlerI;
 import fr.upmc.inuits.software.application.interfaces.ApplicationSubmissionI;
@@ -38,7 +31,7 @@ import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 
 public class AdmissionController 
 	extends AbstractComponent 
-	implements ComputerStateDataConsumerI, ApplicationSubmissionHandlerI, RequestSubmissionHandlerI {
+	implements ComputerStateDataConsumerI, ApplicationSubmissionHandlerI/*, RequestSubmissionHandlerI*/ {
 	
 	public static int DEBUG_LEVEL = 1;	
 	
@@ -47,13 +40,13 @@ public class AdmissionController
 	protected ComputerDynamicStateDataOutboundPort cdsdop;
 	protected ApplicationSubmissionInboundPort asip;
 	protected ApplicationNotificationOutboundPort anop;
-	protected RequestSubmissionInboundPort rsip;
-	protected RequestNotificationOutboundPort rnop;
+	//protected RequestSubmissionInboundPort rsip;
+	//protected RequestNotificationOutboundPort rnop;
 	
 	protected ApplicationVMManagementOutboundPort avmOutPort;
 	
-	protected String acRequestSubmissionOutPortUri;
-	protected String acRequestNotificationInPortUri;
+	//protected String acRequestSubmissionOutPortUri;
+	//protected String acRequestNotificationInPortUri;
 	
 	boolean[][] reservedCores;
 	
@@ -63,9 +56,9 @@ public class AdmissionController
 			String computerStaticStateDataOutboundPortURI,
 			String computerDynamicStateDataOutboundPortURI,
 			String applicationSubmissionInboundPortURI,
-			String applicationNotificationOutboundPortURI,
+			String applicationNotificationOutboundPortURI/*,
 			String requestSubmissionInboundPortURI,
-			String requestNotificationOutboundPortURI) throws Exception {
+			String requestNotificationOutboundPortURI*/) throws Exception {
 		
 		super(1, 1);
 
@@ -75,8 +68,8 @@ public class AdmissionController
 		assert computerDynamicStateDataOutboundPortURI != null && computerDynamicStateDataOutboundPortURI.length() > 0;		
 		assert applicationSubmissionInboundPortURI != null && applicationSubmissionInboundPortURI.length() > 0;
 		assert applicationNotificationOutboundPortURI != null && applicationNotificationOutboundPortURI.length() > 0;
-		assert requestSubmissionInboundPortURI != null && requestSubmissionInboundPortURI.length() > 0;
-		assert requestNotificationOutboundPortURI != null && requestNotificationOutboundPortURI.length() > 0;				
+		//assert requestSubmissionInboundPortURI != null && requestSubmissionInboundPortURI.length() > 0;
+		//assert requestNotificationOutboundPortURI != null && requestNotificationOutboundPortURI.length() > 0;				
 		
 		this.addRequiredInterface(ComputerServicesI.class);
 		this.csop = new ComputerServicesOutboundPort(computerServicesOutboundPortURI, this);
@@ -107,7 +100,7 @@ public class AdmissionController
 		this.addPort(this.anop);
 		this.anop.publishPort();
 		
-		this.addOfferedInterface(RequestSubmissionI.class);
+		/*this.addOfferedInterface(RequestSubmissionI.class);
 		this.rsip = new RequestSubmissionInboundPort(requestSubmissionInboundPortURI, this);
 		this.addPort(this.rsip);
 		this.rsip.publishPort();
@@ -118,7 +111,7 @@ public class AdmissionController
 		this.rnop.publishPort();
 		
 		this.acRequestSubmissionOutPortUri = computersURI + "-acrs-op";
-		this.acRequestNotificationInPortUri = computersURI + "-acrn-ip";
+		this.acRequestNotificationInPortUri = computersURI + "-acrn-ip";*/
 		
 		this.reservedCores = new boolean[0][0];
 		
@@ -126,10 +119,10 @@ public class AdmissionController
 		assert this.cdsdop != null && this.cdsdop instanceof ControlledDataRequiredI.ControlledPullI;
 		assert this.asip != null && this.asip instanceof ApplicationSubmissionI;
 		assert this.anop != null && this.anop instanceof ApplicationNotificationI;
-		assert this.rsip != null && this.rsip instanceof RequestSubmissionI;
+		/*assert this.rsip != null && this.rsip instanceof RequestSubmissionI;
 		assert this.rnop != null && this.rnop instanceof RequestNotificationI;
 		assert this.acRequestSubmissionOutPortUri != null;
-		assert this.acRequestNotificationInPortUri != null;
+		assert this.acRequestNotificationInPortUri != null;*/
 		assert this.reservedCores != null;
 	}
 	
@@ -141,8 +134,8 @@ public class AdmissionController
 		// start the pushing of dynamic state information from the computer;
 		// here only one push of information is planned after one second.
 		try {
-			this.cdsdop.startLimitedPushing(1000, 25);
-			//this.cdsdop.startUnlimitedPushing(1000);
+			this.cdsdop.startUnlimitedPushing(1000);
+			//this.cdsdop.startLimitedPushing(1000, 25);
 			
 		} catch (Exception e) {
 			throw new ComponentStartException("Unable to start pushing dynamic data from the computer component.", e);
@@ -165,9 +158,9 @@ public class AdmissionController
 			if (this.anop.connected()) {
 				this.anop.doDisconnection();
 			}
-			if (this.rnop.connected()) {
+			/*if (this.rnop.connected()) {
 				this.rnop.doDisconnection();
-			}
+			}*/
 		} catch (Exception e) {
 			throw new ComponentShutdownException("Port disconnection error", e);
 		}
@@ -248,38 +241,13 @@ public class AdmissionController
 			this.logMessage("Admission controller checking for available resources to execute " + appUri + ".");
 		}
 		
-		this.anop.notifyApplicationAdmission(true);
-	}
-	
-	@Override
-	public void acceptRequestSubmission(RequestI r) throws Exception {
-		
-		/*if (AdmissionController.DEBUG_LEVEL == 1) {			
-			this.logMessage(				
-					"Admission controller submitting request " + r.getRequestURI() + " at " +
-					TimeProcessing.toString(System.currentTimeMillis()) + " with number of instructions " + 
-					r.getPredictedNumberOfInstructions());
-		}*/					
-	}
-
-	@Override
-	public void acceptRequestSubmissionAndNotify(RequestI r) throws Exception {
-		
-		if (AdmissionController.DEBUG_LEVEL == 1) {
-			this.logMessage(				
-					"Admission controller submitting request " + r.getRequestURI() + " at " +
-					TimeProcessing.toString(System.currentTimeMillis()) + " with number of instructions " + 
-					r.getPredictedNumberOfInstructions());
-		}
-		
-		/*if (isResourcesAvailable()) {			
-			acceptRequest(r);
+		if (isResourcesAvailable()) {
+			acceptApplication(appUri);
+			this.anop.notifyApplicationAdmission(true);
 			
 		} else {
-			rejectRequest(r);
-		}*/
-		
-		this.rnop.notifyRequestTermination(r);		
+			this.anop.notifyApplicationAdmission(false);
+		}		
 	}
 	
 	public boolean isResourcesAvailable() {
@@ -292,15 +260,23 @@ public class AdmissionController
 			}
 		}
 		
+		//FIXME return the correct value
 		return true;
 	}
-	
-	public void acceptRequest(RequestI r) throws Exception {
+
+	public void acceptApplication(String appUri) throws Exception {
 		
-		deploy();
+		this.logMessage("Admission controller allow application " + appUri + " to be executed.");
+		
+		/*deploy();
 		
 		AllocatedCore[] ac = this.csop.allocateCores(4);
-		this.avmOutPort.allocateCores(ac);
+		this.avmOutPort.allocateCores(ac);*/
+	}
+
+	public void rejectApplication(String appUri) {
+		
+		this.logMessage("Admission controller can't accept application " + appUri + " because of lack of resources.");
 	}
 	
 	public void deploy() throws Exception {
@@ -350,7 +326,7 @@ public class AdmissionController
 		requestDispatcher.toggleTracing();
 		requestDispatcher.toggleLogging();
 		
-		this.doPortConnection(
+		/*this.doPortConnection(
 				acRequestSubmissionOutPortUri,
 				RD_REQUEST_SUBMISSION_IN_PORT_URI,
 				RequestSubmissionConnector.class.getCanonicalName());
@@ -358,7 +334,7 @@ public class AdmissionController
 		requestDispatcher.doPortConnection(
 				RD_REQUEST_NOTIFICATION_OUT_PORT_URI,
 				acRequestNotificationInPortUri,
-				RequestSubmissionConnector.class.getCanonicalName());
+				RequestSubmissionConnector.class.getCanonicalName());*/
 		
 		requestDispatcher.doPortConnection(
 				RD_REQUEST_SUBMISSION_OUT_PORT_URI,
@@ -371,9 +347,36 @@ public class AdmissionController
 				RequestNotificationConnector.class.getCanonicalName());
 	}
 	
-	public void rejectRequest(RequestI r) {
-		this.logMessage("Admission controller can't hundle request " + r.getRequestURI() + " because of lack of resources");
-	}
+	/*@Override
+	public void acceptRequestSubmission(RequestI r) throws Exception {
+		
+		if (AdmissionController.DEBUG_LEVEL == 1) {			
+			this.logMessage(				
+					"Admission controller submitting request " + r.getRequestURI() + " at " +
+					TimeProcessing.toString(System.currentTimeMillis()) + " with number of instructions " + 
+					r.getPredictedNumberOfInstructions());
+		}					
+	}*/
+
+	/*@Override
+	public void acceptRequestSubmissionAndNotify(RequestI r) throws Exception {
+		
+		if (AdmissionController.DEBUG_LEVEL == 1) {
+			this.logMessage(				
+					"Admission controller submitting request " + r.getRequestURI() + " at " +
+					TimeProcessing.toString(System.currentTimeMillis()) + " with number of instructions " + 
+					r.getPredictedNumberOfInstructions());
+		}
+		
+		if (isResourcesAvailable()) {			
+			acceptRequest(r);
+			
+		} else {
+			rejectRequest(r);
+		}
+		
+		this.rnop.notifyRequestTermination(r);		
+	}*/			
 	
 	/*@Override
 	public void acceptRequestTerminationNotification(RequestI r) throws Exception {
