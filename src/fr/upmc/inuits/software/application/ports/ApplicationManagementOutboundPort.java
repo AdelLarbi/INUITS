@@ -25,4 +25,11 @@ public class ApplicationManagementOutboundPort
 		
 		((ApplicationManagementI)this.connector).sendRequestForApplicationExecution();		
 	}
+
+	@Override
+	public void doConnectionWithDispatcher(String dispatcherRequestSubmissionInboundPortUri) throws Exception {
+		System.out.println("BEGIN -> OUT");
+		((ApplicationManagementI)this.connector).doConnectionWithDispatcher(dispatcherRequestSubmissionInboundPortUri);
+		System.out.println("END -> OUT");
+	}
 }

@@ -14,8 +14,6 @@ import fr.upmc.datacenter.hardware.computers.Computer;
 import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
 import fr.upmc.datacenter.hardware.processors.Processor;
 import fr.upmc.datacenterclient.requestgenerator.RequestGenerator;
-import fr.upmc.datacenterclient.requestgenerator.connectors.RequestGeneratorManagementConnector;
-import fr.upmc.datacenterclient.requestgenerator.ports.RequestGeneratorManagementOutboundPort;
 import fr.upmc.inuits.software.admissioncontroller.AdmissionController;
 import fr.upmc.inuits.software.application.Application;
 import fr.upmc.inuits.software.application.connectors.ApplicationManagementConnector;
@@ -32,6 +30,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	public static final String AC_SERVICES_OUT_PORT_URI = "acs-op";
 	public static final String AC_STATIC_STATE_DATA_OUT_PORT_URI = "acssd-op";
 	public static final String AC_DYNAMIC_STATE_DATA_OUT_PORT_URI = "acdsd-op";
+	public static final String AC_APPLICATION_MANAGEMENT_OUT_PORT_URI = "acam-op";
 	public static final String AC_APPLICATION_SUBMISSION_IN_PORT_URI = "acas-ip";
 	public static final String AC_APPLICATION_NOTIFICATION_OUT_PORT_URI = "acan-op";
 	//public static final String AC_REQUEST_SUBMISSION_IN_PORT_URI = "acrs-ip";
@@ -98,10 +97,9 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				AC_SERVICES_OUT_PORT_URI,
 				AC_STATIC_STATE_DATA_OUT_PORT_URI, 
 				AC_DYNAMIC_STATE_DATA_OUT_PORT_URI,
+				AC_APPLICATION_MANAGEMENT_OUT_PORT_URI,
 				AC_APPLICATION_SUBMISSION_IN_PORT_URI,
-				AC_APPLICATION_NOTIFICATION_OUT_PORT_URI/*,
-				AC_REQUEST_SUBMISSION_IN_PORT_URI,
-				AC_REQUEST_NOTIFICATION_OUT_PORT_URI*/);
+				AC_APPLICATION_NOTIFICATION_OUT_PORT_URI);
 		
 		this.addDeployedComponent(this.admissionController);
 		

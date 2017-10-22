@@ -43,10 +43,19 @@ public class RequestDispatcher
 		
 		this.rdURI = rdURI;
 
+		//XXX
+		/*this.addRequiredInterface(RequestSubmissionI.class);
+		RequestSubmissionInboundPort r = new RequestSubmissionInboundPort(this);
+		this.addPort(r);
+		r.publishPort();
+		r.doConnection(
+				"yolo",//FIXME
+				RequestSubmissionConnector.class.getCanonicalName());*/
+		
 		this.addOfferedInterface(RequestSubmissionI.class);
 		this.rsip = new RequestSubmissionInboundPort(requestSubmissionIntboundPortURI, this);
 		this.addPort(this.rsip);
-		this.rsip.publishPort();
+		this.rsip.publishPort();			
 		
 		this.addRequiredInterface(RequestSubmissionI.class);
 		this.rsop = new RequestSubmissionOutboundPort(requestSubmissionOutboundPortURI, this);
@@ -74,21 +83,9 @@ public class RequestDispatcher
 	public void shutdown() throws ComponentShutdownException {
 		
 		try {
-			/* Error : Attempt to disconnect a server component port rdrsip from a client component port 
-			 * but from the server side; should be done from the client side!
-			if (this.rsip.connected()) {
-				this.rsip.doDisconnection();
-			}
-			*/
 			if (this.rsop.connected()) {
 				this.rsop.doDisconnection();
 			}
-			/* Error: Attempt to disconnect a server component port rdrnip from a client component port 
-			 * but from the server side; should be done from the client side!
-			if (this.rnip.connected()) {
-				this.rnip.doDisconnection();
-			}
-			*/
 			if (this.rnop.connected()) {
 				this.rnop.doDisconnection();
 			}

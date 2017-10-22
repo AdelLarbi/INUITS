@@ -29,6 +29,7 @@ public class ApplicationManagementInboundPort
 	public void sendRequestForApplicationExecution() throws Exception {		
 		
 		final Application app = (Application) this.owner;
+		
 		this.owner.handleRequestAsync(
 				new ComponentI.ComponentService<Void>() {
 					@Override
@@ -36,7 +37,22 @@ public class ApplicationManagementInboundPort
 						app.sendRequestForApplicationExecution();
 						return null;
 					}
-				});
+				});		
+	}
+
+	@Override
+	public void doConnectionWithDispatcher(String dispatcherRequestSubmissionInboundPortUri) throws Exception {
+		System.out.println("BEGIN -> IN");
+		final Application app = (Application) this.owner;
 		
+		this.owner.handleRequestAsync(
+				new ComponentI.ComponentService<Void>() {
+					@Override
+					public Void call() throws Exception {
+						app.doConnectionWithDispatcher(dispatcherRequestSubmissionInboundPortUri);
+						return null;
+					}
+				});
+		System.out.println("END -> IN");
 	}
 }

@@ -6,11 +6,9 @@ import fr.upmc.components.exceptions.ComponentShutdownException;
 import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
 import fr.upmc.datacenter.software.connectors.RequestSubmissionConnector;
 import fr.upmc.datacenter.software.interfaces.RequestNotificationI;
-import fr.upmc.datacenter.software.interfaces.RequestSubmissionHandlerI;
-import fr.upmc.datacenter.software.interfaces.RequestSubmissionI;
 import fr.upmc.datacenter.software.ports.RequestNotificationOutboundPort;
-import fr.upmc.datacenter.software.ports.RequestSubmissionInboundPort;
 import fr.upmc.datacenterclient.requestgenerator.RequestGenerator;
+import fr.upmc.datacenterclient.requestgenerator.connectors.RequestGeneratorManagementConnector;
 import fr.upmc.datacenterclient.requestgenerator.interfaces.RequestGeneratorManagementI;
 import fr.upmc.datacenterclient.requestgenerator.ports.RequestGeneratorManagementOutboundPort;
 import fr.upmc.inuits.software.application.interfaces.ApplicationManagementI;
@@ -20,6 +18,7 @@ import fr.upmc.inuits.software.application.interfaces.ApplicationSubmissionI;
 import fr.upmc.inuits.software.application.ports.ApplicationManagementInboundPort;
 import fr.upmc.inuits.software.application.ports.ApplicationNotificationInboundPort;
 import fr.upmc.inuits.software.application.ports.ApplicationSubmissionOutboundPort;
+import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 
 public class Application 
 extends AbstractComponent
@@ -34,9 +33,11 @@ implements ApplicationManagementI, ApplicationNotificationHandlerI {
 	protected ApplicationSubmissionOutboundPort asop;
 	protected ApplicationNotificationInboundPort anip;
 	
-	protected RequestGeneratorManagementOutboundPort rgmop;
+	protected RequestGeneratorManagementOutboundPort rgmop;			
 	//protected RequestSubmissionInboundPort rsip;
-	//protected RequestNotificationOutboundPort rnop;
+	protected RequestNotificationOutboundPort rnop;
+	
+	final String rgRequestSubmissionOutboundPortURI;
 	
 	public Application(
 			String appURI,			
@@ -54,9 +55,11 @@ implements ApplicationManagementI, ApplicationNotificationHandlerI {
 		assert applicationSubmissionOutboundPortURI != null;
 		assert applicationNotificationInboundPortURI != null;
 		
+		final String rgManagementOutboundPortURI = "rgm-op";
+		
 		final String rgURI = "rg-" + appURI; 		
 		final String rgManagementInboundPortURI = appURI + "-rgm-ip";
-		final String rgRequestSubmissionOutboundPortURI = appURI + "-rgrs-op";
+		rgRequestSubmissionOutboundPortURI = appURI + "-rgrs-op";
 		final String rgRequestNotificationInboundPortURI = appURI + "-rgrn-ip";
 		
 		this.appURI = appURI;
@@ -77,9 +80,9 @@ implements ApplicationManagementI, ApplicationNotificationHandlerI {
 		this.anip.publishPort();
 				
 		this.addRequiredInterface(RequestGeneratorManagementI.class);
-		this.rgmop = new RequestGeneratorManagementOutboundPort(rgManagementInboundPortURI, this);
+		this.rgmop = new RequestGeneratorManagementOutboundPort(rgManagementOutboundPortURI, this);
 		this.addPort(this.rgmop);
-		this.rgmop.publishPort();			
+		this.rgmop.publishPort();									
 		
 		this.requestGenerator = new RequestGenerator(				
 				rgURI,
@@ -91,19 +94,29 @@ implements ApplicationManagementI, ApplicationNotificationHandlerI {
 		
 		AbstractCVM.theCVM.addDeployedComponent(requestGenerator);		
 				
+		RequestGenerator.DEBUG_LEVEL = 2;
+		this.requestGenerator.toggleTracing();
+		this.requestGenerator.toggleLogging();
+		
 		/*this.rsip = new RequestSubmissionInboundPort(rgURI, this);
 		this.addPort(this.rsip);
 		this.rsip.publishPort();
 		this.rsip.doConnection(
 				rgRequestSubmissionOutboundPortURI, 
-				RequestSubmissionConnector.class.getCanonicalName());
+				RequestSubmissionConnector.class.getCanonicalName());*/
+		
+		this.rgmop.doConnection(
+				rgManagementInboundPortURI, 
+				RequestGeneratorManagementConnector.class.getCanonicalName());
 		
 		this.rnop = new RequestNotificationOutboundPort(rgURI, this);
 		this.addPort(this.rnop);
 		this.rnop.publishPort();
 		this.rnop.doConnection(
 				rgRequestNotificationInboundPortURI, 
-				RequestNotificationConnector.class.getCanonicalName());*/
+				RequestNotificationConnector.class.getCanonicalName());
+		
+		//foo();
 		
 		assert this.appURI != null && this.appURI.length() > 0;
 		assert this.amip != null && this.amip instanceof ApplicationManagementI;
@@ -111,7 +124,7 @@ implements ApplicationManagementI, ApplicationNotificationHandlerI {
 		assert this.anip != null && this.anip instanceof ApplicationNotificationI;		
 		assert this.rgmop != null && this.rgmop instanceof RequestGeneratorManagementI;		
 		//assert this.rsip != null && this.rsip instanceof RequestSubmissionI;
-		//assert this.rnop != null && this.rnop instanceof RequestNotificationI;
+		assert this.rnop != null && this.rnop instanceof RequestNotificationI;
 	}
 	
 	@Override
@@ -124,9 +137,9 @@ implements ApplicationManagementI, ApplicationNotificationHandlerI {
 			if (this.rgmop.connected()) {
 				this.rgmop.doDisconnection();
 			}			
-			/*if (this.rnop.connected()) {
+			if (this.rnop.connected()) {
 				this.rnop.doDisconnection();
-			}*/
+			}
 		} catch (Exception e) {
 			throw new ComponentShutdownException(e);
 		}
@@ -134,7 +147,7 @@ implements ApplicationManagementI, ApplicationNotificationHandlerI {
 		super.shutdown();
 	}
 	
-	@Override
+	/*@Override
 	public void	toggleLogging() {
 		
 		this.requestGenerator.toggleLogging();		
@@ -146,7 +159,7 @@ implements ApplicationManagementI, ApplicationNotificationHandlerI {
 		
 		this.requestGenerator.toggleTracing();		
 		super.toggleTracing();
-	}
+	}*/
 	
 	@Override
 	public void	sendRequestForApplicationExecution() throws Exception {
@@ -156,6 +169,16 @@ implements ApplicationManagementI, ApplicationNotificationHandlerI {
 		}
 		
 		this.asop.submitApplicationAndNotify(this.appURI);
+	}
+	
+	@Override
+	public void doConnectionWithDispatcher(String dispatcherRequestSubmissionInboundPortUri) throws Exception {
+		System.out.println("BEGIN -> Application");
+		requestGenerator.doPortConnection(
+				rgRequestSubmissionOutboundPortURI,
+				dispatcherRequestSubmissionInboundPortUri,
+				RequestSubmissionConnector.class.getCanonicalName());
+		System.out.println("END -> Application");
 	}
 	
 	@Override
@@ -172,5 +195,32 @@ implements ApplicationManagementI, ApplicationNotificationHandlerI {
 			Thread.sleep(20000L);		
 			this.rgmop.stopGeneration();
 		}
+	}
+	
+	private void foo() throws Exception {
+		final String RD_REQUEST_SUBMISSION_IN_PORT_URI = "rdrs-ip";
+		final String RD_REQUEST_SUBMISSION_OUT_PORT_URI = "rdrs-op";
+		final String RD_REQUEST_NOTIFICATION_IN_PORT_URI = "rdrn-ip";
+		final String RD_REQUEST_NOTIFICATION_OUT_PORT_URI = "rdrn-op";
+		
+		RequestDispatcher requestDispatcher;
+		
+		requestDispatcher = new RequestDispatcher(				
+				"rd0",							
+				RD_REQUEST_SUBMISSION_IN_PORT_URI,
+				RD_REQUEST_SUBMISSION_OUT_PORT_URI,
+				RD_REQUEST_NOTIFICATION_IN_PORT_URI,
+				RD_REQUEST_NOTIFICATION_OUT_PORT_URI);
+		
+		AbstractCVM.theCVM.addDeployedComponent(requestDispatcher);
+		
+		RequestDispatcher.DEBUG_LEVEL = 1;
+		requestDispatcher.toggleTracing();
+		requestDispatcher.toggleLogging();
+		
+		requestGenerator.doPortConnection(
+				rgRequestSubmissionOutboundPortURI,
+				RD_REQUEST_SUBMISSION_IN_PORT_URI,
+				RequestSubmissionConnector.class.getCanonicalName());
 	}
 }

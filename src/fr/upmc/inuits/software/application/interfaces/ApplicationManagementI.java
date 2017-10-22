@@ -7,4 +7,5 @@ public interface ApplicationManagementI
 	extends OfferedI, RequiredI {
 		
 	public void sendRequestForApplicationExecution() throws Exception;
+	public void doConnectionWithDispatcher(String dispatcherRequestSubmissionInboundPortUri) throws Exception;
 }
