@@ -1,11 +1,8 @@
 package fr.upmc.inuits.software.admissioncontroller;
 
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 import fr.upmc.components.AbstractComponent;
-import fr.upmc.components.ComponentI;
-import fr.upmc.components.ComponentI.ComponentTask;
 import fr.upmc.components.cvm.AbstractCVM;
 import fr.upmc.components.exceptions.ComponentShutdownException;
 import fr.upmc.components.exceptions.ComponentStartException;
@@ -255,13 +252,16 @@ public class AdmissionController
 		
 		this.logMessage("Admission controller allow application " + appUri + " to be executed.");
 		foo();
-		/*deploy();
+		/*deployComponents();
 		
 		AllocatedCore[] ac = this.csop.allocateCores(4);
 		this.avmOutPort.allocateCores(ac);*/
 	}
 	
 	private void foo() throws Exception {
+		
+		this.logMessage("Admission controller deploying components...");
+		
 		final String RD_REQUEST_SUBMISSION_IN_PORT_URI = "rdrs-ip";
 		final String RD_REQUEST_SUBMISSION_OUT_PORT_URI = "rdrs-op";
 		final String RD_REQUEST_NOTIFICATION_IN_PORT_URI = "rdrn-ip";
@@ -281,24 +281,8 @@ public class AdmissionController
 		RequestDispatcher.DEBUG_LEVEL = 1;
 		requestDispatcher.toggleTracing();
 		requestDispatcher.toggleLogging();
-		System.out.println("BEGIN -> AC");
-		/*new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(30000L);
-					amop.doConnectionWithDispatcher(RD_REQUEST_SUBMISSION_IN_PORT_URI);
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-			}
-		}).start();*/
-		//this.amop.doConnectionWithDispatcher(RD_REQUEST_SUBMISSION_IN_PORT_URI);
-		System.out.println("END -> AC");
-		/*requestGenerator.doPortConnection(
-				rgRequestSubmissionOutboundPortURI,
-				RD_REQUEST_SUBMISSION_IN_PORT_URI,
-				RequestSubmissionConnector.class.getCanonicalName());*/
+		
+		this.amop.doConnectionWithDispatcher(RD_REQUEST_SUBMISSION_IN_PORT_URI);		
 	}
 
 	public void rejectApplication(String appUri) {
@@ -306,7 +290,7 @@ public class AdmissionController
 		this.logMessage("Admission controller can't accept application " + appUri + " because of lack of resources.");
 	}
 	
-	public void deploy() throws Exception {
+	public void deployComponents() throws Exception {
 		
 		final String AVM_MANAGEMENT_IN_PORT_URI = "am-ip";
 		final String AVM_MANAGEMENT_OUT_PORT_URI = "am-op";	

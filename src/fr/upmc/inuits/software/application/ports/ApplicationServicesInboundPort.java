@@ -3,30 +3,30 @@ package fr.upmc.inuits.software.application.ports;
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractInboundPort;
 import fr.upmc.inuits.software.application.Application;
-import fr.upmc.inuits.software.application.interfaces.ApplicationManagementI;
+import fr.upmc.inuits.software.application.interfaces.ApplicationServicesI;
 
-public class ApplicationManagementInboundPort
+public class ApplicationServicesInboundPort
 	extends AbstractInboundPort
-	implements ApplicationManagementI {
+	implements ApplicationServicesI {
 
 	private static final long serialVersionUID = 1L;
 
-	public ApplicationManagementInboundPort(ComponentI owner) throws Exception {
-		
-		super(ApplicationManagementI.class, owner);
+	public ApplicationServicesInboundPort(ComponentI owner) throws Exception {
+			
+		super(ApplicationServicesI.class, owner);
 
 		assert owner != null && owner instanceof Application;
 	}
 
-	public ApplicationManagementInboundPort(String uri, ComponentI owner) throws Exception {
+	public ApplicationServicesInboundPort(String uri, ComponentI owner) throws Exception {
 		
-		super(uri, ApplicationManagementI.class, owner);
+		super(uri, ApplicationServicesI.class, owner);
 
 		assert	owner != null && owner instanceof Application;
 	}
-	
+		
 	@Override
-	public void doConnectionWithDispatcher(String dispatcherRequestSubmissionInboundPortUri) throws Exception {
+	public void sendRequestForApplicationExecution() throws Exception {		
 		
 		final Application app = (Application) this.owner;
 		
@@ -34,10 +34,9 @@ public class ApplicationManagementInboundPort
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						app.doConnectionWithDispatcher(dispatcherRequestSubmissionInboundPortUri);
+						app.sendRequestForApplicationExecution();
 						return null;
 					}
 				});		
 	}
-
 }

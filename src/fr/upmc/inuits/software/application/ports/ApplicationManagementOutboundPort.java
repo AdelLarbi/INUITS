@@ -4,7 +4,7 @@ import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractOutboundPort;
 import fr.upmc.inuits.software.application.interfaces.ApplicationManagementI;
 
-public class ApplicationManagementOutboundPort 
+public class ApplicationManagementOutboundPort
 	extends AbstractOutboundPort
 	implements ApplicationManagementI {
 
@@ -19,17 +19,10 @@ public class ApplicationManagementOutboundPort
 
 		assert uri != null && owner != null;
 	}
-		
-	@Override
-	public void sendRequestForApplicationExecution() throws Exception {
-		
-		((ApplicationManagementI)this.connector).sendRequestForApplicationExecution();		
-	}
-
+	
 	@Override
 	public void doConnectionWithDispatcher(String dispatcherRequestSubmissionInboundPortUri) throws Exception {
-		System.out.println("BEGIN -> OUT");
+		
 		((ApplicationManagementI)this.connector).doConnectionWithDispatcher(dispatcherRequestSubmissionInboundPortUri);
-		System.out.println("END -> OUT");
 	}
 }

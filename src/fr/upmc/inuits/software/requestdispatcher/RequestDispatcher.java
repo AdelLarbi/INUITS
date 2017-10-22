@@ -42,15 +42,6 @@ public class RequestDispatcher
 		assert requestNotificationOutboundPortURI != null && requestNotificationOutboundPortURI.length() > 0;
 		
 		this.rdURI = rdURI;
-
-		//XXX
-		/*this.addRequiredInterface(RequestSubmissionI.class);
-		RequestSubmissionInboundPort r = new RequestSubmissionInboundPort(this);
-		this.addPort(r);
-		r.publishPort();
-		r.doConnection(
-				"yolo",//FIXME
-				RequestSubmissionConnector.class.getCanonicalName());*/
 		
 		this.addOfferedInterface(RequestSubmissionI.class);
 		this.rsip = new RequestSubmissionInboundPort(requestSubmissionIntboundPortURI, this);
