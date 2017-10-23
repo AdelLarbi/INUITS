@@ -3,6 +3,7 @@ package fr.upmc.inuits.software.application.ports;
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractOutboundPort;
 import fr.upmc.inuits.software.application.interfaces.ApplicationManagementI;
+import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 
 public class ApplicationManagementOutboundPort
 	extends AbstractOutboundPort
@@ -21,8 +22,18 @@ public class ApplicationManagementOutboundPort
 	}
 	
 	@Override
-	public void doConnectionWithDispatcher(String dispatcherRequestSubmissionInboundPortUri) throws Exception {
+	public void doConnectionWithDispatcherForSubmission(String dispatcherRequestSubmissionInboundPortUri) 
+			throws Exception {
 		
-		((ApplicationManagementI)this.connector).doConnectionWithDispatcher(dispatcherRequestSubmissionInboundPortUri);
+		((ApplicationManagementI)this.connector).
+			doConnectionWithDispatcherForSubmission(dispatcherRequestSubmissionInboundPortUri);
+	}
+
+	@Override
+	public void doConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher,
+			String dispatcherRequestNotificationOutboundPortUri) throws Exception {
+		
+		((ApplicationManagementI)this.connector).
+		doConnectionWithDispatcherForNotification(requestDispatcher, dispatcherRequestNotificationOutboundPortUri);
 	}
 }

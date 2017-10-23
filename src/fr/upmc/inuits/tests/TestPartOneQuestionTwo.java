@@ -13,12 +13,11 @@ import fr.upmc.datacenter.connectors.ControlledDataConnector;
 import fr.upmc.datacenter.hardware.computers.Computer;
 import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
 import fr.upmc.datacenter.hardware.processors.Processor;
-import fr.upmc.datacenterclient.requestgenerator.RequestGenerator;
 import fr.upmc.inuits.software.admissioncontroller.AdmissionController;
 import fr.upmc.inuits.software.application.Application;
-import fr.upmc.inuits.software.application.connectors.ApplicationServicesConnector;
 import fr.upmc.inuits.software.application.connectors.ApplicationManagementConnector;
 import fr.upmc.inuits.software.application.connectors.ApplicationNotificationConnector;
+import fr.upmc.inuits.software.application.connectors.ApplicationServicesConnector;
 import fr.upmc.inuits.software.application.connectors.ApplicationSubmissionConnector;
 import fr.upmc.inuits.software.application.ports.ApplicationServicesOutboundPort;
 
@@ -42,15 +41,8 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	
 	public static final String A_SERVICES_MOCKUPPORT_OUT_PORT_URI = "asm-op";
 	
-	public static final String RG_MANAGEMENT_IN_PORT_URI = "rgm-ip";	
-	public static final String RG_REQUEST_SUBMISSION_OUT_PORT_URI = "rgrs-op";
-	public static final String RG_REQUEST_NOTIFICATION_IN_PORT_URI = "rgrn-ip";
-	
-	public static final String RG_MANAGEMENT_MOCKUPPORT_OUT_PORT_URI = "rgmm-op";
-	
 	protected AdmissionController admissionController;
-	protected Application application;
-	protected RequestGenerator requestGenerator;
+	protected Application application;	
 	protected ApplicationServicesOutboundPort asMockUpOutPort;
 
 	public TestPartOneQuestionTwo() throws Exception {

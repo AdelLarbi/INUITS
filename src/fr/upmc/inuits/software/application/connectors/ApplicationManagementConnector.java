@@ -2,14 +2,25 @@ package fr.upmc.inuits.software.application.connectors;
 
 import fr.upmc.components.connectors.AbstractConnector;
 import fr.upmc.inuits.software.application.interfaces.ApplicationManagementI;
+import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 
 public class ApplicationManagementConnector 
 	extends AbstractConnector
 	implements ApplicationManagementI {
 
 	@Override
-	public void doConnectionWithDispatcher(String dispatcherRequestSubmissionInboundPortUri) throws Exception {
+	public void doConnectionWithDispatcherForSubmission(String dispatcherRequestSubmissionInboundPortUri) 
+			throws Exception {
 	
-		((ApplicationManagementI)this.offering).doConnectionWithDispatcher(dispatcherRequestSubmissionInboundPortUri);
+		((ApplicationManagementI)this.offering).
+			doConnectionWithDispatcherForSubmission(dispatcherRequestSubmissionInboundPortUri);
+	}
+
+	@Override
+	public void doConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher,
+			String dispatcherRequestNotificationOutboundPortUri) throws Exception {
+		
+		((ApplicationManagementI)this.offering).doConnectionWithDispatcherForNotification(requestDispatcher, 
+				dispatcherRequestNotificationOutboundPortUri);
 	}
 }

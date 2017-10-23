@@ -3,6 +3,7 @@ package fr.upmc.inuits.software.application;
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.cvm.AbstractCVM;
 import fr.upmc.components.exceptions.ComponentShutdownException;
+import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
 import fr.upmc.datacenter.software.connectors.RequestSubmissionConnector;
 import fr.upmc.datacenterclient.requestgenerator.RequestGenerator;
 import fr.upmc.datacenterclient.requestgenerator.connectors.RequestGeneratorManagementConnector;
@@ -17,6 +18,7 @@ import fr.upmc.inuits.software.application.ports.ApplicationManagementInboundPor
 import fr.upmc.inuits.software.application.ports.ApplicationNotificationInboundPort;
 import fr.upmc.inuits.software.application.ports.ApplicationServicesInboundPort;
 import fr.upmc.inuits.software.application.ports.ApplicationSubmissionOutboundPort;
+import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 
 public class Application 
 extends AbstractComponent
@@ -35,6 +37,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	protected RequestGeneratorManagementOutboundPort rgmop;
 	
 	final String rgRequestSubmissionOutboundPortURI;
+	final String rgRequestNotificationInboundPortURI;
 	
 	public Application(
 			String appURI,			
@@ -59,7 +62,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		final String rgURI = "rg-" + appURI; 		
 		final String rgManagementInboundPortURI = appURI + "-rgm-ip";
 		rgRequestSubmissionOutboundPortURI = appURI + "-rgrs-op";
-		final String rgRequestNotificationInboundPortURI = appURI + "-rgrn-ip";
+		rgRequestNotificationInboundPortURI = appURI + "-rgrn-ip";
 		
 		this.appURI = appURI;
 		
@@ -111,7 +114,8 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		assert this.asip != null && this.asip instanceof ApplicationServicesI;
 		assert this.asop != null && this.asop instanceof ApplicationSubmissionI;
 		assert this.anip != null && this.anip instanceof ApplicationNotificationI;		
-		assert this.rgmop != null && this.rgmop instanceof RequestGeneratorManagementI;		
+		assert this.rgmop != null && this.rgmop instanceof RequestGeneratorManagementI;
+		assert this.requestGenerator != null && this.requestGenerator instanceof RequestGenerator;		
 	}
 	
 	@Override
@@ -124,6 +128,10 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 			if (this.rgmop.connected()) {
 				this.rgmop.doDisconnection();
 			}
+			/* FIXME java.lang.NullPointerException
+			if (this.requestGenerator.isPortConnected(rgRequestSubmissionOutboundPortURI)) {
+				this.requestGenerator.doPortDisconnection(rgRequestSubmissionOutboundPortURI);
+			}*/			
 		} catch (Exception e) {
 			throw new ComponentShutdownException(e);
 		}
@@ -132,12 +140,22 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	}
 	
 	@Override
-	public void doConnectionWithDispatcher(String dispatcherRequestSubmissionInboundPortUri) throws Exception {
+	public void doConnectionWithDispatcherForSubmission(String dispatcherRequestSubmissionInboundPortUri) throws Exception {
 		
 		requestGenerator.doPortConnection(
 				rgRequestSubmissionOutboundPortURI,
 				dispatcherRequestSubmissionInboundPortUri,
 				RequestSubmissionConnector.class.getCanonicalName());
+	}
+	
+	@Override
+	public void doConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher,
+			String dispatcherRequestNotificationOutboundPortUri) throws Exception {
+		
+		requestDispatcher.doPortConnection(
+				dispatcherRequestNotificationOutboundPortUri,
+				rgRequestNotificationInboundPortURI,
+				RequestNotificationConnector.class.getCanonicalName());
 	}
 	
 	@Override
@@ -164,5 +182,5 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 			Thread.sleep(20000L);		
 			this.rgmop.stopGeneration();
 		}
-	}	
+	}
 }
