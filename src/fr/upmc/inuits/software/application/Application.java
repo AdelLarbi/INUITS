@@ -90,7 +90,8 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		this.rgmop = new RequestGeneratorManagementOutboundPort(rgManagementOutboundPortURI, this);
 		this.addPort(this.rgmop);
 		this.rgmop.publishPort();									
-		
+		//dynamyccompcreator
+		//dynamic component creator 
 		this.requestGenerator = new RequestGenerator(				
 				rgURI,
 				meanInterArrivalTime,

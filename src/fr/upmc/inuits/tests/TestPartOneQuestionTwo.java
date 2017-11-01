@@ -157,12 +157,6 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	}
 	
 	@Override
-	public void start() throws Exception {
-		
-		super.start();
-	}
-	
-	@Override
 	public void shutdown() throws Exception {
 				
 		this.admissionController.doPortDisconnection(AC_SERVICES_OUT_PORT_URI);

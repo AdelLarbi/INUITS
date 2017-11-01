@@ -115,7 +115,6 @@ public class RequestDispatcher
 
 	@Override
 	public void acceptRequestTerminationNotification(RequestI r) throws Exception {
-		// TODO Question au prof : pourquoi on à besoin d'une liste de tasksToNotify?
 		
 		if (RequestDispatcher.DEBUG_LEVEL == 1) {			
 			this.logMessage("Request dispatcher " + this.rdURI + " notifying request " + r.getRequestURI() + " at " +

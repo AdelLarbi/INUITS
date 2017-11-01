@@ -30,6 +30,8 @@ import fr.upmc.inuits.software.application.ports.ApplicationManagementOutboundPo
 import fr.upmc.inuits.software.application.ports.ApplicationNotificationOutboundPort;
 import fr.upmc.inuits.software.application.ports.ApplicationSubmissionInboundPort;
 import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
+import javassist.ClassPool;
+import javassist.CtClass;
 
 public class AdmissionController 
 	extends AbstractComponent 
@@ -73,7 +75,7 @@ public class AdmissionController
 			String applicationNotificationOutboundPortURI) throws Exception {
 		
 		super(1, 1);
-
+		
 		assert computersURI != null && computersURI.size() > 0;
 		assert computerServicesOutboundPortURI != null && computerServicesOutboundPortURI.length() > 0;
 		assert computerStaticStateDataOutboundPortURI != null && computerStaticStateDataOutboundPortURI.length() > 0;
@@ -114,8 +116,8 @@ public class AdmissionController
 		this.addRequiredInterface(ApplicationNotificationI.class);
 		this.anop = new ApplicationNotificationOutboundPort(applicationNotificationOutboundPortURI, this);
 		this.addPort(this.anop);
-		this.anop.publishPort();					
-						
+		this.anop.publishPort();											
+		
 		assert this.cssdop != null && this.cssdop instanceof DataRequiredI.PullI; // or : ComputerStaticStateDataI
 		assert this.cdsdop != null && this.cdsdop instanceof ControlledDataRequiredI.ControlledPullI;
 		assert this.amop != null && this.amop instanceof ApplicationManagementI;
@@ -261,6 +263,7 @@ public class AdmissionController
 			this.anop.notifyApplicationAdmission(true);
 			
 		} else {
+			rejectApplication(appUri);
 			this.anop.notifyApplicationAdmission(false);
 		}		
 	}
@@ -269,7 +272,7 @@ public class AdmissionController
 		
 		for (int p = 0; p < reservedCores.length; p++) {
 			for (int c = 0; c < reservedCores[0].length; c++) {
-				if (!this.reservedCores[p][c]) {
+				if (!this.reservedCores[p][c]) {					
 					return true;
 				}
 			}
@@ -282,7 +285,7 @@ public class AdmissionController
 		
 		this.logMessage("Admission controller allow application " + appUri + " to be executed.");
 		
-		deployComponents();
+		deployComponents(appUri);
 		
 		int coresToAllocateCount = 4;
 			
@@ -298,8 +301,10 @@ public class AdmissionController
 		this.logMessage("Admission controller can't accept application " + appUri + " because of lack of resources.");		
 	}
 	
-	public void deployComponents() throws Exception {						 			
+	public void deployComponents(String appUri) throws Exception {						 			
 				
+		this.logMessage("Admission controller deploying components for " + appUri + ".");
+		
 		applicationVM = new ApplicationVM(
 				"vm0",
 				AVM_MANAGEMENT_IN_PORT_URI,
@@ -344,5 +349,18 @@ public class AdmissionController
 		
 		this.amop.doConnectionWithDispatcherForSubmission(RD_REQUEST_SUBMISSION_IN_PORT_URI);
 		this.amop.doConnectionWithDispatcherForNotification(requestDispatcher, RD_REQUEST_NOTIFICATION_OUT_PORT_URI);
+	}
+	
+	public void deployComponentsUsingJavassit() throws Exception {
+		//TODO
+		Class<AdmissionController> connectorSuperclass = AdmissionController.class;
+		
+		ClassPool pool = ClassPool.getDefault();
+		CtClass cc = pool.get(connectorSuperclass.getCanonicalName());
+		if (cc != null) {
+			System.out.println(cc.getName());
+		} else {
+			System.out.println("null");
+		}
 	}
 }

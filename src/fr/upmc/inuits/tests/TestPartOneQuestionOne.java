@@ -184,10 +184,8 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 	
 	@Override
 	public void shutdown() throws Exception {
-				
-		this.requestGenerator.doPortDisconnection(RG_MANAGEMENT_OUT_PORT_URI);
+						
 		this.requestGenerator.doPortDisconnection(RG_REQUEST_SUBMISSION_OUT_PORT_URI);
-		this.applicationVM.doPortDisconnection(AVM_MANAGEMENT_OUT_PORT_URI);
 		this.applicationVM.doPortDisconnection(AVM_REQUEST_NOTIFICATION_OUT_PORT_URI);
 		this.requestDispatcher.doPortDisconnection(RD_REQUEST_SUBMISSION_OUT_PORT_URI);
 		this.requestDispatcher.doPortDisconnection(RD_REQUEST_NOTIFICATION_OUT_PORT_URI);
