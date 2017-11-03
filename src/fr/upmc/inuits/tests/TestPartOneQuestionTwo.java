@@ -7,8 +7,10 @@ import java.util.Map;
 import java.util.Set;
 
 import fr.upmc.components.AbstractComponent;
+import fr.upmc.components.ComponentI;
 import fr.upmc.components.connectors.DataConnector;
 import fr.upmc.components.cvm.AbstractCVM;
+import fr.upmc.components.examples.ddeployment_cs.components.DynamicAssembler;
 import fr.upmc.datacenter.connectors.ControlledDataConnector;
 import fr.upmc.datacenter.hardware.computers.Computer;
 import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
@@ -156,6 +158,27 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		super.deploy();
 	}
 	
+	/*@Override
+	public void			start() throws Exception
+	{
+		super.start() ;
+
+		final Application fA = this.application ;
+		this.application.runTask(
+			new ComponentI.ComponentTask() {
+					@Override
+					public void run() {
+						try {
+							fA.dynamicDeploy() ;
+							fA.dynamicStart() ;
+						} catch (Exception e) {
+							throw new RuntimeException(e) ;
+						}
+					}
+				}) ;
+
+	}*/
+	
 	@Override
 	public void shutdown() throws Exception {
 				
@@ -175,6 +198,12 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	}
 	
 	public void testScenario() throws Exception {
+		
+		//application.dynamicDeploy() ;
+		//application.dynamicStart() ;
+		
+		
+		
 		
 		this.asMockUpOutPort.sendRequestForApplicationExecution();				
 	}

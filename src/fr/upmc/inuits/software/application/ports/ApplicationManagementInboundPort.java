@@ -41,6 +41,22 @@ public class ApplicationManagementInboundPort
 					}
 				});		
 	}
+	
+	@Override
+	public void doDynamicConnectionWithDispatcherForSubmission(String dispatcherRequestSubmissionInboundPortUri)
+			throws Exception {
+		
+		final Application app = (Application) this.owner;
+		
+		this.owner.handleRequestAsync(
+				new ComponentI.ComponentService<Void>() {
+					@Override
+					public Void call() throws Exception {
+						app.doDynamicConnectionWithDispatcherForSubmission(dispatcherRequestSubmissionInboundPortUri);
+						return null;
+					}
+				});
+	}
 
 	@Override
 	public void doConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher,
@@ -57,5 +73,5 @@ public class ApplicationManagementInboundPort
 						return null;
 					}
 				});
-	}
+	}	
 }

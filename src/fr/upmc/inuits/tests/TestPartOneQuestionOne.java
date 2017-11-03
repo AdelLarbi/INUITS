@@ -136,7 +136,7 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 		this.rgmOutPort.doConnection(
 				RG_MANAGEMENT_IN_PORT_URI,
 				RequestGeneratorManagementConnector.class.getCanonicalName());
-		// --------------------------------------------------------------------
+		// --------------------------------------------------------------------		
 		this.requestDispatcher = new RequestDispatcher(				
 				"rd0",							
 				RD_REQUEST_SUBMISSION_IN_PORT_URI,
@@ -152,8 +152,8 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 		
 		this.requestGenerator.doPortConnection(
 				RG_REQUEST_SUBMISSION_OUT_PORT_URI,
-				RD_REQUEST_SUBMISSION_IN_PORT_URI,
-				RequestSubmissionConnector.class.getCanonicalName());
+				RD_REQUEST_SUBMISSION_IN_PORT_URI,				
+				RequestSubmissionConnector.class.getCanonicalName());				
 		
 		this.requestDispatcher.doPortConnection(
 				RD_REQUEST_NOTIFICATION_OUT_PORT_URI,

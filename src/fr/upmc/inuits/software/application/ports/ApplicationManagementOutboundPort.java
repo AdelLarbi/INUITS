@@ -28,6 +28,14 @@ public class ApplicationManagementOutboundPort
 		((ApplicationManagementI)this.connector).
 			doConnectionWithDispatcherForSubmission(dispatcherRequestSubmissionInboundPortUri);
 	}
+	
+	@Override
+	public void doDynamicConnectionWithDispatcherForSubmission(String dispatcherRequestSubmissionInboundPortUri)
+			throws Exception {
+		
+		((ApplicationManagementI)this.connector).
+			doDynamicConnectionWithDispatcherForSubmission(dispatcherRequestSubmissionInboundPortUri);
+	}
 
 	@Override
 	public void doConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher,

@@ -9,6 +9,10 @@ public interface ApplicationManagementI
 
 	public void doConnectionWithDispatcherForSubmission(String dispatcherRequestSubmissionInboundPortUri) 
 			throws Exception;
+	
+	public void doDynamicConnectionWithDispatcherForSubmission(String dispatcherRequestSubmissionInboundPortUri) 
+			throws Exception;
+	
 	public void doConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher, 
 			String dispatcherRequestNotificationOutboundPortUri) throws Exception;
 }

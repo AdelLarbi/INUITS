@@ -17,10 +17,18 @@ public class ApplicationManagementConnector
 	}
 
 	@Override
+	public void doDynamicConnectionWithDispatcherForSubmission(String dispatcherRequestSubmissionInboundPortUri)
+			throws Exception {
+		
+		((ApplicationManagementI)this.offering).
+			doDynamicConnectionWithDispatcherForSubmission(dispatcherRequestSubmissionInboundPortUri);		
+	}
+	
+	@Override
 	public void doConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher,
 			String dispatcherRequestNotificationOutboundPortUri) throws Exception {
 		
 		((ApplicationManagementI)this.offering).doConnectionWithDispatcherForNotification(requestDispatcher, 
 				dispatcherRequestNotificationOutboundPortUri);
-	}
+	}	
 }

@@ -347,7 +347,8 @@ public class AdmissionController
 				RD_REQUEST_NOTIFICATION_IN_PORT_URI,
 				RequestNotificationConnector.class.getCanonicalName());
 		
-		this.amop.doConnectionWithDispatcherForSubmission(RD_REQUEST_SUBMISSION_IN_PORT_URI);
+		//this.amop.doConnectionWithDispatcherForSubmission(RD_REQUEST_SUBMISSION_IN_PORT_URI);
+		this.amop.doDynamicConnectionWithDispatcherForSubmission(RD_REQUEST_SUBMISSION_IN_PORT_URI);
 		this.amop.doConnectionWithDispatcherForNotification(requestDispatcher, RD_REQUEST_NOTIFICATION_OUT_PORT_URI);
 	}
 	
