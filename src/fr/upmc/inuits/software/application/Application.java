@@ -1,9 +1,6 @@
 package fr.upmc.inuits.software.application;
 
-import java.util.HashMap;
-
 import fr.upmc.components.AbstractComponent;
-import fr.upmc.components.connectors.AbstractConnector;
 import fr.upmc.components.cvm.AbstractCVM;
 import fr.upmc.components.cvm.pre.dcc.connectors.DynamicComponentCreationConnector;
 import fr.upmc.components.cvm.pre.dcc.interfaces.DynamicComponentCreationI;
@@ -14,7 +11,6 @@ import fr.upmc.components.pre.reflection.connectors.ReflectionConnector;
 import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
 import fr.upmc.datacenter.software.connectors.RequestSubmissionConnector;
-import fr.upmc.datacenter.software.interfaces.RequestSubmissionI;
 import fr.upmc.datacenterclient.requestgenerator.RequestGenerator;
 import fr.upmc.datacenterclient.requestgenerator.connectors.RequestGeneratorManagementConnector;
 import fr.upmc.datacenterclient.requestgenerator.interfaces.RequestGeneratorManagementI;
@@ -29,7 +25,7 @@ import fr.upmc.inuits.software.application.ports.ApplicationNotificationInboundP
 import fr.upmc.inuits.software.application.ports.ApplicationServicesInboundPort;
 import fr.upmc.inuits.software.application.ports.ApplicationSubmissionOutboundPort;
 import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
-import fr.upmc.inuits.utils.Utils;
+import fr.upmc.inuits.utils.Javassist;
 
 public class Application 
 extends AbstractComponent
@@ -275,24 +271,13 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	}
 	
 	@Override
-	public void doDynamicConnectionWithDispatcherForSubmission(String dispatcherRequestSubmissionInboundPortUri) throws Exception {
-				
-		HashMap<String, String> methodNamesMap = new HashMap<String, String>();
-		methodNamesMap.put("submitRequest", "submitRequest");
-		methodNamesMap.put("submitRequestAndNotify", "submitRequestAndNotify");
-									
-		Class<?> connectorClass = Utils.makeConnectorClassJavassist(
-				"fr.upmc.inuits.utils.GeneratedConnector",
-				AbstractConnector.class,
-				RequestSubmissionI.class,
-				RequestSubmissionI.class,
-				methodNamesMap);
+	public void doDynamicConnectionWithDispatcherForSubmission(String dispatcherRequestSubmissionInboundPortUri) throws Exception {					
 		
 		requestGenerator.doPortConnection(
 				rgRequestSubmissionOutboundPortURI,
 				dispatcherRequestSubmissionInboundPortUri,
-				connectorClass.getCanonicalName());
-				
+				Javassist.getRequestSubmissionConnectorClassName());
+						
 		/*rop.doPortConnection(
 				rgRequestSubmissionOutboundPortURI,
 				dispatcherRequestSubmissionInboundPortUri,
