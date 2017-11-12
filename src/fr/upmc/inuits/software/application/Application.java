@@ -34,9 +34,9 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	public static int DEBUG_LEVEL = 1;
 
 	protected final String REQUEST_GENERATOR_JVM_URI = "";
+	//protected final String REQUEST_DISPATCHER_JVM_URI = "";
 	
-	protected final String appURI;
-	//protected final RequestGenerator requestGenerator;
+	protected final String appURI;	
 	protected ReflectionOutboundPort rop;
 	
 	protected ApplicationManagementInboundPort amip;
@@ -44,8 +44,9 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	protected ApplicationSubmissionOutboundPort asop;
 	protected ApplicationNotificationInboundPort anip;
 	
-	//protected RequestGeneratorManagementOutboundPort rgmop;
+	protected RequestGeneratorManagementOutboundPort rgmop;
 	protected DynamicComponentCreationOutboundPort portToRequestGeneratorJVM;
+	//protected DynamicComponentCreationOutboundPort portToRequestDispatcherJVM;
 
 	protected final Double meanInterArrivalTime;
 	protected final Long meanNumberOfInstructions;
@@ -103,14 +104,14 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		this.addPort(this.anip);
 		this.anip.publishPort();
 				
-		/*this.addRequiredInterface(RequestGeneratorManagementI.class);
-		this.rgmop = new RequestGeneratorManagementOutboundPort(rgManagementOutboundPortURI, this);
+		this.addRequiredInterface(RequestGeneratorManagementI.class);
+		this.rgmop = new RequestGeneratorManagementOutboundPort(this);
 		this.addPort(this.rgmop);
-		this.rgmop.publishPort();*/
+		this.rgmop.publishPort();
 		
 		// dynamic 
 		this.addRequiredInterface(DynamicComponentCreationI.class);
-		
+				
 		// static 
 		/*this.requestGenerator = new RequestGenerator(				
 				rgURI,
@@ -135,7 +136,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		assert this.asip != null && this.asip instanceof ApplicationServicesI;
 		assert this.asop != null && this.asop instanceof ApplicationSubmissionI;
 		assert this.anip != null && this.anip instanceof ApplicationNotificationI;		
-		//assert this.rgmop != null && this.rgmop instanceof RequestGeneratorManagementI;
+		assert this.rgmop != null && this.rgmop instanceof RequestGeneratorManagementI;
 		//assert this.requestGenerator != null && this.requestGenerator instanceof RequestGenerator;		
 	}
 	
@@ -149,6 +150,13 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 			this.portToRequestGeneratorJVM.doConnection(					
 					this.REQUEST_GENERATOR_JVM_URI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
 					DynamicComponentCreationConnector.class.getCanonicalName());						
+									
+			/*this.portToRequestDispatcherJVM = new DynamicComponentCreationOutboundPort(this);
+			this.portToRequestDispatcherJVM.localPublishPort();
+			this.addPort(this.portToRequestDispatcherJVM);
+			this.portToRequestDispatcherJVM.doConnection(					
+					this.REQUEST_DISPATCHER_JVM_URI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
+					DynamicComponentCreationConnector.class.getCanonicalName());*/
 			
 		} catch (Exception e) {
 			throw new ComponentStartException(e);
@@ -173,7 +181,10 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 			}*/
 			if (this.portToRequestGeneratorJVM.connected()) {
 				this.portToRequestGeneratorJVM.doDisconnection();
-			}
+			}			
+			/*if (this.portToRequestDispatcherJVM.connected()) {
+				this.portToRequestDispatcherJVM.doDisconnection();
+			}*/
 		} catch (Exception e) {
 			throw new ComponentShutdownException(e);
 		}
@@ -182,27 +193,55 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	}	
 	
 	public void dynamicRequestGeneratorDeploy() throws Exception {
-							 				
+							 								
+		/*this.portToRequestDispatcherJVM.createComponent(
+				RequestDispatcher.class.getCanonicalName(),
+				new Object[] {
+						"rd1",							
+						"rdrsip",
+						"aabbcc",
+						"aaabbbccc",
+						"aaaabbbbcccc"
+				});*/
+		
 		this.portToRequestGeneratorJVM.createComponent(
-								RequestGenerator.class.getCanonicalName(),
-								new Object[] {
-										this.rgURI,
-										this.meanInterArrivalTime,
-										this.meanNumberOfInstructions,
-										this.rgManagementInboundPortURI,
-										this.rgRequestSubmissionOutboundPortURI,
-										this.rgRequestNotificationInboundPortURI
-								});					
+				RequestGenerator.class.getCanonicalName(),
+				new Object[] {
+						this.rgURI,
+						this.meanInterArrivalTime,
+						this.meanNumberOfInstructions,
+						this.rgManagementInboundPortURI,
+						this.rgRequestSubmissionOutboundPortURI,
+						this.rgRequestNotificationInboundPortURI
+				});							
 		
 		rop = new ReflectionOutboundPort(this);
 		this.addPort(rop);
 		rop.localPublishPort();
 	
-		rop.doConnection(this.rgURI, ReflectionConnector.class.getCanonicalName());
+		/*rop.doConnection(this.rgURI, ReflectionConnector.class.getCanonicalName());
 		
 		RequestGenerator.DEBUG_LEVEL = 2;
 		rop.toggleLogging();
-		rop.toggleTracing();		
+		rop.toggleTracing();*/
+		
+		// connect to the consumer (client) component
+		rop.doConnection(this.rgURI, ReflectionConnector.class.getCanonicalName());
+		RequestGenerator.DEBUG_LEVEL = 2;
+		rop.toggleLogging();
+		rop.toggleTracing();
+		// connect the consumer outbound port top the provider inbound one.
+		/*rop.doPortConnection(this.rgRequestSubmissionOutboundPortURI,
+							"rdrsip",
+							 RequestSubmissionConnector.class.getCanonicalName());
+		rop.doDisconnection();
+
+		// connect to the provider (server) component
+		rop.doConnection("rd1",
+						 ReflectionConnector.class.getCanonicalName());
+		// toggle logging on the providerer component
+		rop.toggleLogging();
+		rop.doDisconnection();*/
 	}
 	
 	@Override
@@ -211,8 +250,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		rop.doPortConnection(
 				this.rgRequestSubmissionOutboundPortURI,
 				dispatcherRequestSubmissionInboundPortUri,
-				RequestSubmissionConnector.class.getCanonicalName());
-		System.out.println("!!!");
+				RequestSubmissionConnector.class.getCanonicalName());		
 		rop.doDisconnection();
 		
 		/*requestGenerator.doPortConnection(
@@ -263,6 +301,8 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 			this.logMessage("Application " + this.appURI + " asking for execution permission.");
 		}
 		
+		dynamicRequestGeneratorDeploy();
+		
 		this.asop.submitApplicationAndNotify(this.appURI);
 	}
 	
@@ -275,28 +315,18 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 					+ " been accepted.");
 		}
 		
-		if (isAccepted) {					
-			dynamicRequestGeneratorDeploy();			
-			launch();			
-			/*this.rgmop.startGeneration();
-			Thread.sleep(20000L);		
-			this.rgmop.stopGeneration();*/			
+		if (isAccepted) {				
+			launch();					
 		}
 	}
 	
-	public void	launch() throws Exception {
-		// TODO p: global with disconnection		
-		this.addRequiredInterface(RequestGeneratorManagementI.class);
-		RequestGeneratorManagementOutboundPort p = new RequestGeneratorManagementOutboundPort(this);
-		this.addPort(p);
-		p.publishPort();
-						
-		p.doConnection(
+	public void	launch() throws Exception {						
+		this.rgmop.doConnection(
 				this.rgManagementInboundPortURI,
 				RequestGeneratorManagementConnector.class.getCanonicalName());			
 									
-		p.startGeneration();		
+		this.rgmop.startGeneration();
 		Thread.sleep(20000L);		
-		p.stopGeneration();
+		this.rgmop.stopGeneration();
 	}
 }
