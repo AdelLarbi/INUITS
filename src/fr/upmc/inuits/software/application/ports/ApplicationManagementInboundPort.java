@@ -2,9 +2,9 @@ package fr.upmc.inuits.software.application.ports;
 
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractInboundPort;
+import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 import fr.upmc.inuits.software.application.Application;
 import fr.upmc.inuits.software.application.interfaces.ApplicationManagementI;
-import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 
 public class ApplicationManagementInboundPort
 	extends AbstractInboundPort
@@ -59,7 +59,7 @@ public class ApplicationManagementInboundPort
 	}
 
 	@Override
-	public void doConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher,
+	public void doConnectionWithDispatcherForNotification(ReflectionOutboundPort ropForRequestDispatcher,
 			String dispatcherRequestNotificationOutboundPortUri) throws Exception {
 		
 		final Application app = (Application) this.owner;
@@ -68,7 +68,7 @@ public class ApplicationManagementInboundPort
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						app.doConnectionWithDispatcherForNotification(requestDispatcher, 
+						app.doConnectionWithDispatcherForNotification(ropForRequestDispatcher, 
 								dispatcherRequestNotificationOutboundPortUri);
 						return null;
 					}
@@ -76,7 +76,7 @@ public class ApplicationManagementInboundPort
 	}
 
 	@Override
-	public void doDynamicConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher,
+	public void doDynamicConnectionWithDispatcherForNotification(ReflectionOutboundPort ropForRequestDispatcher,
 			String dispatcherRequestNotificationOutboundPortUri) throws Exception {
 		
 		final Application app = (Application) this.owner;
@@ -85,7 +85,7 @@ public class ApplicationManagementInboundPort
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						app.doDynamicConnectionWithDispatcherForNotification(requestDispatcher, 
+						app.doDynamicConnectionWithDispatcherForNotification(ropForRequestDispatcher, 
 								dispatcherRequestNotificationOutboundPortUri);
 						return null;
 					}

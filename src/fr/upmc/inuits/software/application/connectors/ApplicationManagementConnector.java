@@ -1,8 +1,8 @@
 package fr.upmc.inuits.software.application.connectors;
 
 import fr.upmc.components.connectors.AbstractConnector;
+import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 import fr.upmc.inuits.software.application.interfaces.ApplicationManagementI;
-import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 
 public class ApplicationManagementConnector 
 	extends AbstractConnector
@@ -25,18 +25,18 @@ public class ApplicationManagementConnector
 	}
 	
 	@Override
-	public void doConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher,
+	public void doConnectionWithDispatcherForNotification(ReflectionOutboundPort ropForRequestDispatcher,
 			String dispatcherRequestNotificationOutboundPortUri) throws Exception {
 		
-		((ApplicationManagementI)this.offering).doConnectionWithDispatcherForNotification(requestDispatcher, 
+		((ApplicationManagementI)this.offering).doConnectionWithDispatcherForNotification(ropForRequestDispatcher, 
 				dispatcherRequestNotificationOutboundPortUri);
 	}
 
 	@Override
-	public void doDynamicConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher,
+	public void doDynamicConnectionWithDispatcherForNotification(ReflectionOutboundPort ropForRequestDispatcher,
 			String dispatcherRequestNotificationOutboundPortUri) throws Exception {
 		
-		((ApplicationManagementI)this.offering).doDynamicConnectionWithDispatcherForNotification(requestDispatcher, 
+		((ApplicationManagementI)this.offering).doDynamicConnectionWithDispatcherForNotification(ropForRequestDispatcher, 
 				dispatcherRequestNotificationOutboundPortUri);
 	}	
 }

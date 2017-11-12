@@ -2,6 +2,7 @@ package fr.upmc.inuits.software.application.interfaces;
 
 import fr.upmc.components.interfaces.OfferedI;
 import fr.upmc.components.interfaces.RequiredI;
+import fr.upmc.components.pre.reflection.ports.ReflectionOutboundPort;
 import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 
 public interface ApplicationManagementI 
@@ -13,9 +14,9 @@ public interface ApplicationManagementI
 	public void doDynamicConnectionWithDispatcherForSubmission(String dispatcherRequestSubmissionInboundPortUri) 
 			throws Exception;
 	
-	public void doConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher, 
+	public void doConnectionWithDispatcherForNotification(ReflectionOutboundPort ropForRequestDispatcher, 
 			String dispatcherRequestNotificationOutboundPortUri) throws Exception;
 	
-	public void doDynamicConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher, 
+	public void doDynamicConnectionWithDispatcherForNotification(ReflectionOutboundPort ropForRequestDispatcher, 
 			String dispatcherRequestNotificationOutboundPortUri) throws Exception;
 }
