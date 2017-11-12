@@ -42,6 +42,14 @@ public class ApplicationManagementOutboundPort
 			String dispatcherRequestNotificationOutboundPortUri) throws Exception {
 		
 		((ApplicationManagementI)this.connector).
-		doConnectionWithDispatcherForNotification(requestDispatcher, dispatcherRequestNotificationOutboundPortUri);
+			doConnectionWithDispatcherForNotification(requestDispatcher, dispatcherRequestNotificationOutboundPortUri);
+	}
+
+	@Override
+	public void doDynamicConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher,
+			String dispatcherRequestNotificationOutboundPortUri) throws Exception {
+		
+		((ApplicationManagementI)this.connector).
+			doDynamicConnectionWithDispatcherForNotification(requestDispatcher, dispatcherRequestNotificationOutboundPortUri);
 	}
 }

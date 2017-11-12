@@ -33,7 +33,7 @@ public class RequestDispatcher
 			String requestNotificationIntboundPortURI, 
 			String requestNotificationOutboundPortURI) throws Exception {
 		
-		super(1, 1);
+		super(rdURI, 1, 1);
 		
 		assert rdURI != null;
 		assert requestSubmissionIntboundPortURI != null && requestSubmissionIntboundPortURI.length() > 0;

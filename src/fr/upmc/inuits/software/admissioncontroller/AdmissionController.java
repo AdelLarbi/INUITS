@@ -30,8 +30,6 @@ import fr.upmc.inuits.software.application.ports.ApplicationManagementOutboundPo
 import fr.upmc.inuits.software.application.ports.ApplicationNotificationOutboundPort;
 import fr.upmc.inuits.software.application.ports.ApplicationSubmissionInboundPort;
 import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
-import javassist.ClassPool;
-import javassist.CtClass;
 
 public class AdmissionController 
 	extends AbstractComponent 
@@ -347,21 +345,9 @@ public class AdmissionController
 				RD_REQUEST_NOTIFICATION_IN_PORT_URI,
 				RequestNotificationConnector.class.getCanonicalName());
 		
-		//this.amop.doConnectionWithDispatcherForSubmission(RD_REQUEST_SUBMISSION_IN_PORT_URI);
-		this.amop.doDynamicConnectionWithDispatcherForSubmission(RD_REQUEST_SUBMISSION_IN_PORT_URI);
+		this.amop.doConnectionWithDispatcherForSubmission(RD_REQUEST_SUBMISSION_IN_PORT_URI);
 		this.amop.doConnectionWithDispatcherForNotification(requestDispatcher, RD_REQUEST_NOTIFICATION_OUT_PORT_URI);
-	}
-	
-	public void deployComponentsUsingJavassit() throws Exception {
-		//TODO
-		Class<AdmissionController> connectorSuperclass = AdmissionController.class;
-		
-		ClassPool pool = ClassPool.getDefault();
-		CtClass cc = pool.get(connectorSuperclass.getCanonicalName());
-		if (cc != null) {
-			System.out.println(cc.getName());
-		} else {
-			System.out.println("null");
-		}
+		//this.amop.doDynamicConnectionWithDispatcherForSubmission(RD_REQUEST_SUBMISSION_IN_PORT_URI);
+		//this.amop.doDynamicConnectionWithDispatcherForNotification(requestDispatcher, RD_REQUEST_NOTIFICATION_OUT_PORT_URI);
 	}
 }

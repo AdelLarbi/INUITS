@@ -7,10 +7,8 @@ import java.util.Map;
 import java.util.Set;
 
 import fr.upmc.components.AbstractComponent;
-import fr.upmc.components.ComponentI;
 import fr.upmc.components.connectors.DataConnector;
 import fr.upmc.components.cvm.AbstractCVM;
-import fr.upmc.components.examples.ddeployment_cs.components.DynamicAssembler;
 import fr.upmc.datacenter.connectors.ControlledDataConnector;
 import fr.upmc.datacenter.hardware.computers.Computer;
 import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;

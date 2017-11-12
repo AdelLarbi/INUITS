@@ -15,4 +15,7 @@ public interface ApplicationManagementI
 	
 	public void doConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher, 
 			String dispatcherRequestNotificationOutboundPortUri) throws Exception;
+	
+	public void doDynamicConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher, 
+			String dispatcherRequestNotificationOutboundPortUri) throws Exception;
 }

@@ -73,5 +73,22 @@ public class ApplicationManagementInboundPort
 						return null;
 					}
 				});
+	}
+
+	@Override
+	public void doDynamicConnectionWithDispatcherForNotification(RequestDispatcher requestDispatcher,
+			String dispatcherRequestNotificationOutboundPortUri) throws Exception {
+		
+		final Application app = (Application) this.owner;
+		
+		this.owner.handleRequestAsync(
+				new ComponentI.ComponentService<Void>() {
+					@Override
+					public Void call() throws Exception {
+						app.doDynamicConnectionWithDispatcherForNotification(requestDispatcher, 
+								dispatcherRequestNotificationOutboundPortUri);
+						return null;
+					}
+				});
 	}	
 }
