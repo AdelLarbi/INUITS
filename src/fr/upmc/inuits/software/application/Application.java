@@ -191,7 +191,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 				this.rgRequestSubmissionOutboundPortURI,
 				dispatcherRequestSubmissionInboundPortUri,
 				RequestSubmissionConnector.class.getCanonicalName());		
-		rop.doDisconnection();		
+		//rop.doDisconnection();		
 	}
 	
 	@Override
@@ -201,7 +201,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 				this.rgRequestSubmissionOutboundPortURI,
 				dispatcherRequestSubmissionInboundPortUri,
 				Javassist.getRequestSubmissionConnectorClassName());
-		rop.doDisconnection();										
+		//rop.doDisconnection();										
 	}	
 	
 	@Override
