@@ -196,7 +196,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	
 	@Override
 	public void doDynamicConnectionWithDispatcherForSubmission(String dispatcherRequestSubmissionInboundPortUri) throws Exception {					
-		
+				
 		this.rop.doPortConnection(
 				this.rgRequestSubmissionOutboundPortURI,
 				dispatcherRequestSubmissionInboundPortUri,

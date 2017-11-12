@@ -25,65 +25,59 @@ public abstract class Javassist {
 	private static Class<?> requestNotificationConnector;
 	private static Class<?> requestSubmissionConnector;	
 
-	public static String getApplicationManagementConnectorClassName() throws Exception {
+	public synchronized static String getApplicationManagementConnectorClassName() throws Exception {
 		
-		return getConnectorClassName(
-				applicationManagementConnector,
-				"ApplicationManagementConnector",
-				ApplicationManagementI.class);
-	}
-	
-	public static String getApplicationNotificationConnectorClassName() throws Exception {
-		
-		return getConnectorClassName(
-				applicationNotificationConnector,
-				"ApplicationNotificationConnector",
-				ApplicationNotificationI.class);	
-	}
-	
-	public static String getApplicationServicesConnectorClassName() throws Exception {
-		
-		return getConnectorClassName(
-				applicationServicesConnector,
-				"ApplicationServicesConnector",
-				ApplicationServicesI.class);
-	}
-	
-	public static String getApplicationSubmissionConnectorClassName() throws Exception {
-		
-		return getConnectorClassName(
-				applicationSubmissionConnector,
-				"ApplicationSubmissionConnector",
-				ApplicationSubmissionI.class);
-	}
-
-	public static String getRequestNotificationConnectorClassName() throws Exception {
-		
-		return getConnectorClassName(
-				requestNotificationConnector,
-				"RequestNotificationConnector",
-				RequestNotificationI.class);		
-	}
-
-	public static String getRequestSubmissionConnectorClassName() throws Exception {
-	
-		return getConnectorClassName(
-				requestSubmissionConnector,
-				"RequestSubmissionConnector",
-				RequestSubmissionI.class);
-	}	
-	
-	private static String getConnectorClassName(
-			Class<?> connectorClass, 
-			String connectorClassName, 
-			Class<?> connectorImplementedInterface) throws Exception {
-		
-		if (connectorClass == null) {
-			connectorClass = makeConnectorClass(connectorClassName, connectorImplementedInterface);
+		if (applicationManagementConnector == null) {			
+			applicationManagementConnector = makeConnectorClass("ApplicationManagementConnector", ApplicationManagementI.class);
 		}
 		
-		return connectorClass.getCanonicalName();
+		return applicationManagementConnector.getCanonicalName();		
 	}
+	
+	public synchronized static String getApplicationNotificationConnectorClassName() throws Exception {
+		
+		if (applicationNotificationConnector == null) {			
+			applicationNotificationConnector = makeConnectorClass("ApplicationNotificationConnector", ApplicationNotificationI.class);
+		}
+		
+		return applicationNotificationConnector.getCanonicalName();		
+	}
+	
+	public synchronized static String getApplicationServicesConnectorClassName() throws Exception {
+		
+		if (applicationServicesConnector == null) {			
+			applicationServicesConnector = makeConnectorClass("ApplicationServicesConnector", ApplicationServicesI.class);
+		}
+		
+		return applicationServicesConnector.getCanonicalName();		
+	}
+	
+	public synchronized static String getApplicationSubmissionConnectorClassName() throws Exception {
+		
+		if (applicationSubmissionConnector == null) {			
+			applicationSubmissionConnector = makeConnectorClass("ApplicationSubmissionConnector", ApplicationSubmissionI.class);
+		}
+		
+		return applicationSubmissionConnector.getCanonicalName();
+	}
+
+	public synchronized static String getRequestNotificationConnectorClassName() throws Exception {
+		
+		if (requestNotificationConnector == null) {			
+			requestNotificationConnector = makeConnectorClass("RequestNotificationConnector", RequestNotificationI.class);
+		}
+		
+		return requestNotificationConnector.getCanonicalName();			
+	}
+
+	public synchronized static String getRequestSubmissionConnectorClassName() throws Exception {
+	
+		if (requestSubmissionConnector == null) {			
+			requestSubmissionConnector = makeConnectorClass("requestSubmissionConnector", RequestSubmissionI.class);
+		}
+		
+		return requestSubmissionConnector.getCanonicalName();					
+	}	
 	
 	private static Class<?> makeConnectorClass(
 			String className,

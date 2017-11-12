@@ -25,8 +25,6 @@ import fr.upmc.datacenter.interfaces.ControlledDataRequiredI;
 import fr.upmc.datacenter.software.applicationvm.ApplicationVM;
 import fr.upmc.datacenter.software.applicationvm.connectors.ApplicationVMManagementConnector;
 import fr.upmc.datacenter.software.applicationvm.ports.ApplicationVMManagementOutboundPort;
-import fr.upmc.datacenter.software.connectors.RequestNotificationConnector;
-import fr.upmc.datacenter.software.connectors.RequestSubmissionConnector;
 import fr.upmc.inuits.software.application.interfaces.ApplicationManagementI;
 import fr.upmc.inuits.software.application.interfaces.ApplicationNotificationI;
 import fr.upmc.inuits.software.application.interfaces.ApplicationSubmissionHandlerI;
@@ -35,6 +33,7 @@ import fr.upmc.inuits.software.application.ports.ApplicationManagementOutboundPo
 import fr.upmc.inuits.software.application.ports.ApplicationNotificationOutboundPort;
 import fr.upmc.inuits.software.application.ports.ApplicationSubmissionInboundPort;
 import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
+import fr.upmc.inuits.utils.Javassist;
 
 public class AdmissionController 
 	extends AbstractComponent 
@@ -363,13 +362,13 @@ public class AdmissionController
 		RequestDispatcher.DEBUG_LEVEL = 1;
 		rop.toggleLogging();
 		rop.toggleTracing();
-		
-		this.amop.doConnectionWithDispatcherForSubmission(RD_REQUEST_SUBMISSION_IN_PORT_URI);
-		this.amop.doConnectionWithDispatcherForNotification(rop, RD_REQUEST_NOTIFICATION_OUT_PORT_URI);											
+						
+		this.amop.doDynamicConnectionWithDispatcherForSubmission(RD_REQUEST_SUBMISSION_IN_PORT_URI);
+		this.amop.doDynamicConnectionWithDispatcherForNotification(rop, RD_REQUEST_NOTIFICATION_OUT_PORT_URI);		
 		rop.doPortConnection(
 				RD_REQUEST_SUBMISSION_OUT_PORT_URI,
 				AVM_REQUEST_SUBMISSION_IN_PORT_URI,
-				RequestSubmissionConnector.class.getCanonicalName());
+				Javassist.getRequestSubmissionConnectorClassName());
 		
 		rop.doDisconnection();														
 		// --------------------------------------------------------------------
@@ -382,7 +381,7 @@ public class AdmissionController
 		rop.doPortConnection(
 				AVM_REQUEST_NOTIFICATION_OUT_PORT_URI,
 				RD_REQUEST_NOTIFICATION_IN_PORT_URI,
-				RequestNotificationConnector.class.getCanonicalName());
+				Javassist.getRequestNotificationConnectorClassName());
 		
 		rop.doDisconnection();
 	}
