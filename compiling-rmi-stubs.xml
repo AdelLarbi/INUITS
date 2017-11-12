@@ -1,0 +1,27 @@
+<project name="INUITS" default="stubs.compilation">
+	<target name="stubs.compilation">
+		<echo message="Recompiling stubs..."/>
+		
+		<echo message="Recompiling fr.upmc.inuits.software.application.ports.ApplicationManagementInboundPort"/>
+		<rmic classpath="${classpath}:../INUITS/bin:../DataCenter/src"
+			  classname="fr.upmc.inuits.software.application.ports.ApplicationManagementInboundPort"
+		      base="../BCM/src"/>
+		
+		<echo message="Recompiling fr.upmc.inuits.software.application.ports.ApplicationNotificationInboundPort"/>
+		<rmic classpath="${classpath}:../INUITS/bin:../DataCenter/src"
+			  classname="fr.upmc.inuits.software.application.ports.ApplicationNotificationInboundPort"
+		      base="../BCM/src"/>
+		
+		<echo message="Recompiling fr.upmc.inuits.software.application.ports.ApplicationServicesInboundPort"/>
+		<rmic classpath="${classpath}:../INUITS/bin:../DataCenter/src"
+			  classname="fr.upmc.inuits.software.application.ports.ApplicationServicesInboundPort"
+		      base="../BCM/src"/>
+		
+		<echo message="Recompiling fr.upmc.inuits.software.application.ports.ApplicationSubmissionInboundPort"/>
+		<rmic classpath="${classpath}:../INUITS/bin:../DataCenter/src"
+			  classname="fr.upmc.inuits.software.application.ports.ApplicationSubmissionInboundPort"
+		      base="../BCM/src"/>
+		
+		<echo message="Stubs recompiled!"/>		
+	</target>
+</project>

@@ -24,18 +24,6 @@ public abstract class Javassist {
 	private static Class<?> applicationSubmissionConnector;
 	private static Class<?> requestNotificationConnector;
 	private static Class<?> requestSubmissionConnector;	
-	
-	private static String getConnectorClassName(
-			Class<?> connectorClass, 
-			String connectorClassName, 
-			Class<?> connectorImplementedInterface) throws Exception {
-		
-		if (connectorClass == null) {
-			connectorClass = makeConnectorClass(connectorClassName, connectorImplementedInterface);
-		}
-		
-		return connectorClass.getCanonicalName();
-	}
 
 	public static String getApplicationManagementConnectorClassName() throws Exception {
 		
@@ -74,13 +62,7 @@ public abstract class Javassist {
 		return getConnectorClassName(
 				requestNotificationConnector,
 				"RequestNotificationConnector",
-				RequestNotificationI.class);
-		
-		/*if (requestNotificationConnector == null) {			
-			requestNotificationConnector = makeConnectorClass("RequestNotificationConnector", RequestNotificationI.class);
-		}
-		
-		return requestNotificationConnector.getCanonicalName();*/
+				RequestNotificationI.class);		
 	}
 
 	public static String getRequestSubmissionConnectorClassName() throws Exception {
@@ -89,13 +71,19 @@ public abstract class Javassist {
 				requestSubmissionConnector,
 				"RequestSubmissionConnector",
 				RequestSubmissionI.class);
+	}	
+	
+	private static String getConnectorClassName(
+			Class<?> connectorClass, 
+			String connectorClassName, 
+			Class<?> connectorImplementedInterface) throws Exception {
 		
-		/*if (requestSubmissionConnector == null) {			
-			requestSubmissionConnector = makeConnectorClass("RequestSubmissionConnector", RequestSubmissionI.class);
+		if (connectorClass == null) {
+			connectorClass = makeConnectorClass(connectorClassName, connectorImplementedInterface);
 		}
 		
-		return requestSubmissionConnector.getCanonicalName();*/
-	}	
+		return connectorClass.getCanonicalName();
+	}
 	
 	private static Class<?> makeConnectorClass(
 			String className,
@@ -136,11 +124,11 @@ public abstract class Javassist {
 				for (int z = 0; z < et.length; z++) {
 					source += et[z].getCanonicalName();
 					if (z < et.length - 1) {
-						source += "," ;
+						source += ",";
 					}
 				}
 			}
-			source += " {\n\n	return ((" ;
+			source += " {\n\n	return ((";
 			source += connectorImplementedInterface.getCanonicalName() + ")this.offering).";			
 			source += methodsToImplement[i].getName();
 			source += "(" + callParam + ");\n}";
