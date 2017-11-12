@@ -6,9 +6,9 @@ import java.util.Map;
 import java.util.Set;
 
 import fr.upmc.components.AbstractComponent;
-import fr.upmc.components.cvm.AbstractCVM;
 import fr.upmc.components.cvm.AbstractDistributedCVM;
 import fr.upmc.datacenter.hardware.computers.Computer;
+import fr.upmc.datacenter.hardware.computers.Computer.AllocatedCore;
 import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
 import fr.upmc.datacenter.hardware.computers.ports.ComputerServicesOutboundPort;
 import fr.upmc.datacenter.hardware.processors.Processor;
@@ -270,11 +270,24 @@ public class TestPartOneQuestionOneDCVM
 		super.shutdown();
 	}
 
+	@Override
+	public void start() throws Exception {
+		
+		super.start();
+
+		if (thisJVMURI.equals(PROVIDER_JVM_URI)) {			
+			AllocatedCore[] ac = this.csOutPort.allocateCores(4);
+			this.avmOutPort.allocateCores(ac);					
+		}
+	}
+	
 	void testScenario() throws Exception {
 		
-		this.rgmOutPort.startGeneration();
-		Thread.sleep(20000L);		
-		this.rgmOutPort.stopGeneration();
+		if (thisJVMURI.equals(CONSUMER_JVM_URI)) {		
+			this.rgmOutPort.startGeneration();
+			Thread.sleep(20000L);		
+			this.rgmOutPort.stopGeneration();
+		}
 	}
 
 	public static void	main(String[] args) {
