@@ -33,7 +33,6 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	public static int DEBUG_LEVEL = 1;
 
 	protected final String REQUEST_GENERATOR_JVM_URI = "";
-	//protected final String REQUEST_DISPATCHER_JVM_URI = "";
 	
 	protected final String appURI;	
 	protected ReflectionOutboundPort rop;

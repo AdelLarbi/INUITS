@@ -23,7 +23,7 @@ public abstract class Javassist {
 	private static Class<?> applicationServicesConnector;
 	private static Class<?> applicationSubmissionConnector;
 	private static Class<?> requestNotificationConnector;
-	private static Class<?> requestSubmissionConnector;	
+	private static Class<?> requestSubmissionConnector;
 
 	public synchronized static String getApplicationManagementConnectorClassName() throws Exception {
 		
