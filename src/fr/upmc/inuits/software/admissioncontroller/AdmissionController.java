@@ -273,14 +273,14 @@ public class AdmissionController
 	}
 
 	@Override
-	public void acceptApplicationSubmissionAndNotify(String appUri) throws Exception {
+	public void acceptApplicationSubmissionAndNotify(String appUri, int mustHaveCores) throws Exception {
 		
 		if (AdmissionController.DEBUG_LEVEL == 1) {
 			this.logMessage("Admission controller checking for available resources to execute " + appUri + ".");
 		}
 		
-		if (isResourcesAvailable()) {
-			acceptApplication(appUri);
+		if (isResourcesAvailable(mustHaveCores)) {
+			acceptApplication(appUri, mustHaveCores);
 			this.anop.notifyApplicationAdmission(true);
 			
 		} else {
@@ -289,12 +289,18 @@ public class AdmissionController
 		}		
 	}
 	
-	public boolean isResourcesAvailable() {		
+	public boolean isResourcesAvailable(int mustHaveCores) {		
+		int availableCores = 0;
 		
 		for (int p = 0; p < reservedCores.length; p++) {
 			for (int c = 0; c < reservedCores[0].length; c++) {
-				if (!this.reservedCores[p][c]) {					
-					return true;
+				
+				if (!this.reservedCores[p][c]) {
+					availableCores++;
+					
+					if (availableCores == mustHaveCores) {
+						return true;	
+					}					
 				}
 			}
 		}
@@ -302,18 +308,16 @@ public class AdmissionController
 		return false;
 	}
 
-	public void acceptApplication(String appUri) throws Exception {
+	public void acceptApplication(String appUri, int mustHaveCores) throws Exception {
 		
 		this.logMessage("Admission controller allow application " + appUri + " to be executed.");
 		
 		deployComponents(appUri);
-		
-		int coresToAllocateCount = 4;
 			
 		//FIXME
-		//assert coresToAllocateCount <= this.numberOfProcessors * this.numberOfCoresPerProcessor;
+		//assert mustHaveCores <= this.numberOfProcessors * this.numberOfCoresPerProcessor;
 		
-		AllocatedCore[] ac = this.csop.allocateCores(coresToAllocateCount);
+		AllocatedCore[] ac = this.csop.allocateCores(mustHaveCores);
 		this.avmOutPort.allocateCores(ac);
 	}
 	

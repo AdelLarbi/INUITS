@@ -114,7 +114,8 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				ControlledDataConnector.class.getCanonicalName());			
 		// --------------------------------------------------------------------
 		this.application = new Application(				
-				"app0",				
+				"app0",
+				4,
 				500.0,
 				6000000000L,
 				A_MANAGEMENT_IN_PORT_URI,

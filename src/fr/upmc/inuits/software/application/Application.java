@@ -35,6 +35,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	protected final String REQUEST_GENERATOR_JVM_URI = "";
 	
 	protected final String appURI;	
+	protected final int mustHaveCores;
 	protected ReflectionOutboundPort rop;
 	
 	protected ApplicationManagementInboundPort amip;
@@ -54,7 +55,8 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	protected final String rgRequestNotificationInboundPortURI;
 	
 	public Application(
-			String appURI,			
+			String appURI,
+			Integer mustHaveCores,
 			Double meanInterArrivalTime,
 			Long meanNumberOfInstructions,
 			String applicationManagementInboundPortURI,
@@ -63,7 +65,8 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 			String applicationNotificationInboundPortURI) throws Exception {
 		
 		super(appURI, 1, 1);
-				
+						
+		assert mustHaveCores > 0;
 		assert meanInterArrivalTime > 0.0;
 		assert meanNumberOfInstructions > 0;		
 		assert applicationManagementInboundPortURI != null;
@@ -71,6 +74,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		assert applicationSubmissionOutboundPortURI != null;
 		assert applicationNotificationInboundPortURI != null;
 		
+		this.mustHaveCores = mustHaveCores;
 		this.meanInterArrivalTime = meanInterArrivalTime;
 		this.meanNumberOfInstructions = meanNumberOfInstructions;
 		
@@ -234,7 +238,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		
 		dynamicRequestGeneratorDeploy();
 		
-		this.asop.submitApplicationAndNotify(this.appURI);
+		this.asop.submitApplicationAndNotify(this.appURI, this.mustHaveCores);
 	}
 	
 	@Override
