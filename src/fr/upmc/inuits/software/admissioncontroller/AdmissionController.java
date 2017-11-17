@@ -45,14 +45,14 @@ public class AdmissionController
 	protected final String APPLICATION_VM_JVM_URI = "";
 	protected final String REQUEST_DISPATCHER_JVM_URI = "";
 	
-	final String[] AVM_MANAGEMENT_IN_PORT_URI = {"a1m-ip","a2m-ip","a3m-ip","a4m-ip"}; //= "am-ip";
-	final String[] AVM_MANAGEMENT_OUT_PORT_URI = {"a1m-op","a2m-op","a3m-op","a4m-op"}; //= "am-op";	
-	final String[] AVM_REQUEST_SUBMISSION_IN_PORT_URI = {"a1rs-ip","a2rs-ip","a3rs-ip","a4rs-ip"}; //= "ars-ip";
-	final String[] AVM_REQUEST_NOTIFICATION_OUT_PORT_URI = {"a1rn-op","a2rn-op","a3rn-op","a4rn-op"}; //= "arn-op";
+	final String[] AVM_MANAGEMENT_IN_PORT_URI = {"a1m-ip","a2m-ip","a3m-ip"}; //= "am-ip";
+	final String[] AVM_MANAGEMENT_OUT_PORT_URI = {"a1m-op","a2m-op","a3m-op"}; //= "am-op";	
+	final String[] AVM_REQUEST_SUBMISSION_IN_PORT_URI = {"a1rs-ip","a2rs-ip","a3rs-ip"}; //= "ars-ip";
+	final String[] AVM_REQUEST_NOTIFICATION_OUT_PORT_URI = {"a1rn-op","a2rn-op","a3rn-op"}; //= "arn-op";
 	
 	final String RD_REQUEST_SUBMISSION_IN_PORT_URI = "rdrs-ip";
-	final String[] RD_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd1rs-op","rd2rs-op","rd3rs-op","rd4rs-op"}; //= "rdrs-op";
-	final String[] RD_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd1rn-ip","rd2rn-ip","rd3rn-ip","rd4rn-ip"}; //= "rdrn-ip";
+	final String[] RD_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd1rs-op","rd2rs-op","rd3rs-op"}; //= "rdrs-op";
+	final String[] RD_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd1rn-ip","rd2rn-ip","rd3rn-ip"}; //= "rdrn-ip";
 	final String RD_REQUEST_NOTIFICATION_OUT_PORT_URI = "rdrn-op";		
 	
 	protected ComputerServicesOutboundPort csop;
@@ -62,8 +62,8 @@ public class AdmissionController
 	protected ApplicationSubmissionInboundPort asip;
 	protected ApplicationNotificationOutboundPort anop;
 	
-	protected DynamicComponentCreationOutboundPort portToApplicationVMJVM;
-	protected DynamicComponentCreationOutboundPort portToRequestDispatcherJVM;
+	protected DynamicComponentCreationOutboundPort[] portToApplicationVMJVM;
+	protected DynamicComponentCreationOutboundPort[] portToRequestDispatcherJVM;
 	
 	protected ApplicationVMManagementOutboundPort[] avmOutPort;
 	
@@ -145,21 +145,28 @@ public class AdmissionController
 		
 		super.start();			
 				
-		try {	
-			this.portToApplicationVMJVM = new DynamicComponentCreationOutboundPort(this);
-			this.portToApplicationVMJVM.localPublishPort();
-			this.addPort(this.portToApplicationVMJVM);
-			this.portToApplicationVMJVM.doConnection(					
-					this.APPLICATION_VM_JVM_URI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
-					DynamicComponentCreationConnector.class.getCanonicalName());
+		try {				
+			this.portToApplicationVMJVM = new DynamicComponentCreationOutboundPort[3];
+			this.portToRequestDispatcherJVM = new DynamicComponentCreationOutboundPort[1];
 			
-			this.portToRequestDispatcherJVM = new DynamicComponentCreationOutboundPort(this);
-			this.portToRequestDispatcherJVM.localPublishPort();
-			this.addPort(this.portToRequestDispatcherJVM);
-			this.portToRequestDispatcherJVM.doConnection(					
-					this.REQUEST_DISPATCHER_JVM_URI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
-					DynamicComponentCreationConnector.class.getCanonicalName());
-		
+			for (int i = 0; i < 3; i++) {
+				this.portToApplicationVMJVM[i] = new DynamicComponentCreationOutboundPort(this);
+				this.portToApplicationVMJVM[i].localPublishPort();
+				this.addPort(this.portToApplicationVMJVM[i]);
+				this.portToApplicationVMJVM[i].doConnection(					
+						this.APPLICATION_VM_JVM_URI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
+						DynamicComponentCreationConnector.class.getCanonicalName());
+			}
+			
+			for (int i = 0; i < 1; i++) {
+				this.portToRequestDispatcherJVM[i] = new DynamicComponentCreationOutboundPort(this);
+				this.portToRequestDispatcherJVM[i].localPublishPort();
+				this.addPort(this.portToRequestDispatcherJVM[i]);
+				this.portToRequestDispatcherJVM[i].doConnection(					
+						this.REQUEST_DISPATCHER_JVM_URI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
+						DynamicComponentCreationConnector.class.getCanonicalName());
+			}			
+			
 			// start the pushing of dynamic state information from the computer;
 			// here only one push of information is planned after one second.
 			this.cdsdop.startUnlimitedPushing(1000);			
@@ -197,12 +204,16 @@ public class AdmissionController
 			}
 			if (this.anop.connected()) {
 				this.anop.doDisconnection();
-			}			
-			if (this.portToApplicationVMJVM.connected()) {
-				this.portToApplicationVMJVM.doDisconnection();
+			}						
+			for (int i = 0; i < 3; i++) { //FIXME not 3
+				if (this.portToApplicationVMJVM[i].connected()) {
+					this.portToApplicationVMJVM[i].doDisconnection();
+				}
 			}
-			if (this.portToRequestDispatcherJVM.connected()) {
-				this.portToRequestDispatcherJVM.doDisconnection();
+			for (int i = 0; i < 1; i++) { //FIXME not 1
+				if (this.portToRequestDispatcherJVM[i].connected()) {
+					this.portToRequestDispatcherJVM[i].doDisconnection();
+				}
 			}
 		} catch (Exception e) {
 			throw new ComponentShutdownException("Port disconnection error", e);
@@ -344,7 +355,7 @@ public class AdmissionController
 		this.logMessage("Admission controller deploying components for " + appUri + ".");
 		
 		for (int i = 0; i < applicationVMCount; i++) {
-			this.portToApplicationVMJVM.createComponent(
+			this.portToApplicationVMJVM[i].createComponent(
 					ApplicationVM.class.getCanonicalName(),
 					new Object[] {
 							"vm" + i,
@@ -353,18 +364,17 @@ public class AdmissionController
 						    AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[i]
 					});	
 		}					
+									
+		this.portToRequestDispatcherJVM[0].createComponent( //FIXME NOT 0 !!!!
+				RequestDispatcher.class.getCanonicalName(),
+				new Object[] {
+						RD_URI,							
+						RD_REQUEST_SUBMISSION_IN_PORT_URI,
+						RD_REQUEST_SUBMISSION_OUT_PORT_URI,
+						RD_REQUEST_NOTIFICATION_IN_PORT_URI,
+						RD_REQUEST_NOTIFICATION_OUT_PORT_URI
+				});
 				
-		for (int i = 0; i < applicationVMCount; i++) {			
-			this.portToRequestDispatcherJVM.createComponent(
-					RequestDispatcher.class.getCanonicalName(),
-					new Object[] {
-							RD_URI,							
-							RD_REQUEST_SUBMISSION_IN_PORT_URI,
-							RD_REQUEST_SUBMISSION_OUT_PORT_URI,
-							RD_REQUEST_NOTIFICATION_IN_PORT_URI,
-							RD_REQUEST_NOTIFICATION_OUT_PORT_URI
-					});
-		}		
 		// --------------------------------------------------------------------
 		this.addRequiredInterface(ApplicationVMManagementI.class);
 		this.avmOutPort = new ApplicationVMManagementOutboundPort[applicationVMCount];

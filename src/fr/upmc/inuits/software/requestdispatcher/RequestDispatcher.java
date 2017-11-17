@@ -86,15 +86,14 @@ public class RequestDispatcher
 	public void shutdown() throws ComponentShutdownException {
 		
 		try {
-			//FIXME disconnection null error
 			for (int i = 0; i < rsop.length; i++) {
 				if (this.rsop[i].connected()) {
 					this.rsop[i].doDisconnection();
 				}
 			}			
-			/*if (this.rnop.connected()) {
+			if (this.rnop.connected()) {
 				this.rnop.doDisconnection();
-			}*/
+			}
 		} catch (Exception e) {			
 			throw new ComponentShutdownException("Port disconnection error", e);
 		}

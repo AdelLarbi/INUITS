@@ -201,9 +201,6 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		//application.dynamicDeploy() ;
 		//application.dynamicStart() ;
 		
-		
-		
-		
 		this.asMockUpOutPort.sendRequestForApplicationExecution();				
 	}
 	
