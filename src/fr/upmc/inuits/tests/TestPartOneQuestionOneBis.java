@@ -132,16 +132,16 @@ public class TestPartOneQuestionOneBis extends AbstractCVM {
 		this.applicationVM1.toggleTracing();
 		this.applicationVM1.toggleLogging();		
 		// --------------------------------------------------------------------
-				this.applicationVM2 = new ApplicationVM(
-						"vm2",
-						AVM2_MANAGEMENT_IN_PORT_URI,
-					    AVM2_REQUEST_SUBMISSION_IN_PORT_URI,
-					    AVM2_REQUEST_NOTIFICATION_OUT_PORT_URI);
-				
-				this.addDeployedComponent(this.applicationVM2);
-				
-				this.applicationVM2.toggleTracing();
-				this.applicationVM2.toggleLogging();
+		this.applicationVM2 = new ApplicationVM(
+				"vm2",
+				AVM2_MANAGEMENT_IN_PORT_URI,
+			    AVM2_REQUEST_SUBMISSION_IN_PORT_URI,
+			    AVM2_REQUEST_NOTIFICATION_OUT_PORT_URI);
+		
+		this.addDeployedComponent(this.applicationVM2);
+		
+		this.applicationVM2.toggleTracing();
+		this.applicationVM2.toggleLogging();
 		// --------------------------------------------------------------------
 		/*this.applicationVM3 = new ApplicationVM(
 				"vm3",

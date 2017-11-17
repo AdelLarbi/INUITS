@@ -58,8 +58,8 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		ArrayList<String> computersURI = new ArrayList<>();
 		
 		String computerURI = "computer0";		
-		int numberOfProcessors = 2;
-		int numberOfCores = 2;
+		int numberOfProcessors = 5;
+		int numberOfCores = 4;
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>();
 		admissibleFrequencies.add(1500);
 		admissibleFrequencies.add(3000);
@@ -115,7 +115,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		// --------------------------------------------------------------------
 		this.application = new Application(				
 				"app0",
-				4,
+				9,
 				500.0,
 				6000000000L,
 				A_MANAGEMENT_IN_PORT_URI,
