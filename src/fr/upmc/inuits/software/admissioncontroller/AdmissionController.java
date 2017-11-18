@@ -45,10 +45,10 @@ public class AdmissionController
 	final String[] AVM_REQUEST_SUBMISSION_IN_PORT_URI = {"a1rs-ip","a2rs-ip","a3rs-ip","a4rs-ip","a5rs-ip","a6rs-ip"}; //= "ars-ip";
 	final String[] AVM_REQUEST_NOTIFICATION_OUT_PORT_URI = {"a1rn-op","a2rn-op","a3rn-op","a4rn-op","a5rn-op","a6rn-op"}; //= "arn-op";
 	
-	final String RD_REQUEST_SUBMISSION_IN_PORT_URI = "rdrs-ip";
+	final String[] RD_REQUEST_SUBMISSION_IN_PORT_URI = {"rd1rs-ip","rd2rs-ip"}; //*APP
 	final String[] RD_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd1rs-op","rd2rs-op","rd3rs-op","rd4rs-op","rd5rs-op","rd6rs-op"}; //= "rdrs-op"; //*AVM
 	final String[] RD_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd1rn-ip","rd2rn-ip","rd3rn-ip","rd4rn-ip","rd5rn-ip","rd6rn-ip"}; //= "rdrn-ip"; //*AVM
-	final String RD_REQUEST_NOTIFICATION_OUT_PORT_URI = "rdrn-op";		
+	final String[] RD_REQUEST_NOTIFICATION_OUT_PORT_URI = {"rd1rn-op","rd2rn-op"}; //*APP
 	
 	protected final String APPLICATION_VM_JVM_URI = "";
 	protected final String REQUEST_DISPATCHER_JVM_URI = "";
@@ -342,7 +342,7 @@ public class AdmissionController
 		deployComponents(appUri, appIndex, AVM_TO_DEPLOY_COUNT);		
 		this.logMessage("Admission controller deployed " + AVM_TO_DEPLOY_COUNT + " AVMs for " + appUri);
 		
-		allocateCores(mustHaveCores / AVM_TO_DEPLOY_COUNT, AVM_TO_DEPLOY_COUNT);	
+		allocateCores(mustHaveCores / AVM_TO_DEPLOY_COUNT, AVM_TO_DEPLOY_COUNT);		
 		this.logMessage("Admission controller allocated " + mustHaveCores + " cores for " + appUri);
 		
 		totalApplicationAccepted++;
@@ -356,9 +356,15 @@ public class AdmissionController
 	public void allocateCores(int coresCount, int avmToDeploy) throws Exception {
 		
 		AllocatedCore[] ac = this.csop[0].allocateCores(coresCount);
+		
 		for (int i = 0; i < avmToDeploy; i++) {
-			this.avmOutPort[i].allocateCores(ac);			
-		}		
+			int newAvmIndex = i + shiftAVMIndex;
+			this.avmOutPort[newAvmIndex].allocateCores(ac);			
+		}
+		
+		// Useful for next components deployment
+		shiftAVMIndex += avmToDeploy;
+		shiftRDIndex++;
 	}
 	
 	public void rejectApplication(String appUri) {
@@ -383,26 +389,28 @@ public class AdmissionController
 			System.out.println("***************************** AVM_REQUEST_SUBMISSION_IN_PORT_URI : " + AVM_REQUEST_SUBMISSION_IN_PORT_URI[newAvmIndex]);
 			System.out.println("***************************** newAvmIndex : " + AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[newAvmIndex]);*/
 			
+			final String AVM_URI = "avm-" + appIndex + "-" + newAvmIndex;
+			
 			this.portToApplicationVMJVM[newAvmIndex].createComponent(
 					ApplicationVM.class.getCanonicalName(),
 					new Object[] {
-							"vm" + newAvmIndex,
+							AVM_URI,
 							AVM_MANAGEMENT_IN_PORT_URI[newAvmIndex],
 						    AVM_REQUEST_SUBMISSION_IN_PORT_URI[newAvmIndex],
 						    AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[newAvmIndex]
 					});	
 		}							
 				
-		final String RD_URI = "rd" + shiftRDIndex + "-" + appUri;
+		final String RD_URI = "rd-" + appIndex + "-" + appUri;
 		
 		this.portToRequestDispatcherJVM[shiftRDIndex].createComponent(
 				RequestDispatcher.class.getCanonicalName(),
 				new Object[] {
 						RD_URI,							
-						RD_REQUEST_SUBMISSION_IN_PORT_URI,
+						RD_REQUEST_SUBMISSION_IN_PORT_URI[appIndex],
 						RD_REQUEST_SUBMISSION_OUT_PORT_URI,
 						RD_REQUEST_NOTIFICATION_IN_PORT_URI,
-						RD_REQUEST_NOTIFICATION_OUT_PORT_URI
+						RD_REQUEST_NOTIFICATION_OUT_PORT_URI[appIndex]
 				});
 		
 		// --------------------------------------------------------------------
@@ -432,8 +440,8 @@ public class AdmissionController
 		rop.toggleLogging();
 		rop.toggleTracing();
 		
-		this.amop[appIndex].doDynamicConnectionWithDispatcherForSubmission(RD_REQUEST_SUBMISSION_IN_PORT_URI);
-		this.amop[appIndex].doDynamicConnectionWithDispatcherForNotification(rop, RD_REQUEST_NOTIFICATION_OUT_PORT_URI);
+		this.amop[appIndex].doDynamicConnectionWithDispatcherForSubmission(RD_REQUEST_SUBMISSION_IN_PORT_URI[appIndex]);
+		this.amop[appIndex].doDynamicConnectionWithDispatcherForNotification(rop, RD_REQUEST_NOTIFICATION_OUT_PORT_URI[appIndex]);
 				
 		for (int i = 0; i < applicationVMCount; i++) {
 			int newAvmIndex = i + shiftAVMIndex;
@@ -448,8 +456,9 @@ public class AdmissionController
 		// --------------------------------------------------------------------
 		for (int i = 0; i < applicationVMCount; i++) {
 			int newAvmIndex = i + shiftAVMIndex;
+			final String AVM_URI = "avm-" + appIndex + "-" + newAvmIndex;
 			
-			rop.doConnection("vm" + newAvmIndex, ReflectionConnector.class.getCanonicalName());
+			rop.doConnection(AVM_URI, ReflectionConnector.class.getCanonicalName());
 	
 			RequestDispatcher.DEBUG_LEVEL = 1;
 			rop.toggleTracing();
@@ -461,11 +470,7 @@ public class AdmissionController
 					Javassist.getRequestNotificationConnectorClassName());
 			
 			rop.doDisconnection();
-		}
-		
-		// Useful for next components deployment
-		shiftAVMIndex += applicationVMCount;
-		shiftRDIndex++;
+		}			
 	}
 	
 	public void prepareDeployment(int applicationVMCount) throws Exception {					

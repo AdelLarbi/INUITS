@@ -277,16 +277,17 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				@Override
 				public void run() {
 					try {
-						//test.scenarioUniqueApplicationAndThreeAVMs();
+						test.scenarioUniqueApplicationAndThreeAVMs();
 						//test.scenarioTwoApplicationsSimultaneouslyAndThreeAVMsEach();
-						test.scenarioOneApplicationThenAnotherAndThreeAVMsEach();
+						//test.scenarioOneApplicationThenAnotherAndThreeAVMsEach();
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}
 				}
 			}).start();
 			
-			Thread.sleep(90000L);
+			//Thread.sleep(90000L);			
+			Thread.sleep(40000L);
 			
 			System.out.println("shutting down...");
 			test.shutdown();

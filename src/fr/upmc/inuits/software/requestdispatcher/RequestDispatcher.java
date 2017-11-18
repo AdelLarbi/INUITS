@@ -85,21 +85,30 @@ public class RequestDispatcher
 	@Override
 	public void shutdown() throws ComponentShutdownException {
 		
-		try {
-			for (int i = 0; i < rsop.length; i++) {
-				if (this.rsop[i].connected()) {
-					this.rsop[i].doDisconnection();
-				}
+		try {			
+			if (this.rnop.connected()) {				
+				this.rnop.doDisconnection();							
 			}			
-			if (this.rnop.connected()) {
-				this.rnop.doDisconnection();
-			}
 		} catch (Exception e) {			
 			throw new ComponentShutdownException("Port disconnection error", e);
 		}
 
 		super.shutdown();
 	}	
+	
+	//FIXME do it properly
+	public void foo(String rdURI, int avmDeployed, int shiftAVMIndex) throws Exception {
+		
+		synchronized(this) {
+			if (this.rdURI.equals(rdURI)) {
+				for (int i = shiftAVMIndex; i < shiftAVMIndex + avmDeployed; i++) {				
+					if (this.rsop[i].connected()) {
+						this.rsop[i].doDisconnection();
+					}
+				} 
+			}	
+		}
+	}
 	
 	@Override
 	public void acceptRequestSubmission(RequestI r) throws Exception {
