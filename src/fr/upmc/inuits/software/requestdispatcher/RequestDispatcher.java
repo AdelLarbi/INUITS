@@ -141,6 +141,6 @@ public class RequestDispatcher
 					r.getPredictedNumberOfInstructions());
 		}
 				
-		this.rnop.notifyRequestTermination(r);
+		this.rnop.notifyRequestTermination(r); //TODO notify with the exact vm name
 	}
 }

@@ -1,6 +1,5 @@
 package fr.upmc.inuits.tests;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -27,9 +26,9 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	public static final String C_STATIC_STATE_DATA_IN_PORT_URI = "cssd-ip";
 	public static final String C_DYNAMIC_STATE_DATA_IN_PORT_URI = "cdsd-ip";
 	
-	public static final String AC_SERVICES_OUT_PORT_URI = "acs-op";
-	public static final String AC_STATIC_STATE_DATA_OUT_PORT_URI = "acssd-op";
-	public static final String AC_DYNAMIC_STATE_DATA_OUT_PORT_URI = "acdsd-op";
+	public static final String[] AC_SERVICES_OUT_PORT_URI = {"acs-op"};
+	public static final String[] AC_STATIC_STATE_DATA_OUT_PORT_URI = {"acssd-op"};
+	public static final String[] AC_DYNAMIC_STATE_DATA_OUT_PORT_URI = {"acdsd-op"};
 	public static final String AC_APPLICATION_MANAGEMENT_OUT_PORT_URI = "acam-op";
 	public static final String AC_APPLICATION_SUBMISSION_IN_PORT_URI = "acas-ip";
 	public static final String AC_APPLICATION_NOTIFICATION_OUT_PORT_URI = "acan-op";	
@@ -55,9 +54,9 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		AbstractComponent.configureLogging(System.getProperty("user.home"), "log", 400, '|');
 		Processor.DEBUG = true;
 		// --------------------------------------------------------------------
-		ArrayList<String> computersURI = new ArrayList<>();
+		String[] computersURI = new String[1];
 		
-		String computerURI = "computer0";		
+		computersURI[0] = "computer0";		
 		int numberOfProcessors = 5;
 		int numberOfCores = 4;
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>();
@@ -67,10 +66,9 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		processingPower.put(1500, 1500000);
 		processingPower.put(3000, 3000000);
 		
-		computersURI.add(computerURI);
 		
 		Computer computer = new Computer(
-				computerURI, 
+				computersURI[0], 
 				admissibleFrequencies, 
 				processingPower, 
 				1500, 
@@ -99,17 +97,17 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		this.admissionController.toggleLogging();			
 		
 		this.admissionController.doPortConnection(				
-				AC_SERVICES_OUT_PORT_URI,
+				AC_SERVICES_OUT_PORT_URI[0],
 				C_SERVICES_IN_PORT_URI,
 				ComputerServicesConnector.class.getCanonicalName());
 		
 		this.admissionController.doPortConnection(
-				AC_STATIC_STATE_DATA_OUT_PORT_URI,
+				AC_STATIC_STATE_DATA_OUT_PORT_URI[0],
 				C_STATIC_STATE_DATA_IN_PORT_URI,
 				DataConnector.class.getCanonicalName());
 
 		this.admissionController.doPortConnection(
-				AC_DYNAMIC_STATE_DATA_OUT_PORT_URI,
+				AC_DYNAMIC_STATE_DATA_OUT_PORT_URI[0],
 				C_DYNAMIC_STATE_DATA_IN_PORT_URI,
 				ControlledDataConnector.class.getCanonicalName());			
 		// --------------------------------------------------------------------
@@ -181,9 +179,9 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	@Override
 	public void shutdown() throws Exception {
 				
-		this.admissionController.doPortDisconnection(AC_SERVICES_OUT_PORT_URI);
-		this.admissionController.doPortDisconnection(AC_STATIC_STATE_DATA_OUT_PORT_URI);
-		this.admissionController.doPortDisconnection(AC_DYNAMIC_STATE_DATA_OUT_PORT_URI);
+		this.admissionController.doPortDisconnection(AC_SERVICES_OUT_PORT_URI[0]);
+		this.admissionController.doPortDisconnection(AC_STATIC_STATE_DATA_OUT_PORT_URI[0]);
+		this.admissionController.doPortDisconnection(AC_DYNAMIC_STATE_DATA_OUT_PORT_URI[0]);
 		this.admissionController.doPortDisconnection(AC_APPLICATION_MANAGEMENT_OUT_PORT_URI);
 		this.admissionController.doPortDisconnection(AC_APPLICATION_NOTIFICATION_OUT_PORT_URI);	
 		this.asMockUpOutPort.doDisconnection();
@@ -196,11 +194,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		super.shutdown();
 	}
 	
-	public void testScenario() throws Exception {
-		
-		//application.dynamicDeploy() ;
-		//application.dynamicStart() ;
-		
+	public void testScenarioUniqueApplicationAndThreeAVMs() throws Exception {
 		this.asMockUpOutPort.sendRequestForApplicationExecution();				
 	}
 	
@@ -217,7 +211,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				@Override
 				public void run() {
 					try {
-						test.testScenario();
+						test.testScenarioUniqueApplicationAndThreeAVMs();
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}
