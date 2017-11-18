@@ -35,6 +35,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	protected final String REQUEST_GENERATOR_JVM_URI = "";
 	
 	protected final String appURI;	
+	protected final int appIndex;
 	protected final int mustHaveCores;
 	protected ReflectionOutboundPort rop;
 	
@@ -50,13 +51,14 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	protected final Long meanNumberOfInstructions;
 	protected final String rgManagementInboundPortURI;
 	
-	protected final String rgURI;
+	protected final String rgURI;	
 	protected final String rgRequestSubmissionOutboundPortURI;
 	protected final String rgRequestNotificationInboundPortURI;
 	
 	public Application(
 			String appURI,
-			Integer mustHaveCores,
+			int appIndex,
+			int mustHaveCores,
 			Double meanInterArrivalTime,
 			Long meanNumberOfInstructions,
 			String applicationManagementInboundPortURI,
@@ -84,6 +86,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		this.rgRequestNotificationInboundPortURI = appURI + "-rgrn-ip";
 		
 		this.appURI = appURI;
+		this.appIndex = appIndex;
 		
 		this.addOfferedInterface(ApplicationManagementI.class);
 		this.amip = new ApplicationManagementInboundPort(applicationManagementInboundPortURI, this);
@@ -114,6 +117,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		this.addRequiredInterface(DynamicComponentCreationI.class);
 						
 		assert this.appURI != null && this.appURI.length() > 0;
+		assert this.appIndex > 0;
 		assert this.amip != null && this.amip instanceof ApplicationManagementI;
 		assert this.asip != null && this.asip instanceof ApplicationServicesI;
 		assert this.asop != null && this.asop instanceof ApplicationSubmissionI;
@@ -238,7 +242,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		
 		dynamicRequestGeneratorDeploy();
 		
-		this.asop.submitApplicationAndNotify(this.appURI, this.mustHaveCores);
+		this.asop.submitApplicationAndNotify(this.appURI, this.appIndex, this.mustHaveCores);
 	}
 	
 	@Override
@@ -261,7 +265,8 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 				RequestGeneratorManagementConnector.class.getCanonicalName());			
 									
 		this.rgmop.startGeneration();
-		Thread.sleep(20000L);		
+		//Thread.sleep(20000L);		
+		Thread.sleep(5000L);
 		this.rgmop.stopGeneration();
 	}
 }

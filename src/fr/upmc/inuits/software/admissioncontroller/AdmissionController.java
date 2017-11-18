@@ -40,14 +40,14 @@ public class AdmissionController
 	
 	public static int DEBUG_LEVEL = 1;	
 		
-	final String[] AVM_MANAGEMENT_IN_PORT_URI = {"a1m-ip","a2m-ip","a3m-ip"}; //= "am-ip";
-	final String[] AVM_MANAGEMENT_OUT_PORT_URI = {"a1m-op","a2m-op","a3m-op"}; //= "am-op";	
-	final String[] AVM_REQUEST_SUBMISSION_IN_PORT_URI = {"a1rs-ip","a2rs-ip","a3rs-ip"}; //= "ars-ip";
-	final String[] AVM_REQUEST_NOTIFICATION_OUT_PORT_URI = {"a1rn-op","a2rn-op","a3rn-op"}; //= "arn-op";
+	final String[] AVM_MANAGEMENT_IN_PORT_URI = {"a1m-ip","a2m-ip","a3m-ip","a4m-ip","a5m-ip","a6m-ip"}; //= "am-ip";
+	final String[] AVM_MANAGEMENT_OUT_PORT_URI = {"a1m-op","a2m-op","a3m-op","a4m-op","a5m-op","a6m-op"}; //= "am-op";	
+	final String[] AVM_REQUEST_SUBMISSION_IN_PORT_URI = {"a1rs-ip","a2rs-ip","a3rs-ip","a4rs-ip","a5rs-ip","a6rs-ip"}; //= "ars-ip";
+	final String[] AVM_REQUEST_NOTIFICATION_OUT_PORT_URI = {"a1rn-op","a2rn-op","a3rn-op","a4rn-op","a5rn-op","a6rn-op"}; //= "arn-op";
 	
 	final String RD_REQUEST_SUBMISSION_IN_PORT_URI = "rdrs-ip";
-	final String[] RD_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd1rs-op","rd2rs-op","rd3rs-op"}; //= "rdrs-op";
-	final String[] RD_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd1rn-ip","rd2rn-ip","rd3rn-ip"}; //= "rdrn-ip";
+	final String[] RD_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd1rs-op","rd2rs-op","rd3rs-op","rd4rs-op","rd5rs-op","rd6rs-op"}; //= "rdrs-op"; //*AVM
+	final String[] RD_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd1rn-ip","rd2rn-ip","rd3rn-ip","rd4rn-ip","rd5rn-ip","rd6rn-ip"}; //= "rdrn-ip"; //*AVM
 	final String RD_REQUEST_NOTIFICATION_OUT_PORT_URI = "rdrn-op";		
 	
 	protected final String APPLICATION_VM_JVM_URI = "";
@@ -56,9 +56,9 @@ public class AdmissionController
 	protected ComputerServicesOutboundPort[] csop;
 	protected ComputerStaticStateDataOutboundPort[] cssdop;
 	protected ComputerDynamicStateDataOutboundPort[] cdsdop;
-	protected ApplicationManagementOutboundPort amop;
-	protected ApplicationSubmissionInboundPort asip;
-	protected ApplicationNotificationOutboundPort anop;
+	protected ApplicationManagementOutboundPort[] amop;
+	protected ApplicationSubmissionInboundPort[] asip;
+	protected ApplicationNotificationOutboundPort[] anop;
 	
 	protected DynamicComponentCreationOutboundPort[] portToApplicationVMJVM;
 	protected DynamicComponentCreationOutboundPort[] portToRequestDispatcherJVM;	
@@ -68,6 +68,7 @@ public class AdmissionController
 	protected int shiftRDIndex;	
 	
 	protected final int TOTAL_COMPUTERS_USED;
+	protected final int TOTAL_APPLICATION_EXECUTION_REQUESTED;
 	protected int totalAVMReserved;
 	protected int totalApplicationAccepted;
 	
@@ -80,9 +81,9 @@ public class AdmissionController
 			String[] computerServicesOutboundPortURI,
 			String[] computerStaticStateDataOutboundPortURI,
 			String[] computerDynamicStateDataOutboundPortURI,
-			String applicationManagementOutboundPortURI,
-			String applicationSubmissionInboundPortURI,
-			String applicationNotificationOutboundPortURI) throws Exception {
+			String[] applicationManagementOutboundPortURI,
+			String[] applicationSubmissionInboundPortURI,
+			String[] applicationNotificationOutboundPortURI) throws Exception {
 		
 		super(1, 1);
 		
@@ -90,19 +91,24 @@ public class AdmissionController
 		assert computerServicesOutboundPortURI != null && computerServicesOutboundPortURI.length > 0;
 		assert computerStaticStateDataOutboundPortURI != null && computerStaticStateDataOutboundPortURI.length > 0;
 		assert computerDynamicStateDataOutboundPortURI != null && computerDynamicStateDataOutboundPortURI.length > 0;		
-		assert applicationManagementOutboundPortURI != null && applicationManagementOutboundPortURI.length() > 0;
-		assert applicationSubmissionInboundPortURI != null && applicationSubmissionInboundPortURI.length() > 0;
-		assert applicationNotificationOutboundPortURI != null && applicationNotificationOutboundPortURI.length() > 0;
+		assert applicationManagementOutboundPortURI != null && applicationManagementOutboundPortURI.length > 0;
+		assert applicationSubmissionInboundPortURI != null && applicationSubmissionInboundPortURI.length > 0;
+		assert applicationNotificationOutboundPortURI != null && applicationNotificationOutboundPortURI.length > 0;
 	
 		this.shiftRDIndex = 0;
 		this.shiftAVMIndex = 0;
 	
-		this.TOTAL_COMPUTERS_USED = computersURI.length; 
+		this.TOTAL_COMPUTERS_USED = computersURI.length;
+		this.TOTAL_APPLICATION_EXECUTION_REQUESTED = applicationManagementOutboundPortURI.length;
 		this.totalAVMReserved = 0;
 		this.totalApplicationAccepted = 0;		
 		
-		this.portToApplicationVMJVM = new DynamicComponentCreationOutboundPort[100 * 10];
-		this.portToRequestDispatcherJVM = new DynamicComponentCreationOutboundPort[100];
+		this.amop = new ApplicationManagementOutboundPort[TOTAL_APPLICATION_EXECUTION_REQUESTED];
+		this.asip = new ApplicationSubmissionInboundPort[TOTAL_APPLICATION_EXECUTION_REQUESTED];
+		this.anop = new ApplicationNotificationOutboundPort[TOTAL_APPLICATION_EXECUTION_REQUESTED];
+		
+		this.portToApplicationVMJVM = new DynamicComponentCreationOutboundPort[TOTAL_APPLICATION_EXECUTION_REQUESTED * 10];
+		this.portToRequestDispatcherJVM = new DynamicComponentCreationOutboundPort[TOTAL_APPLICATION_EXECUTION_REQUESTED];
 		
 		this.csop = new ComputerServicesOutboundPort[TOTAL_COMPUTERS_USED];
 		this.cssdop = new ComputerStaticStateDataOutboundPort[TOTAL_COMPUTERS_USED];
@@ -129,27 +135,30 @@ public class AdmissionController
 		}		
 				
 		this.addRequiredInterface(ApplicationManagementI.class);
-		this.amop = new ApplicationManagementOutboundPort(applicationManagementOutboundPortURI, this);
-		this.addPort(this.amop);
-		this.amop.publishPort();
-		
 		this.addOfferedInterface(ApplicationSubmissionI.class);
-		this.asip = new ApplicationSubmissionInboundPort(applicationSubmissionInboundPortURI, this);
-		this.addPort(this.asip);
-		this.asip.publishPort();
-		
 		this.addRequiredInterface(ApplicationNotificationI.class);
-		this.anop = new ApplicationNotificationOutboundPort(applicationNotificationOutboundPortURI, this);
-		this.addPort(this.anop);
-		this.anop.publishPort();												
+		
+		for (int i = 0; i < TOTAL_APPLICATION_EXECUTION_REQUESTED; i++) {
+			this.amop[i] = new ApplicationManagementOutboundPort(applicationManagementOutboundPortURI[i], this);
+			this.addPort(this.amop[i]);
+			this.amop[i].publishPort();		
+			
+			this.asip[i] = new ApplicationSubmissionInboundPort(applicationSubmissionInboundPortURI[i], this);
+			this.addPort(this.asip[i]);
+			this.asip[i].publishPort();		
+			
+			this.anop[i] = new ApplicationNotificationOutboundPort(applicationNotificationOutboundPortURI[i], this);
+			this.addPort(this.anop[i]);
+			this.anop[i].publishPort();	
+		}													
 		
 		this.addRequiredInterface(DynamicComponentCreationI.class);			
 		
 		assert this.cssdop != null && this.cssdop[0] instanceof DataRequiredI.PullI; // or : ComputerStaticStateDataI
 		assert this.cdsdop != null && this.cdsdop[0] instanceof ControlledDataRequiredI.ControlledPullI;
-		assert this.amop != null && this.amop instanceof ApplicationManagementI;
-		assert this.asip != null && this.asip instanceof ApplicationSubmissionI;
-		assert this.anop != null && this.anop instanceof ApplicationNotificationI;		
+		assert this.amop != null && this.amop[0] instanceof ApplicationManagementI;
+		assert this.asip != null && this.asip[0] instanceof ApplicationSubmissionI;
+		assert this.anop != null && this.anop[0] instanceof ApplicationNotificationI;		
 	}
 	
 	@Override
@@ -194,12 +203,14 @@ public class AdmissionController
 					this.cdsdop[i].doDisconnection();
 				}
 			}			
-			if (this.amop.connected()) {
-				this.amop.doDisconnection();
+			for (int i = 0; i < TOTAL_APPLICATION_EXECUTION_REQUESTED; i++) {
+				if (this.amop[i].connected()) {
+					this.amop[i].doDisconnection();
+				}
+				if (this.anop[i].connected()) {
+					this.anop[i].doDisconnection();
+				}
 			}
-			if (this.anop.connected()) {
-				this.anop.doDisconnection();
-			}						
 			for (int i = 0; i < this.totalAVMReserved; i++) {
 				if (this.portToApplicationVMJVM[i].connected()) {
 					this.portToApplicationVMJVM[i].doDisconnection();
@@ -287,23 +298,23 @@ public class AdmissionController
 	}
 
 	@Override
-	public void acceptApplicationSubmissionAndNotify(String appUri, int mustHaveCores) throws Exception {
+	public void acceptApplicationSubmissionAndNotify(String appUri, int appIndex, int mustHaveCores) throws Exception {
 		
 		if (AdmissionController.DEBUG_LEVEL == 1) {
 			this.logMessage("Admission controller checking for available resources to execute " + appUri + ".");
 		}
 		
 		if (isResourcesAvailable(mustHaveCores)) {
-			acceptApplication(appUri, mustHaveCores);
-			this.anop.notifyApplicationAdmission(true);
+			acceptApplication(appUri, appIndex, mustHaveCores);
+			this.anop[appIndex].notifyApplicationAdmission(true);
 			
 		} else {
 			rejectApplication(appUri);
-			this.anop.notifyApplicationAdmission(false);
+			this.anop[appIndex].notifyApplicationAdmission(false);
 		}		
 	}
 	
-	public boolean isResourcesAvailable(int mustHaveCores) {		
+	public synchronized boolean isResourcesAvailable(int mustHaveCores) {		
 		int availableCores = 0;
 		
 		for (int p = 0; p < reservedCores.length; p++) {
@@ -322,13 +333,13 @@ public class AdmissionController
 		return false;
 	}
 
-	public void acceptApplication(String appUri, int mustHaveCores) throws Exception {
+	public synchronized void acceptApplication(String appUri, int appIndex, int mustHaveCores) throws Exception {
 		
 		this.logMessage("Admission controller allow application " + appUri + " to be executed.");
 		
 		// This will change when we start part 2 and 3.
 		final int AVM_TO_DEPLOY_COUNT = 3; 		
-		deployComponents(appUri, AVM_TO_DEPLOY_COUNT);		
+		deployComponents(appUri, appIndex, AVM_TO_DEPLOY_COUNT);		
 		this.logMessage("Admission controller deployed " + AVM_TO_DEPLOY_COUNT + " AVMs for " + appUri);
 		
 		allocateCores(mustHaveCores / AVM_TO_DEPLOY_COUNT, AVM_TO_DEPLOY_COUNT);	
@@ -355,14 +366,22 @@ public class AdmissionController
 		this.logMessage("Admission controller can't accept application " + appUri + " because of lack of resources.");		
 	}		
 	
-	public void deployComponents(String appUri, int applicationVMCount) throws Exception {						 			
+	public void deployComponents(String appUri, int appIndex, int applicationVMCount) throws Exception {						 			
 		
-		prepareDeployment(applicationVMCount);
+		prepareDeployment(applicationVMCount);		
 						
 		this.logMessage("Admission controller deploying components for " + appUri + "...");
 		
 		for (int i = 0; i < applicationVMCount; i++) {
 			int newAvmIndex = i + shiftAVMIndex;
+		
+			/*System.out.println("***************************** shiftAVMIndex : " + shiftAVMIndex);
+			System.out.println("***************************** newAvmIndex : " + newAvmIndex);
+			System.out.println("***************************** vm + newAvmIndex : " + "vm" + newAvmIndex);
+			
+			System.out.println("***************************** AVM_MANAGEMENT_IN_PORT_URI : " + AVM_MANAGEMENT_IN_PORT_URI[newAvmIndex]);
+			System.out.println("***************************** AVM_REQUEST_SUBMISSION_IN_PORT_URI : " + AVM_REQUEST_SUBMISSION_IN_PORT_URI[newAvmIndex]);
+			System.out.println("***************************** newAvmIndex : " + AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[newAvmIndex]);*/
 			
 			this.portToApplicationVMJVM[newAvmIndex].createComponent(
 					ApplicationVM.class.getCanonicalName(),
@@ -372,7 +391,7 @@ public class AdmissionController
 						    AVM_REQUEST_SUBMISSION_IN_PORT_URI[newAvmIndex],
 						    AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[newAvmIndex]
 					});	
-		}					
+		}							
 				
 		final String RD_URI = "rd" + shiftRDIndex + "-" + appUri;
 		
@@ -385,22 +404,23 @@ public class AdmissionController
 						RD_REQUEST_NOTIFICATION_IN_PORT_URI,
 						RD_REQUEST_NOTIFICATION_OUT_PORT_URI
 				});
-				
+		
 		// --------------------------------------------------------------------
-		this.addRequiredInterface(ApplicationVMManagementI.class);
-		this.avmOutPort = new ApplicationVMManagementOutboundPort[applicationVMCount];
+		this.addRequiredInterface(ApplicationVMManagementI.class);//XXX
+		this.avmOutPort = new ApplicationVMManagementOutboundPort[6]; //XXX not 6!!!
 		
 		for (int i = 0; i < applicationVMCount; i++) {		
 			int newAvmIndex = i + shiftAVMIndex;
-			
-			this.avmOutPort[newAvmIndex] = new ApplicationVMManagementOutboundPort(AVM_MANAGEMENT_OUT_PORT_URI[newAvmIndex], this);
-			this.addPort(this.avmOutPort[newAvmIndex]);
-			this.avmOutPort[newAvmIndex].publishPort();
+								
+			this.avmOutPort[newAvmIndex] = new ApplicationVMManagementOutboundPort(AVM_MANAGEMENT_OUT_PORT_URI[newAvmIndex], this);			
+			this.addPort(this.avmOutPort[newAvmIndex]);			
+			this.avmOutPort[newAvmIndex].publishPort();			
 			
 			avmOutPort[newAvmIndex].doConnection(
 					AVM_MANAGEMENT_IN_PORT_URI[newAvmIndex],
 					ApplicationVMManagementConnector.class.getCanonicalName());			
-		}		
+		}
+		
 		// --------------------------------------------------------------------
 		ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
 		this.addPort(rop);
@@ -412,8 +432,8 @@ public class AdmissionController
 		rop.toggleLogging();
 		rop.toggleTracing();
 		
-		this.amop.doDynamicConnectionWithDispatcherForSubmission(RD_REQUEST_SUBMISSION_IN_PORT_URI);
-		this.amop.doDynamicConnectionWithDispatcherForNotification(rop, RD_REQUEST_NOTIFICATION_OUT_PORT_URI);
+		this.amop[appIndex].doDynamicConnectionWithDispatcherForSubmission(RD_REQUEST_SUBMISSION_IN_PORT_URI);
+		this.amop[appIndex].doDynamicConnectionWithDispatcherForNotification(rop, RD_REQUEST_NOTIFICATION_OUT_PORT_URI);
 				
 		for (int i = 0; i < applicationVMCount; i++) {
 			int newAvmIndex = i + shiftAVMIndex;
@@ -450,7 +470,7 @@ public class AdmissionController
 	
 	public void prepareDeployment(int applicationVMCount) throws Exception {					
 		for (int i = 0; i < applicationVMCount; i++) {
-			int newAvmIndex = i + shiftAVMIndex;
+			int newAvmIndex = i + shiftAVMIndex;								
 			
 			this.portToApplicationVMJVM[newAvmIndex] = new DynamicComponentCreationOutboundPort(this);
 			this.portToApplicationVMJVM[newAvmIndex].localPublishPort();

@@ -6,5 +6,5 @@ import fr.upmc.components.interfaces.RequiredI;
 public interface ApplicationSubmissionI 
 	extends OfferedI, RequiredI {
 	
-	public void submitApplicationAndNotify(String appUri, int mustHaveCores) throws Exception;
+	public void submitApplicationAndNotify(String appUri, int appIndex, int mustHaveCores) throws Exception;
 }

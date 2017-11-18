@@ -138,7 +138,7 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 				RequestGeneratorManagementConnector.class.getCanonicalName());
 		// --------------------------------------------------------------------		
 		this.requestDispatcher = new RequestDispatcher(				
-				"rd0",							
+				"rd0",				
 				RD_REQUEST_SUBMISSION_IN_PORT_URI,
 				RD_REQUEST_SUBMISSION_OUT_PORT_URI,
 				RD_REQUEST_NOTIFICATION_IN_PORT_URI,
