@@ -6,5 +6,5 @@ import fr.upmc.components.interfaces.RequiredI;
 public interface ApplicationServicesI 
 	extends OfferedI, RequiredI {
 		
-	public void sendRequestForApplicationExecution() throws Exception;
+	public void sendRequestForApplicationExecution(int coresToReserve) throws Exception;
 }

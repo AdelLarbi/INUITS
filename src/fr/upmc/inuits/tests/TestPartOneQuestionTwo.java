@@ -50,8 +50,8 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	protected Application application1;	
 	protected Application application2;
 	protected ApplicationServicesOutboundPort asMockUpOutPort1;
-	protected ApplicationServicesOutboundPort asMockUpOutPort2;
-
+	protected ApplicationServicesOutboundPort asMockUpOutPort2;	
+	
 	public TestPartOneQuestionTwo() throws Exception {
 		super();
 	}
@@ -59,14 +59,14 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	@Override
 	public void deploy() throws Exception {
 		
-		AbstractComponent.configureLogging(System.getProperty("user.home"), "log", 400, '|');
+		//AbstractComponent.configureLogging(System.getProperty("user.home"), "log", 400, '|');
 		Processor.DEBUG = true;
 		// --------------------------------------------------------------------
 		String[] computersURI = new String[1];
 		
-		computersURI[0] = "computer0";		
 		int numberOfProcessors = 5;
 		int numberOfCores = 4;
+		computersURI[0] = "computer0";		
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>();
 		admissibleFrequencies.add(1500);
 		admissibleFrequencies.add(3000);
@@ -122,7 +122,6 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		this.application1 = new Application(				
 				"app0",
 				0,
-				9,
 				500.0,
 				6000000000L,
 				A1_MANAGEMENT_IN_PORT_URI,
@@ -164,7 +163,6 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		this.application2 = new Application(				
 				"app1",
 				1,
-				9,
 				500.0,
 				6000000000L,
 				A2_MANAGEMENT_IN_PORT_URI,
@@ -204,28 +202,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				ApplicationServicesConnector.class.getCanonicalName());
 		// --------------------------------------------------------------------
 		super.deploy();
-	}
-	
-	/*@Override
-	public void			start() throws Exception
-	{
-		super.start() ;
-
-		final Application fA = this.application ;
-		this.application.runTask(
-			new ComponentI.ComponentTask() {
-					@Override
-					public void run() {
-						try {
-							fA.dynamicDeploy() ;
-							fA.dynamicStart() ;
-						} catch (Exception e) {
-							throw new RuntimeException(e) ;
-						}
-					}
-				}) ;
-
-	}*/
+	}	
 	
 	@Override
 	public void shutdown() throws Exception {
@@ -240,28 +217,38 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		
 		this.asMockUpOutPort1.doDisconnection();
 		this.asMockUpOutPort2.doDisconnection();
-
-		// print logs on files, if activated
-		/*this.applicationVM.printExecutionLogOnFile("applicationVM");
-		this.requestDispatcher.printExecutionLogOnFile("requestDispatcher");
-		this.requestGenerator.printExecutionLogOnFile("requestGenerator");*/
 		
 		super.shutdown();
 	}
 	
-	public void scenarioUniqueApplicationAndThreeAVMs() throws Exception {
-		this.asMockUpOutPort1.sendRequestForApplicationExecution();				
-	}
-		
-	public void scenarioTwoApplicationsSimultaneouslyAndThreeAVMsEach() throws Exception {
-		this.asMockUpOutPort1.sendRequestForApplicationExecution();
-		this.asMockUpOutPort2.sendRequestForApplicationExecution();
+	public void scenarioUniqueApplicationAndThreeAVMs_accept() throws Exception {
+		this.asMockUpOutPort1.sendRequestForApplicationExecution(9);				
 	}
 	
-	public void scenarioOneApplicationThenAnotherAndThreeAVMsEach() throws Exception {
-		this.asMockUpOutPort1.sendRequestForApplicationExecution();
-		Thread.sleep(10000L);
-		this.asMockUpOutPort2.sendRequestForApplicationExecution();
+	public void scenarioUniqueApplicationAndThreeAVMs_refuse() throws Exception {
+		this.asMockUpOutPort1.sendRequestForApplicationExecution(21);				
+	}
+		
+	public void scenarioTwoApplicationsSimultaneouslyAndThreeAVMsEach_accept() throws Exception {
+		this.asMockUpOutPort1.sendRequestForApplicationExecution(9);
+		this.asMockUpOutPort2.sendRequestForApplicationExecution(8);
+	}
+	
+	public void scenarioTwoApplicationsSimultaneouslyAndThreeAVMsEach_refuse() throws Exception {
+		this.asMockUpOutPort1.sendRequestForApplicationExecution(14);
+		this.asMockUpOutPort2.sendRequestForApplicationExecution(8);
+	}
+	
+	public void scenarioOneApplicationThenAnotherAndThreeAVMsEach_accept() throws Exception {
+		this.asMockUpOutPort1.sendRequestForApplicationExecution(9);
+		Thread.sleep(5000L);
+		this.asMockUpOutPort2.sendRequestForApplicationExecution(8);
+	}
+	
+	public void scenarioOneApplicationThenAnotherAndThreeAVMsEach_refuse() throws Exception {
+		this.asMockUpOutPort1.sendRequestForApplicationExecution(9);
+		Thread.sleep(5000L);
+		this.asMockUpOutPort2.sendRequestForApplicationExecution(15);
 	}
 		
 	public static void main(String[] args) {
@@ -277,9 +264,14 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				@Override
 				public void run() {
 					try {
-						//test.scenarioUniqueApplicationAndThreeAVMs();
-						test.scenarioTwoApplicationsSimultaneouslyAndThreeAVMsEach();
-						//test.scenarioOneApplicationThenAnotherAndThreeAVMsEach();
+						//test.scenarioUniqueApplicationAndThreeAVMs_accept();
+						//test.scenarioUniqueApplicationAndThreeAVMs_refuse();
+						
+						//test.scenarioTwoApplicationsSimultaneouslyAndThreeAVMsEach_accept();
+						//test.scenarioTwoApplicationsSimultaneouslyAndThreeAVMsEach_refuse();
+						
+						test.scenarioOneApplicationThenAnotherAndThreeAVMsEach_accept();
+						//test.scenarioOneApplicationThenAnotherAndThreeAVMsEach_refuse();
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}

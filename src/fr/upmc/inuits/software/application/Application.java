@@ -35,8 +35,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	protected final String REQUEST_GENERATOR_JVM_URI = "";
 	
 	protected final String appURI;	
-	protected final int appIndex;
-	protected final int mustHaveCores;
+	protected final int appIndex;	
 	protected ReflectionOutboundPort rop;
 	
 	protected ApplicationManagementInboundPort amip;
@@ -57,8 +56,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	
 	public Application(
 			String appURI,
-			int appIndex,
-			int mustHaveCores,
+			int appIndex,			
 			Double meanInterArrivalTime,
 			Long meanNumberOfInstructions,
 			String applicationManagementInboundPortURI,
@@ -67,16 +65,14 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 			String applicationNotificationInboundPortURI) throws Exception {
 		
 		super(appURI, 1, 1);
-						
-		assert mustHaveCores > 0;
+								
 		assert meanInterArrivalTime > 0.0;
 		assert meanNumberOfInstructions > 0;		
 		assert applicationManagementInboundPortURI != null;
 		assert applicationServicesInboundPortURI != null;
 		assert applicationSubmissionOutboundPortURI != null;
 		assert applicationNotificationInboundPortURI != null;
-		
-		this.mustHaveCores = mustHaveCores;
+				
 		this.meanInterArrivalTime = meanInterArrivalTime;
 		this.meanNumberOfInstructions = meanNumberOfInstructions;
 		
@@ -230,15 +226,15 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	}
 	
 	@Override
-	public void	sendRequestForApplicationExecution() throws Exception {
-		
+	public void	sendRequestForApplicationExecution(int coresToReserve) throws Exception {
+						
 		if (Application.DEBUG_LEVEL == 1) {	
 			this.logMessage("Application " + this.appURI + " asking for execution permission.");
 		}
 		
 		dynamicRequestGeneratorDeploy();
 		
-		this.asop.submitApplicationAndNotify(this.appURI, this.appIndex, this.mustHaveCores);
+		this.asop.submitApplicationAndNotify(this.appURI, this.appIndex, coresToReserve);
 	}
 	
 	@Override

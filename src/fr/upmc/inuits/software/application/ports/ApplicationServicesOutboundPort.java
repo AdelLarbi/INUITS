@@ -21,8 +21,8 @@ public class ApplicationServicesOutboundPort
 	}
 		
 	@Override
-	public void sendRequestForApplicationExecution() throws Exception {
+	public void sendRequestForApplicationExecution(int coresToReserve) throws Exception {
 		
-		((ApplicationServicesI)this.connector).sendRequestForApplicationExecution();		
+		((ApplicationServicesI)this.connector).sendRequestForApplicationExecution(coresToReserve);		
 	}	
 }

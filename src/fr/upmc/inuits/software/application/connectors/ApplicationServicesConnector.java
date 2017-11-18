@@ -8,8 +8,8 @@ public class ApplicationServicesConnector
 	implements ApplicationServicesI {
 
 	@Override
-	public void sendRequestForApplicationExecution() throws Exception {
+	public void sendRequestForApplicationExecution(int coresToReserve) throws Exception {
 		
-		((ApplicationServicesI)this.offering).sendRequestForApplicationExecution();
+		((ApplicationServicesI)this.offering).sendRequestForApplicationExecution(coresToReserve);
 	}
 }

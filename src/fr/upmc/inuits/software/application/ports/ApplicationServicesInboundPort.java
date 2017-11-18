@@ -26,7 +26,7 @@ public class ApplicationServicesInboundPort
 	}
 		
 	@Override
-	public void sendRequestForApplicationExecution() throws Exception {		
+	public void sendRequestForApplicationExecution(int coresToReserve) throws Exception {		
 		
 		final Application app = (Application) this.owner;
 		
@@ -34,7 +34,7 @@ public class ApplicationServicesInboundPort
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						app.sendRequestForApplicationExecution();
+						app.sendRequestForApplicationExecution(coresToReserve);
 						return null;
 					}
 				});		

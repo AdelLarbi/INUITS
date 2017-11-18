@@ -45,10 +45,10 @@ public class AdmissionController
 	final String[] AVM_REQUEST_SUBMISSION_IN_PORT_URI;// = {"a1rs-ip","a2rs-ip","a3rs-ip","a4rs-ip","a5rs-ip","a6rs-ip"}; //= "ars-ip";
 	final String[] AVM_REQUEST_NOTIFICATION_OUT_PORT_URI;// = {"a1rn-op","a2rn-op","a3rn-op","a4rn-op","a5rn-op","a6rn-op"}; //= "arn-op";
 	
-	final String[] RD_REQUEST_SUBMISSION_IN_PORT_URI = {"rd1rs-ip","rd2rs-ip"}; //*APP
+	final String[] RD_REQUEST_SUBMISSION_IN_PORT_URI;// = {"rd1rs-ip","rd2rs-ip"}; //*APP
 	final String[] RD_REQUEST_SUBMISSION_OUT_PORT_URI;// = {"rd1rs-op","rd2rs-op","rd3rs-op","rd4rs-op","rd5rs-op","rd6rs-op"}; //= "rdrs-op"; //*AVM
 	final String[] RD_REQUEST_NOTIFICATION_IN_PORT_URI;// = {"rd1rn-ip","rd2rn-ip","rd3rn-ip","rd4rn-ip","rd5rn-ip","rd6rn-ip"}; //= "rdrn-ip"; //*AVM
-	final String[] RD_REQUEST_NOTIFICATION_OUT_PORT_URI = {"rd1rn-op","rd2rn-op"}; //*APP
+	final String[] RD_REQUEST_NOTIFICATION_OUT_PORT_URI;// = {"rd1rn-op","rd2rn-op"}; //*APP
 	
 	protected final String APPLICATION_VM_JVM_URI = "";
 	protected final String REQUEST_DISPATCHER_JVM_URI = "";
@@ -108,10 +108,10 @@ public class AdmissionController
 		this.AVM_REQUEST_SUBMISSION_IN_PORT_URI = new String[TOTAL_APPLICATION_EXECUTION_REQUESTED * 10];
 		this.AVM_REQUEST_NOTIFICATION_OUT_PORT_URI = new String[TOTAL_APPLICATION_EXECUTION_REQUESTED * 10];
 		
-		//this.RD_REQUEST_SUBMISSION_IN_PORT_URI = new String[TOTAL_APPLICATION_EXECUTION_REQUESTED];
+		this.RD_REQUEST_SUBMISSION_IN_PORT_URI = new String[TOTAL_APPLICATION_EXECUTION_REQUESTED];
 		this.RD_REQUEST_SUBMISSION_OUT_PORT_URI = new String[TOTAL_APPLICATION_EXECUTION_REQUESTED * 10];
 		this.RD_REQUEST_NOTIFICATION_IN_PORT_URI = new String[TOTAL_APPLICATION_EXECUTION_REQUESTED * 10];
-		//this.RD_REQUEST_NOTIFICATION_OUT_PORT_URI = new String[TOTAL_APPLICATION_EXECUTION_REQUESTED];		
+		this.RD_REQUEST_NOTIFICATION_OUT_PORT_URI = new String[TOTAL_APPLICATION_EXECUTION_REQUESTED];		
 		
 		this.amop = new ApplicationManagementOutboundPort[TOTAL_APPLICATION_EXECUTION_REQUESTED];
 		this.asip = new ApplicationSubmissionInboundPort[TOTAL_APPLICATION_EXECUTION_REQUESTED];
@@ -277,8 +277,8 @@ public class AdmissionController
 	@Override
 	public void acceptComputerDynamicData(String computerURI, ComputerDynamicStateI currentDynamicState)
 			throws Exception {
-		
-		this.reservedCores = currentDynamicState.getCurrentCoreReservations();
+				
+		this.reservedCores = currentDynamicState.getCurrentCoreReservations();			
 		
 		if (AdmissionController.DEBUG_LEVEL == 2) {
 			StringBuffer sb = new StringBuffer();
@@ -316,7 +316,7 @@ public class AdmissionController
 		if (AdmissionController.DEBUG_LEVEL == 1) {
 			this.logMessage("Admission controller checking for available resources to execute " + appUri + ".");
 		}
-		
+				
 		if (isResourcesAvailable(mustHaveCores)) {
 			acceptApplication(appUri, appIndex, mustHaveCores);
 			this.anop[appIndex].notifyApplicationAdmission(true);
@@ -327,18 +327,21 @@ public class AdmissionController
 		}		
 	}
 	
-	public synchronized boolean isResourcesAvailable(int mustHaveCores) {		
+	public boolean isResourcesAvailable(int mustHaveCores) {		
 		int availableCores = 0;
 		
 		for (int p = 0; p < reservedCores.length; p++) {
 			for (int c = 0; c < reservedCores[0].length; c++) {
 				
 				if (!this.reservedCores[p][c]) {
+					System.out.println("N" + p + c);
 					availableCores++;
 					
 					if (availableCores == mustHaveCores) {
 						return true;	
 					}					
+				} else {
+					System.out.println("R" + p + c);
 				}
 			}
 		}
@@ -346,7 +349,7 @@ public class AdmissionController
 		return false;
 	}
 
-	public synchronized void acceptApplication(String appUri, int appIndex, int mustHaveCores) throws Exception {
+	public void acceptApplication(String appUri, int appIndex, int mustHaveCores) throws Exception {
 		
 		this.logMessage("Admission controller allow application " + appUri + " to be executed.");
 		
@@ -355,24 +358,21 @@ public class AdmissionController
 		deployComponents(appUri, appIndex, AVM_TO_DEPLOY_COUNT);		
 		this.logMessage("Admission controller deployed " + AVM_TO_DEPLOY_COUNT + " AVMs for " + appUri);
 		
-		allocateCores(mustHaveCores / AVM_TO_DEPLOY_COUNT, AVM_TO_DEPLOY_COUNT);		
+		allocateCores(mustHaveCores, AVM_TO_DEPLOY_COUNT);		
 		this.logMessage("Admission controller allocated " + mustHaveCores + " cores for " + appUri);
 		
 		totalApplicationAccepted++;
-		totalAVMReserved += AVM_TO_DEPLOY_COUNT;
-		
-		//FIXME
-		//assert mustHaveCores <= this.numberOfProcessors * this.numberOfCoresPerProcessor;				
+		totalAVMReserved += AVM_TO_DEPLOY_COUNT;					
 	}
 	
 	// This is just the first version of cores allocation before starting part 2 and 3.
 	public void allocateCores(int coresCount, int avmToDeploy) throws Exception {
-		
-		AllocatedCore[] ac = this.csop[0].allocateCores(coresCount);
+				
+		AllocatedCore[] ac = this.csop[0].allocateCores(coresCount);		
 		
 		for (int i = 0; i < avmToDeploy; i++) {
 			int newAvmIndex = i + shiftAVMIndex;
-			this.avmOutPort[newAvmIndex].allocateCores(ac);			
+			this.avmOutPort[newAvmIndex].allocateCores(ac);		
 		}
 		
 		// Useful for next components deployment
@@ -386,22 +386,14 @@ public class AdmissionController
 	}		
 	
 	public void deployComponents(String appUri, int appIndex, int applicationVMCount) throws Exception {						 			
-		
+				
 		prepareDeployment(applicationVMCount);		
 						
 		this.logMessage("Admission controller deploying components for " + appUri + "...");
 		
 		for (int i = 0; i < applicationVMCount; i++) {
 			int newAvmIndex = i + shiftAVMIndex;
-		
-			/*System.out.println("***************************** shiftAVMIndex : " + shiftAVMIndex);
-			System.out.println("***************************** newAvmIndex : " + newAvmIndex);
-			System.out.println("***************************** vm + newAvmIndex : " + "vm" + newAvmIndex);
-			
-			System.out.println("***************************** AVM_MANAGEMENT_IN_PORT_URI : " + AVM_MANAGEMENT_IN_PORT_URI[newAvmIndex]);
-			System.out.println("***************************** AVM_REQUEST_SUBMISSION_IN_PORT_URI : " + AVM_REQUEST_SUBMISSION_IN_PORT_URI[newAvmIndex]);
-			System.out.println("***************************** AVM_REQUEST_NOTIFICATION_OUT_PORT_URI : " + AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[newAvmIndex]);*/
-			
+							
 			final String AVM_URI = "avm-" + appIndex + "-" + newAvmIndex;
 			
 			this.portToApplicationVMJVM[newAvmIndex].createComponent(
@@ -417,11 +409,13 @@ public class AdmissionController
 		final String RD_URI = "rd-" + appIndex + "-" + appUri;
 		final String[] LOCAL_RD_REQUEST_SUBMISSION_OUT_PORT_URI = new String[applicationVMCount];
 		final String[] LOCAL_RD_REQUEST_NOTIFICATION_IN_PORT_URI = new String[applicationVMCount];
-
+		this.RD_REQUEST_SUBMISSION_IN_PORT_URI[appIndex] = "rrsip-" + appIndex;
+		this.RD_REQUEST_NOTIFICATION_OUT_PORT_URI[appIndex] = "rrnop-" + appIndex;
+		
 		for (int i = 0; i < applicationVMCount; i++) {
 			LOCAL_RD_REQUEST_SUBMISSION_OUT_PORT_URI[i] = RD_REQUEST_SUBMISSION_OUT_PORT_URI[i + shiftAVMIndex];
 			LOCAL_RD_REQUEST_NOTIFICATION_IN_PORT_URI[i] = RD_REQUEST_NOTIFICATION_IN_PORT_URI[i + shiftAVMIndex];			
-		}							
+		}													
 		
 		this.portToRequestDispatcherJVM[shiftRDIndex].createComponent(
 				RequestDispatcher.class.getCanonicalName(),
@@ -514,8 +508,5 @@ public class AdmissionController
 		this.portToRequestDispatcherJVM[shiftRDIndex].doConnection(					
 				this.REQUEST_DISPATCHER_JVM_URI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
 				DynamicComponentCreationConnector.class.getCanonicalName());
-		
-		//this.RD_REQUEST_SUBMISSION_IN_PORT_URI[shiftRDIndex] = "rrsip-" + shiftRDIndex;
-		//this.RD_REQUEST_NOTIFICATION_OUT_PORT_URI[shiftRDIndex] = "rrnop-" + shiftRDIndex;
 	}
 }
