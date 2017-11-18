@@ -38,17 +38,18 @@ public class AdmissionController
 	extends AbstractComponent 
 	implements ComputerStateDataConsumerI, ApplicationSubmissionHandlerI {
 	
-	public static int DEBUG_LEVEL = 1;	
+	public static int DEBUG_LEVEL = 1;
+	public static int ANALYSE_DATA_TIMER = 1000;
 		
-	final String[] AVM_MANAGEMENT_IN_PORT_URI;// = {"a1m-ip","a2m-ip","a3m-ip","a4m-ip","a5m-ip","a6m-ip"}; //= "am-ip";
-	final String[] AVM_MANAGEMENT_OUT_PORT_URI;// = {"a1m-op","a2m-op","a3m-op","a4m-op","a5m-op","a6m-op"}; //= "am-op";	
-	final String[] AVM_REQUEST_SUBMISSION_IN_PORT_URI;// = {"a1rs-ip","a2rs-ip","a3rs-ip","a4rs-ip","a5rs-ip","a6rs-ip"}; //= "ars-ip";
-	final String[] AVM_REQUEST_NOTIFICATION_OUT_PORT_URI;// = {"a1rn-op","a2rn-op","a3rn-op","a4rn-op","a5rn-op","a6rn-op"}; //= "arn-op";
+	final String[] AVM_MANAGEMENT_IN_PORT_URI;
+	final String[] AVM_MANAGEMENT_OUT_PORT_URI;	
+	final String[] AVM_REQUEST_SUBMISSION_IN_PORT_URI;
+	final String[] AVM_REQUEST_NOTIFICATION_OUT_PORT_URI;
 	
-	final String[] RD_REQUEST_SUBMISSION_IN_PORT_URI;// = {"rd1rs-ip","rd2rs-ip"}; //*APP
-	final String[] RD_REQUEST_SUBMISSION_OUT_PORT_URI;// = {"rd1rs-op","rd2rs-op","rd3rs-op","rd4rs-op","rd5rs-op","rd6rs-op"}; //= "rdrs-op"; //*AVM
-	final String[] RD_REQUEST_NOTIFICATION_IN_PORT_URI;// = {"rd1rn-ip","rd2rn-ip","rd3rn-ip","rd4rn-ip","rd5rn-ip","rd6rn-ip"}; //= "rdrn-ip"; //*AVM
-	final String[] RD_REQUEST_NOTIFICATION_OUT_PORT_URI;// = {"rd1rn-op","rd2rn-op"}; //*APP
+	final String[] RD_REQUEST_SUBMISSION_IN_PORT_URI;
+	final String[] RD_REQUEST_SUBMISSION_OUT_PORT_URI;
+	final String[] RD_REQUEST_NOTIFICATION_IN_PORT_URI;
+	final String[] RD_REQUEST_NOTIFICATION_OUT_PORT_URI;
 	
 	protected final String APPLICATION_VM_JVM_URI = "";
 	protected final String REQUEST_DISPATCHER_JVM_URI = "";
@@ -183,7 +184,7 @@ public class AdmissionController
 			// start the pushing of dynamic state information from the computer;
 			// here only one push of information is planned after one second.
 			for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
-				this.cdsdop[i].startUnlimitedPushing(1000);
+				this.cdsdop[i].startUnlimitedPushing(ANALYSE_DATA_TIMER); 
 			}
 			//this.cdsdop.startLimitedPushing(1000, 25);			
 													
@@ -312,19 +313,24 @@ public class AdmissionController
 
 	@Override
 	public void acceptApplicationSubmissionAndNotify(String appUri, int appIndex, int mustHaveCores) throws Exception {
-		
+				
 		if (AdmissionController.DEBUG_LEVEL == 1) {
 			this.logMessage("Admission controller checking for available resources to execute " + appUri + ".");
 		}
+		
+		synchronized (this) {			
+			if (isResourcesAvailable(mustHaveCores)) {
+				acceptApplication(appUri, appIndex, mustHaveCores);
+				this.anop[appIndex].notifyApplicationAdmission(true);
 				
-		if (isResourcesAvailable(mustHaveCores)) {
-			acceptApplication(appUri, appIndex, mustHaveCores);
-			this.anop[appIndex].notifyApplicationAdmission(true);
+			} else {
+				rejectApplication(appUri);
+				this.anop[appIndex].notifyApplicationAdmission(false);
+			}
 			
-		} else {
-			rejectApplication(appUri);
-			this.anop[appIndex].notifyApplicationAdmission(false);
-		}		
+			// Necessary await time to update data when several applications runs simultaneously 
+			wait(ANALYSE_DATA_TIMER);			
+		}					
 	}
 	
 	public boolean isResourcesAvailable(int mustHaveCores) {		
@@ -333,15 +339,12 @@ public class AdmissionController
 		for (int p = 0; p < reservedCores.length; p++) {
 			for (int c = 0; c < reservedCores[0].length; c++) {
 				
-				if (!this.reservedCores[p][c]) {
-					System.out.println("N" + p + c);
+				if (!this.reservedCores[p][c]) {					
 					availableCores++;
 					
 					if (availableCores == mustHaveCores) {
 						return true;	
 					}					
-				} else {
-					System.out.println("R" + p + c);
 				}
 			}
 		}
