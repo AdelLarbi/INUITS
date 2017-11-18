@@ -126,7 +126,7 @@ public abstract class Javassist {
 			source += connectorImplementedInterface.getCanonicalName() + ")this.offering).";			
 			source += methodsToImplement[i].getName();
 			source += "(" + callParam + ");\n}";
-			System.out.println(source);
+			//System.out.println(source);
 			CtMethod theCtMethod = CtMethod.make(source, connectorCtClass);
 			connectorCtClass.addMethod(theCtMethod);
 		}
