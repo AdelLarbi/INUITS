@@ -40,14 +40,14 @@ public class AdmissionController
 	
 	public static int DEBUG_LEVEL = 1;	
 		
-	final String[] AVM_MANAGEMENT_IN_PORT_URI = {"a1m-ip","a2m-ip","a3m-ip","a4m-ip","a5m-ip","a6m-ip"}; //= "am-ip";
-	final String[] AVM_MANAGEMENT_OUT_PORT_URI = {"a1m-op","a2m-op","a3m-op","a4m-op","a5m-op","a6m-op"}; //= "am-op";	
-	final String[] AVM_REQUEST_SUBMISSION_IN_PORT_URI = {"a1rs-ip","a2rs-ip","a3rs-ip","a4rs-ip","a5rs-ip","a6rs-ip"}; //= "ars-ip";
-	final String[] AVM_REQUEST_NOTIFICATION_OUT_PORT_URI = {"a1rn-op","a2rn-op","a3rn-op","a4rn-op","a5rn-op","a6rn-op"}; //= "arn-op";
+	final String[] AVM_MANAGEMENT_IN_PORT_URI;// = {"a1m-ip","a2m-ip","a3m-ip","a4m-ip","a5m-ip","a6m-ip"}; //= "am-ip";
+	final String[] AVM_MANAGEMENT_OUT_PORT_URI;// = {"a1m-op","a2m-op","a3m-op","a4m-op","a5m-op","a6m-op"}; //= "am-op";	
+	final String[] AVM_REQUEST_SUBMISSION_IN_PORT_URI;// = {"a1rs-ip","a2rs-ip","a3rs-ip","a4rs-ip","a5rs-ip","a6rs-ip"}; //= "ars-ip";
+	final String[] AVM_REQUEST_NOTIFICATION_OUT_PORT_URI;// = {"a1rn-op","a2rn-op","a3rn-op","a4rn-op","a5rn-op","a6rn-op"}; //= "arn-op";
 	
 	final String[] RD_REQUEST_SUBMISSION_IN_PORT_URI = {"rd1rs-ip","rd2rs-ip"}; //*APP
-	final String[] RD_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd1rs-op","rd2rs-op","rd3rs-op","rd4rs-op","rd5rs-op","rd6rs-op"}; //= "rdrs-op"; //*AVM
-	final String[] RD_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd1rn-ip","rd2rn-ip","rd3rn-ip","rd4rn-ip","rd5rn-ip","rd6rn-ip"}; //= "rdrn-ip"; //*AVM
+	final String[] RD_REQUEST_SUBMISSION_OUT_PORT_URI;// = {"rd1rs-op","rd2rs-op","rd3rs-op","rd4rs-op","rd5rs-op","rd6rs-op"}; //= "rdrs-op"; //*AVM
+	final String[] RD_REQUEST_NOTIFICATION_IN_PORT_URI;// = {"rd1rn-ip","rd2rn-ip","rd3rn-ip","rd4rn-ip","rd5rn-ip","rd6rn-ip"}; //= "rdrn-ip"; //*AVM
 	final String[] RD_REQUEST_NOTIFICATION_OUT_PORT_URI = {"rd1rn-op","rd2rn-op"}; //*APP
 	
 	protected final String APPLICATION_VM_JVM_URI = "";
@@ -97,11 +97,21 @@ public class AdmissionController
 	
 		this.shiftRDIndex = 0;
 		this.shiftAVMIndex = 0;
-	
+			
 		this.TOTAL_COMPUTERS_USED = computersURI.length;
 		this.TOTAL_APPLICATION_EXECUTION_REQUESTED = applicationManagementOutboundPortURI.length;
 		this.totalAVMReserved = 0;
 		this.totalApplicationAccepted = 0;		
+	
+		this.AVM_MANAGEMENT_IN_PORT_URI = new String[TOTAL_APPLICATION_EXECUTION_REQUESTED * 10];
+		this.AVM_MANAGEMENT_OUT_PORT_URI = new String[TOTAL_APPLICATION_EXECUTION_REQUESTED * 10];	
+		this.AVM_REQUEST_SUBMISSION_IN_PORT_URI = new String[TOTAL_APPLICATION_EXECUTION_REQUESTED * 10];
+		this.AVM_REQUEST_NOTIFICATION_OUT_PORT_URI = new String[TOTAL_APPLICATION_EXECUTION_REQUESTED * 10];
+		
+		//this.RD_REQUEST_SUBMISSION_IN_PORT_URI = new String[TOTAL_APPLICATION_EXECUTION_REQUESTED];
+		this.RD_REQUEST_SUBMISSION_OUT_PORT_URI = new String[TOTAL_APPLICATION_EXECUTION_REQUESTED * 10];
+		this.RD_REQUEST_NOTIFICATION_IN_PORT_URI = new String[TOTAL_APPLICATION_EXECUTION_REQUESTED * 10];
+		//this.RD_REQUEST_NOTIFICATION_OUT_PORT_URI = new String[TOTAL_APPLICATION_EXECUTION_REQUESTED];		
 		
 		this.amop = new ApplicationManagementOutboundPort[TOTAL_APPLICATION_EXECUTION_REQUESTED];
 		this.asip = new ApplicationSubmissionInboundPort[TOTAL_APPLICATION_EXECUTION_REQUESTED];
@@ -113,6 +123,9 @@ public class AdmissionController
 		this.csop = new ComputerServicesOutboundPort[TOTAL_COMPUTERS_USED];
 		this.cssdop = new ComputerStaticStateDataOutboundPort[TOTAL_COMPUTERS_USED];
 		this.cdsdop = new ComputerDynamicStateDataOutboundPort[TOTAL_COMPUTERS_USED];
+		
+		this.addRequiredInterface(ApplicationVMManagementI.class);
+		this.avmOutPort = new ApplicationVMManagementOutboundPort[TOTAL_APPLICATION_EXECUTION_REQUESTED * 10];
 		
 		this.addRequiredInterface(ComputerServicesI.class);
 		// this.addOfferedInterface(ComputerStaticStateDataI.class); or :
@@ -387,7 +400,7 @@ public class AdmissionController
 			
 			System.out.println("***************************** AVM_MANAGEMENT_IN_PORT_URI : " + AVM_MANAGEMENT_IN_PORT_URI[newAvmIndex]);
 			System.out.println("***************************** AVM_REQUEST_SUBMISSION_IN_PORT_URI : " + AVM_REQUEST_SUBMISSION_IN_PORT_URI[newAvmIndex]);
-			System.out.println("***************************** newAvmIndex : " + AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[newAvmIndex]);*/
+			System.out.println("***************************** AVM_REQUEST_NOTIFICATION_OUT_PORT_URI : " + AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[newAvmIndex]);*/
 			
 			final String AVM_URI = "avm-" + appIndex + "-" + newAvmIndex;
 			
@@ -400,23 +413,27 @@ public class AdmissionController
 						    AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[newAvmIndex]
 					});	
 		}							
-				
+			
 		final String RD_URI = "rd-" + appIndex + "-" + appUri;
+		final String[] LOCAL_RD_REQUEST_SUBMISSION_OUT_PORT_URI = new String[applicationVMCount];
+		final String[] LOCAL_RD_REQUEST_NOTIFICATION_IN_PORT_URI = new String[applicationVMCount];
+
+		for (int i = 0; i < applicationVMCount; i++) {
+			LOCAL_RD_REQUEST_SUBMISSION_OUT_PORT_URI[i] = RD_REQUEST_SUBMISSION_OUT_PORT_URI[i + shiftAVMIndex];
+			LOCAL_RD_REQUEST_NOTIFICATION_IN_PORT_URI[i] = RD_REQUEST_NOTIFICATION_IN_PORT_URI[i + shiftAVMIndex];			
+		}							
 		
 		this.portToRequestDispatcherJVM[shiftRDIndex].createComponent(
 				RequestDispatcher.class.getCanonicalName(),
 				new Object[] {
 						RD_URI,							
 						RD_REQUEST_SUBMISSION_IN_PORT_URI[appIndex],
-						RD_REQUEST_SUBMISSION_OUT_PORT_URI,
-						RD_REQUEST_NOTIFICATION_IN_PORT_URI,
+						LOCAL_RD_REQUEST_SUBMISSION_OUT_PORT_URI,
+						LOCAL_RD_REQUEST_NOTIFICATION_IN_PORT_URI,
 						RD_REQUEST_NOTIFICATION_OUT_PORT_URI[appIndex]
 				});
 		
-		// --------------------------------------------------------------------
-		this.addRequiredInterface(ApplicationVMManagementI.class);//XXX
-		this.avmOutPort = new ApplicationVMManagementOutboundPort[6]; //XXX not 6!!!
-		
+		// --------------------------------------------------------------------				
 		for (int i = 0; i < applicationVMCount; i++) {		
 			int newAvmIndex = i + shiftAVMIndex;
 								
@@ -436,7 +453,6 @@ public class AdmissionController
 		
 		rop.doConnection(RD_URI, ReflectionConnector.class.getCanonicalName());		
 		
-		RequestDispatcher.DEBUG_LEVEL = 1;
 		rop.toggleLogging();
 		rop.toggleTracing();
 		
@@ -483,6 +499,13 @@ public class AdmissionController
 			this.portToApplicationVMJVM[newAvmIndex].doConnection(					
 					this.APPLICATION_VM_JVM_URI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
 					DynamicComponentCreationConnector.class.getCanonicalName());
+			
+			this.AVM_MANAGEMENT_IN_PORT_URI[newAvmIndex] = "amip-" + newAvmIndex;
+			this.AVM_MANAGEMENT_OUT_PORT_URI[newAvmIndex] = "amop-" + newAvmIndex;	
+			this.AVM_REQUEST_SUBMISSION_IN_PORT_URI[newAvmIndex] = "arsip-" + newAvmIndex;
+			this.AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[newAvmIndex] = "arnop-" + newAvmIndex;						
+			this.RD_REQUEST_SUBMISSION_OUT_PORT_URI[newAvmIndex] = "rrsop-" + newAvmIndex;
+			this.RD_REQUEST_NOTIFICATION_IN_PORT_URI[newAvmIndex] = "rrnip-" + newAvmIndex;
 		}
 			
 		this.portToRequestDispatcherJVM[shiftRDIndex] = new DynamicComponentCreationOutboundPort(this);
@@ -491,6 +514,8 @@ public class AdmissionController
 		this.portToRequestDispatcherJVM[shiftRDIndex].doConnection(					
 				this.REQUEST_DISPATCHER_JVM_URI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
 				DynamicComponentCreationConnector.class.getCanonicalName());
+		
+		//this.RD_REQUEST_SUBMISSION_IN_PORT_URI[shiftRDIndex] = "rrsip-" + shiftRDIndex;
+		//this.RD_REQUEST_NOTIFICATION_OUT_PORT_URI[shiftRDIndex] = "rrnop-" + shiftRDIndex;
 	}
 }
-

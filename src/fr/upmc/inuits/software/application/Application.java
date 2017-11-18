@@ -152,11 +152,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 			}
 			if (this.rgmop.connected()) {
 				this.rgmop.doDisconnection();
-			}			
-			/* FIXME java.lang.NullPointerException
-			if (this.requestGenerator.isPortConnected(rgRequestSubmissionOutboundPortURI)) {
-				this.requestGenerator.doPortDisconnection(rgRequestSubmissionOutboundPortURI);
-			}*/
+			}
 			if (this.portToRequestGeneratorJVM.connected()) {
 				this.portToRequestGeneratorJVM.doDisconnection();
 			}

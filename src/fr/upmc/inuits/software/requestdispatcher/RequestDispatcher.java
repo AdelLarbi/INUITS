@@ -58,10 +58,10 @@ public class RequestDispatcher
 		this.addRequiredInterface(RequestSubmissionI.class);
 		this.addOfferedInterface(RequestNotificationI.class);
 		
-		for (int i = 0; i < this.AVAILABLE_APPLICATION_VM; i++) {
+		for (int i = 0; i < this.AVAILABLE_APPLICATION_VM; i++) {			
 			this.rsop[i] = new RequestSubmissionOutboundPort(requestSubmissionOutboundPortURI[i], this);
 			this.addPort(this.rsop[i]);
-			this.rsop[i].publishPort();
+			this.rsop[i].publishPort();			
 			
 			this.rnip[i] = new RequestNotificationInboundPort(requestNotificationIntboundPortURI[i], this);
 			this.addPort(this.rnip[i]);
@@ -86,6 +86,11 @@ public class RequestDispatcher
 	public void shutdown() throws ComponentShutdownException {
 		
 		try {			
+			for (int i = 0; i < rsop.length; i++) {
+				if (this.rsop[i].connected()) {
+					this.rsop[i].doDisconnection();
+				}
+			} 
 			if (this.rnop.connected()) {				
 				this.rnop.doDisconnection();							
 			}			
@@ -95,21 +100,7 @@ public class RequestDispatcher
 
 		super.shutdown();
 	}	
-	
-	//FIXME do it properly
-	public void foo(String rdURI, int avmDeployed, int shiftAVMIndex) throws Exception {
 		
-		synchronized(this) {
-			if (this.rdURI.equals(rdURI)) {
-				for (int i = shiftAVMIndex; i < shiftAVMIndex + avmDeployed; i++) {				
-					if (this.rsop[i].connected()) {
-						this.rsop[i].doDisconnection();
-					}
-				} 
-			}	
-		}
-	}
-	
 	@Override
 	public void acceptRequestSubmission(RequestI r) throws Exception {
 		
@@ -150,6 +141,6 @@ public class RequestDispatcher
 					r.getPredictedNumberOfInstructions());
 		}
 				
-		this.rnop.notifyRequestTermination(r); //TODO notify with the exact vm name
+		this.rnop.notifyRequestTermination(r);
 	}
 }
