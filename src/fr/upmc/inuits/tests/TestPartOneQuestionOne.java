@@ -29,28 +29,28 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 	public static final String C_STATIC_STATE_DATA_IN_PORT_URI = "cssd-ip";
 	public static final String C_DYNAMIC_STATE_DATA_IN_PORT_URI = "cdsd-ip";
 	
-	public static final String AVM_MANAGEMENT_IN_PORT_URI = "am-ip";
-	public static final String AVM_MANAGEMENT_OUT_PORT_URI = "am-op";	
-	public static final String AVM_REQUEST_SUBMISSION_IN_PORT_URI = "ars-ip";
-	public static final String AVM_REQUEST_NOTIFICATION_OUT_PORT_URI = "arn-op";
+	public static final String[] AVM_MANAGEMENT_IN_PORT_URI = {"a1m-ip", "a2m-ip", "a3m-ip", "a4m-ip"};
+	public static final String[] AVM_MANAGEMENT_OUT_PORT_URI = {"a1m-op","a2m-op", "a3m-op", "a4m-op"};	
+	public static final String[] AVM_REQUEST_SUBMISSION_IN_PORT_URI = {"a1rs-ip", "a2rs-ip", "a3rs-ip", "a4rs-ip"};
+	public static final String[] AVM_REQUEST_NOTIFICATION_OUT_PORT_URI = {"a1rn-op", "a2rn-op", "a3rn-op", "a4rn-op"};
 	
-	public static final String RD_REQUEST_SUBMISSION_IN_PORT_URI = "rdrs-ip";
-	public static final String RD_REQUEST_SUBMISSION_OUT_PORT_URI = "rdrs-op";
-	public static final String RD_REQUEST_NOTIFICATION_IN_PORT_URI = "rdrn-ip";
-	public static final String RD_REQUEST_NOTIFICATION_OUT_PORT_URI = "rdrn-op";
+	public static final String[] RD_REQUEST_SUBMISSION_IN_PORT_URI = {"rd1rs-ip", "rd2rs-ip"};
+	public static final String[] RD_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd1rs-op", "rd2rs-op", "rd3rs-op", "rd4rs-op"};
+	public static final String[] RD_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd1rn-ip", "rd2rn-ip", "rd3rn-ip", "rd4rn-ip"};
+	public static final String[] RD_REQUEST_NOTIFICATION_OUT_PORT_URI = {"rd1rn-op", "rd2rn-op"};
 	
-	public static final String RG_MANAGEMENT_IN_PORT_URI = "rgm-ip";
-	public static final String RG_MANAGEMENT_OUT_PORT_URI = "rgm-op";
-	public static final String RG_REQUEST_SUBMISSION_OUT_PORT_URI = "rgrs-op";
-	public static final String RG_REQUEST_NOTIFICATION_IN_PORT_URI = "rgrn-ip";
+	public static final String[] RG_MANAGEMENT_IN_PORT_URI = {"rg1m-ip", "rg2m-ip"};
+	public static final String[] RG_MANAGEMENT_OUT_PORT_URI = {"rg1m-op", "rg2m-op"};
+	public static final String[] RG_REQUEST_SUBMISSION_OUT_PORT_URI = {"rg1rs-op", "rg2rs-op"};
+	public static final String[] RG_REQUEST_NOTIFICATION_IN_PORT_URI = {"rg1rn-ip", "rg2rn-ip"};
 	
-	protected ApplicationVM applicationVM;
-	protected RequestGenerator requestGenerator;
-	protected RequestDispatcher requestDispatcher;
+	protected ApplicationVM[] applicationVM = new ApplicationVM[4];
+	protected RequestGenerator[] requestGenerator = new RequestGenerator[2];
+	protected RequestDispatcher[] requestDispatcher = new RequestDispatcher[2];
 	
 	protected ComputerServicesOutboundPort csOutPort;
-	protected ApplicationVMManagementOutboundPort avmOutPort;
-	protected RequestGeneratorManagementOutboundPort rgmOutPort;
+	protected ApplicationVMManagementOutboundPort[] avmOutPort = new ApplicationVMManagementOutboundPort[4];
+	protected RequestGeneratorManagementOutboundPort[] rgmOutPort = new RequestGeneratorManagementOutboundPort[2];
 
 	public TestPartOneQuestionOne() throws Exception {
 		super();
@@ -59,12 +59,12 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 	@Override
 	public void deploy() throws Exception {
 		
-		AbstractComponent.configureLogging(System.getProperty("user.home"), "log", 400, '|');
+		//AbstractComponent.configureLogging(System.getProperty("user.home"), "log", 400, '|');
 		Processor.DEBUG = true;
 		// --------------------------------------------------------------------
 		String computerURI = "computer0";
 		int numberOfProcessors = 2;
-		int numberOfCores = 2;
+		int numberOfCores = 4;
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>();
 		admissibleFrequencies.add(1500);
 		admissibleFrequencies.add(3000);
@@ -94,81 +94,93 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 				C_SERVICES_IN_PORT_URI, 
 				ComputerServicesConnector.class.getCanonicalName());
 		// --------------------------------------------------------------------
-		this.applicationVM = new ApplicationVM(
-				"vm0",
-				AVM_MANAGEMENT_IN_PORT_URI,
-			    AVM_REQUEST_SUBMISSION_IN_PORT_URI,
-			    AVM_REQUEST_NOTIFICATION_OUT_PORT_URI);
-		
-		this.addDeployedComponent(this.applicationVM);
-		
-		this.applicationVM.toggleTracing();
-		this.applicationVM.toggleLogging();
+		for (int i = 0; i < 4; i++) {
+			this.applicationVM[i] = new ApplicationVM(
+					"vm" + i,
+					AVM_MANAGEMENT_IN_PORT_URI[i],
+				    AVM_REQUEST_SUBMISSION_IN_PORT_URI[i],
+				    AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[i]);
+			
+			this.addDeployedComponent(this.applicationVM[i]);
+			
+			this.applicationVM[i].toggleTracing();
+			this.applicationVM[i].toggleLogging();
+			// --------------------------------------------------------------------
+			this.avmOutPort[i] = new ApplicationVMManagementOutboundPort(
+					AVM_MANAGEMENT_OUT_PORT_URI[i],			
+					new AbstractComponent(0, 0) {});
+			
+			this.avmOutPort[i].publishPort();
+			
+			this.avmOutPort[i].doConnection(
+							AVM_MANAGEMENT_IN_PORT_URI[i],
+							ApplicationVMManagementConnector.class.getCanonicalName());					
+		}
 		// --------------------------------------------------------------------
-		this.avmOutPort = new ApplicationVMManagementOutboundPort(
-						AVM_MANAGEMENT_OUT_PORT_URI,
-						new AbstractComponent(0, 0) {});
-		this.avmOutPort.publishPort();
-		this.avmOutPort.doConnection(
-				AVM_MANAGEMENT_IN_PORT_URI,
-				ApplicationVMManagementConnector.class.getCanonicalName());		
+		for (int i = 0; i < 2; i++) {
+			this.requestGenerator[i] = new RequestGenerator(				
+					"rg" + i,
+					500.0,
+					6000000000L,
+					RG_MANAGEMENT_IN_PORT_URI[i],
+					RG_REQUEST_SUBMISSION_OUT_PORT_URI[i],
+					RG_REQUEST_NOTIFICATION_IN_PORT_URI[i]);
+			
+			this.addDeployedComponent(this.requestGenerator[i]);
+		
+			RequestGenerator.DEBUG_LEVEL = 1;
+			this.requestGenerator[i].toggleTracing();
+			this.requestGenerator[i].toggleLogging();
+			// --------------------------------------------------------------------
+			this.rgmOutPort[i] = new RequestGeneratorManagementOutboundPort(				
+					RG_MANAGEMENT_OUT_PORT_URI[i],
+					new AbstractComponent(0, 0) {});
+			
+			this.rgmOutPort[i].publishPort();
+			
+			this.rgmOutPort[i].doConnection(
+					RG_MANAGEMENT_IN_PORT_URI[i],
+					RequestGeneratorManagementConnector.class.getCanonicalName());
+			// --------------------------------------------------------------------					
+			this.requestDispatcher[i] = new RequestDispatcher(				
+					"rd" + i,				
+					RD_REQUEST_SUBMISSION_IN_PORT_URI[i],
+					RD_REQUEST_SUBMISSION_OUT_PORT_URI,
+					RD_REQUEST_NOTIFICATION_IN_PORT_URI,
+					RD_REQUEST_NOTIFICATION_OUT_PORT_URI[i]);
+			
+			this.addDeployedComponent(this.requestDispatcher[i]);
+			
+			RequestDispatcher.DEBUG_LEVEL = 1;
+			this.requestDispatcher[i].toggleTracing();
+			this.requestDispatcher[i].toggleLogging();
+		}		
 		// --------------------------------------------------------------------
-		this.requestGenerator = new RequestGenerator(				
-				"rg",
-				500.0,
-				6000000000L,
-				RG_MANAGEMENT_IN_PORT_URI,
-				RG_REQUEST_SUBMISSION_OUT_PORT_URI,
-				RG_REQUEST_NOTIFICATION_IN_PORT_URI);
-		
-		this.addDeployedComponent(requestGenerator);
-	
-		RequestGenerator.DEBUG_LEVEL = 1;
-		this.requestGenerator.toggleTracing();
-		this.requestGenerator.toggleLogging();
+		for (int i = 0; i < 4; i++) {						
+			this.applicationVM[i].doPortConnection(
+					AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[i],
+					RD_REQUEST_NOTIFICATION_IN_PORT_URI[i],
+					RequestNotificationConnector.class.getCanonicalName());	
+		}
 		// --------------------------------------------------------------------
-		this.rgmOutPort = new RequestGeneratorManagementOutboundPort(				
-				RG_MANAGEMENT_OUT_PORT_URI,
-				new AbstractComponent(0, 0) {});
-		
-		this.rgmOutPort.publishPort();
-		
-		this.rgmOutPort.doConnection(
-				RG_MANAGEMENT_IN_PORT_URI,
-				RequestGeneratorManagementConnector.class.getCanonicalName());
-		// --------------------------------------------------------------------		
-		this.requestDispatcher = new RequestDispatcher(				
-				"rd0",				
-				RD_REQUEST_SUBMISSION_IN_PORT_URI,
-				RD_REQUEST_SUBMISSION_OUT_PORT_URI,
-				RD_REQUEST_NOTIFICATION_IN_PORT_URI,
-				RD_REQUEST_NOTIFICATION_OUT_PORT_URI);
-		
-		this.addDeployedComponent(requestDispatcher);
-		
-		RequestDispatcher.DEBUG_LEVEL = 1;
-		this.requestDispatcher.toggleTracing();
-		this.requestDispatcher.toggleLogging();
-		
-		this.requestGenerator.doPortConnection(
-				RG_REQUEST_SUBMISSION_OUT_PORT_URI,
-				RD_REQUEST_SUBMISSION_IN_PORT_URI,				
-				RequestSubmissionConnector.class.getCanonicalName());				
-		
-		this.requestDispatcher.doPortConnection(
-				RD_REQUEST_NOTIFICATION_OUT_PORT_URI,
-				RG_REQUEST_NOTIFICATION_IN_PORT_URI,
-				RequestSubmissionConnector.class.getCanonicalName());
-		
-		this.requestDispatcher.doPortConnection(
-				RD_REQUEST_SUBMISSION_OUT_PORT_URI,
-				AVM_REQUEST_SUBMISSION_IN_PORT_URI,
-				RequestSubmissionConnector.class.getCanonicalName());
-		
-		this.applicationVM.doPortConnection(
-				AVM_REQUEST_NOTIFICATION_OUT_PORT_URI,
-				RD_REQUEST_NOTIFICATION_IN_PORT_URI,
-				RequestNotificationConnector.class.getCanonicalName());
+		for (int i = 0; i < 2; i++) {
+			this.requestGenerator[i].doPortConnection(
+					RG_REQUEST_SUBMISSION_OUT_PORT_URI[i],
+					RD_REQUEST_SUBMISSION_IN_PORT_URI[i],				
+					RequestSubmissionConnector.class.getCanonicalName());				
+			
+			this.requestDispatcher[i].doPortConnection(
+					RD_REQUEST_NOTIFICATION_OUT_PORT_URI[i],
+					RG_REQUEST_NOTIFICATION_IN_PORT_URI[i],
+					RequestSubmissionConnector.class.getCanonicalName());
+			
+			for (int j = 0; j < 4; j++) {
+				this.requestDispatcher[i].doPortConnection(
+						RD_REQUEST_SUBMISSION_OUT_PORT_URI[j],
+						AVM_REQUEST_SUBMISSION_IN_PORT_URI[j],
+						RequestSubmissionConnector.class.getCanonicalName());
+			}
+		}				
 		// --------------------------------------------------------------------
 		super.deploy();
 	}
@@ -179,33 +191,36 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 		super.start();
 
 		AllocatedCore[] ac = this.csOutPort.allocateCores(4);
-		this.avmOutPort.allocateCores(ac);
+		
+		for (int i = 0; i < 4; i++) {
+			this.avmOutPort[i].allocateCores(ac);
+		}
 	}
 	
 	@Override
 	public void shutdown() throws Exception {
-						
-		this.requestGenerator.doPortDisconnection(RG_REQUEST_SUBMISSION_OUT_PORT_URI);
-		this.applicationVM.doPortDisconnection(AVM_REQUEST_NOTIFICATION_OUT_PORT_URI);
-		this.requestDispatcher.doPortDisconnection(RD_REQUEST_SUBMISSION_OUT_PORT_URI);
-		this.requestDispatcher.doPortDisconnection(RD_REQUEST_NOTIFICATION_OUT_PORT_URI);
-		this.csOutPort.doDisconnection();
-		this.rgmOutPort.doDisconnection();
-		this.avmOutPort.doDisconnection();		
-
-		// print logs on files, if activated
-		/*this.applicationVM.printExecutionLogOnFile("applicationVM");
-		this.requestDispatcher.printExecutionLogOnFile("requestDispatcher");
-		this.requestGenerator.printExecutionLogOnFile("requestGenerator");*/
 		
+		this.csOutPort.doDisconnection();
+		
+		for (int i = 0; i < 4; i++) {
+			this.applicationVM[i].doPortDisconnection(AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[i]);
+			this.requestDispatcher[i].doPortDisconnection(RD_REQUEST_SUBMISSION_OUT_PORT_URI[i]);
+			this.avmOutPort[i].doDisconnection();
+		}
+		for (int i = 0; i < 2; i++) {
+			this.requestGenerator[i].doPortDisconnection(RG_REQUEST_SUBMISSION_OUT_PORT_URI[i]);
+			this.requestDispatcher[i].doPortDisconnection(RD_REQUEST_NOTIFICATION_OUT_PORT_URI[i]);
+			this.rgmOutPort[i].doDisconnection();
+		}
+				
 		super.shutdown();
 	}
 	
-	public void testScenario() throws Exception {
+	public void scenarioUniqueApplicationAndThreeAVMs() throws Exception {
 		
-		this.rgmOutPort.startGeneration();
+		this.rgmOutPort[0].startGeneration();
 		Thread.sleep(20000L);		
-		this.rgmOutPort.stopGeneration();
+		this.rgmOutPort[0].stopGeneration();
 	}
 	
 	public static void main(String[] args) {
@@ -221,7 +236,7 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 				@Override
 				public void run() {
 					try {
-						test.testScenario();
+						test.scenarioUniqueApplicationAndThreeAVMs();
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}

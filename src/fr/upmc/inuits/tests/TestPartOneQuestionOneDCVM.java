@@ -39,8 +39,8 @@ public class TestPartOneQuestionOneDCVM
 	public static final String AVM_REQUEST_NOTIFICATION_OUT_PORT_URI = "arn-op";
 	
 	public static final String RD_REQUEST_SUBMISSION_IN_PORT_URI = "rdrs-ip";
-	public static final String RD_REQUEST_SUBMISSION_OUT_PORT_URI = "rdrs-op";
-	public static final String RD_REQUEST_NOTIFICATION_IN_PORT_URI = "rdrn-ip";
+	public static final String[] RD_REQUEST_SUBMISSION_OUT_PORT_URI = {"rdrs-op"};
+	public static final String[] RD_REQUEST_NOTIFICATION_IN_PORT_URI = {"rdrn-ip"};
 	public static final String RD_REQUEST_NOTIFICATION_OUT_PORT_URI = "rdrn-op";
 	
 	public static final String RG_MANAGEMENT_IN_PORT_URI = "rgm-ip";
@@ -190,7 +190,7 @@ public class TestPartOneQuestionOneDCVM
 			
 			this.applicationVM.doPortConnection(
 					AVM_REQUEST_NOTIFICATION_OUT_PORT_URI,
-					RD_REQUEST_NOTIFICATION_IN_PORT_URI,
+					RD_REQUEST_NOTIFICATION_IN_PORT_URI[0],
 					RequestNotificationConnector.class.getCanonicalName());
 			
 			this.csOutPort.doConnection(
@@ -225,14 +225,14 @@ public class TestPartOneQuestionOneDCVM
 					RequestSubmissionConnector.class.getCanonicalName());
 			
 			this.requestDispatcher.doPortConnection(
-					RD_REQUEST_SUBMISSION_OUT_PORT_URI,
+					RD_REQUEST_SUBMISSION_OUT_PORT_URI[0],
 					AVM_REQUEST_SUBMISSION_IN_PORT_URI,
 					RequestSubmissionConnector.class.getCanonicalName());					
 
 			assert this.requestGenerator.isPortConnected(RG_REQUEST_SUBMISSION_OUT_PORT_URI);
 			assert this.rgmOutPort.connected();
 			assert this.requestDispatcher.isPortConnected(RD_REQUEST_NOTIFICATION_OUT_PORT_URI);
-			assert this.requestDispatcher.isPortConnected(RD_REQUEST_SUBMISSION_OUT_PORT_URI);			
+			assert this.requestDispatcher.isPortConnected(RD_REQUEST_SUBMISSION_OUT_PORT_URI[0]);			
 
 		} else {
 			System.out.println("Unknown JVM URI... " + thisJVMURI);
@@ -259,7 +259,7 @@ public class TestPartOneQuestionOneDCVM
 			assert this.applicationVM == null && this.csOutPort == null && this.avmOutPort == null;			
 
 			this.requestGenerator.doPortDisconnection(RG_REQUEST_SUBMISSION_OUT_PORT_URI);			
-			this.requestDispatcher.doPortDisconnection(RD_REQUEST_SUBMISSION_OUT_PORT_URI);
+			this.requestDispatcher.doPortDisconnection(RD_REQUEST_SUBMISSION_OUT_PORT_URI[0]);
 			this.requestDispatcher.doPortDisconnection(RD_REQUEST_NOTIFICATION_OUT_PORT_URI);			
 			this.rgmOutPort.doDisconnection();
 					
