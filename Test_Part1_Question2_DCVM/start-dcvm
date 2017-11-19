@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Usage : ./start-dcvm jvmName testScenario
+
+# $2 = 1 : Scenario unique application and two AVMs each. [ACCEPT]
+# $2 = 2 : Scenario unique application and two AVMs each. [REFUSE]
+# $2 = 3 : Scenario one application then another two AVMs each. [ACCEPT]
+# $2 = 4 : Scenario one application then another two AVMs each. [REFUSE]
+# $2 = 5 : Scenario two applications simultaneously two aVMs each. [ACCEPT]
+# $2 = 5 : Scenario two applications simultaneously two aVMs each. [REFUSE]
+
+# Note : Ensure that $2 is the same for all $1 or it will runs differnt scenarios !
+
+if [ -z "$1" -o -z "$2" ]; then 
+  echo usage: $0 jvmName testScenario  
+  exit
+fi
+
+if [ $2 -lt 1 -o $2 -gt 3 ]; then
+    echo Wrong argument. Please choose from 1 to 3
+    exit
+fi
+
+java -ea -cp 'jars/*' -Djava.security.manager \
+     -Djava.security.policy=dcvm.policy \
+     fr.upmc.inuits.tests.TestPartOneQuestionTwoDCVM $1 config.xml $2

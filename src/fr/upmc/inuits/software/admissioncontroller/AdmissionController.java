@@ -157,7 +157,7 @@ public class AdmissionController
 			this.addPort(this.amop[i]);
 			this.amop[i].publishPort();		
 			
-			this.asip[i] = new ApplicationSubmissionInboundPort(applicationSubmissionInboundPortURI[i], this);
+			this.asip[i] = new ApplicationSubmissionInboundPort(applicationSubmissionInboundPortURI[i], this);			
 			this.addPort(this.asip[i]);
 			this.asip[i].publishPort();		
 			

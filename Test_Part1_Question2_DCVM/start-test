@@ -1,0 +1,4 @@
+xterm -title "gregistry" -hold -e "./start-gregistry" &
+xterm -title "cyclicbarrier" -hold -e "./start-cyclicbarrier" &
+xterm -title "provider" -hold -e "./start-dcvm provider" &
+xterm -title "consumer" -hold -e "./start-dcvm consumer"

@@ -109,11 +109,10 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		this.addPort(this.rgmop);
 		this.rgmop.publishPort();
 		
-		// dynamic 
 		this.addRequiredInterface(DynamicComponentCreationI.class);
 						
 		assert this.appURI != null && this.appURI.length() > 0;
-		assert this.appIndex > 0;
+		assert this.appIndex >= 0;
 		assert this.amip != null && this.amip instanceof ApplicationManagementI;
 		assert this.asip != null && this.asip instanceof ApplicationServicesI;
 		assert this.asop != null && this.asop instanceof ApplicationSubmissionI;
@@ -189,8 +188,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		rop.doPortConnection(
 				this.rgRequestSubmissionOutboundPortURI,
 				dispatcherRequestSubmissionInboundPortUri,
-				RequestSubmissionConnector.class.getCanonicalName());		
-		//rop.doDisconnection();		
+				RequestSubmissionConnector.class.getCanonicalName());				
 	}
 	
 	@Override
@@ -199,8 +197,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		this.rop.doPortConnection(
 				this.rgRequestSubmissionOutboundPortURI,
 				dispatcherRequestSubmissionInboundPortUri,
-				Javassist.getRequestSubmissionConnectorClassName());
-		//rop.doDisconnection();										
+				Javassist.getRequestSubmissionConnectorClassName());		
 	}	
 	
 	@Override
@@ -211,7 +208,6 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 				dispatcherRequestNotificationOutboundPortUri,
 				rgRequestNotificationInboundPortURI,
 				RequestNotificationConnector.class.getCanonicalName());
-		//rop.doDisconnection();
 	}
 	
 	@Override
@@ -222,7 +218,6 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 				dispatcherRequestNotificationOutboundPortUri,
 				rgRequestNotificationInboundPortURI,
 				Javassist.getRequestNotificationConnectorClassName());
-		//rop.doDisconnection();
 	}
 	
 	@Override

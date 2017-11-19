@@ -104,13 +104,13 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 			this.addDeployedComponent(this.applicationVM[i]);
 			
 			this.applicationVM[i].toggleTracing();
-			this.applicationVM[i].toggleLogging();
+			this.applicationVM[i].toggleLogging();			
 			// --------------------------------------------------------------------
 			this.avmOutPort[i] = new ApplicationVMManagementOutboundPort(
 					AVM_MANAGEMENT_OUT_PORT_URI[i],			
 					new AbstractComponent(0, 0) {});
 			
-			this.avmOutPort[i].publishPort();
+			this.avmOutPort[i].publishPort();									
 			
 			this.avmOutPort[i].doConnection(
 							AVM_MANAGEMENT_IN_PORT_URI[i],
@@ -140,28 +140,47 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 			
 			this.rgmOutPort[i].doConnection(
 					RG_MANAGEMENT_IN_PORT_URI[i],
-					RequestGeneratorManagementConnector.class.getCanonicalName());
-			// --------------------------------------------------------------------					
-			this.requestDispatcher[i] = new RequestDispatcher(				
-					"rd" + i,				
-					RD_REQUEST_SUBMISSION_IN_PORT_URI[i],
-					RD_REQUEST_SUBMISSION_OUT_PORT_URI,
-					RD_REQUEST_NOTIFICATION_IN_PORT_URI,
-					RD_REQUEST_NOTIFICATION_OUT_PORT_URI[i]);
-			
-			this.addDeployedComponent(this.requestDispatcher[i]);
-			
-			RequestDispatcher.DEBUG_LEVEL = 1;
-			this.requestDispatcher[i].toggleTracing();
-			this.requestDispatcher[i].toggleLogging();
+					RequestGeneratorManagementConnector.class.getCanonicalName());			
 		}		
 		// --------------------------------------------------------------------
-		for (int i = 0; i < 4; i++) {						
+		final String[] RD0_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd1rs-op", "rd2rs-op"};
+		final String[] RD0_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd1rn-ip", "rd2rn-ip"};
+					
+		this.requestDispatcher[0] = new RequestDispatcher(				
+				"rd" + 0,				
+				RD_REQUEST_SUBMISSION_IN_PORT_URI[0],
+				RD0_REQUEST_SUBMISSION_OUT_PORT_URI,
+				RD0_REQUEST_NOTIFICATION_IN_PORT_URI,
+				RD_REQUEST_NOTIFICATION_OUT_PORT_URI[0]);
+		
+		this.addDeployedComponent(this.requestDispatcher[0]);
+		
+		RequestDispatcher.DEBUG_LEVEL = 1;
+		this.requestDispatcher[0].toggleTracing();
+		this.requestDispatcher[0].toggleLogging();
+		
+		final String[] RD1_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd3rs-op", "rd4rs-op"};
+		final String[] RD1_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd3rn-ip", "rd4rn-ip"};
+		
+		this.requestDispatcher[1] = new RequestDispatcher(				
+				"rd" + 1,				
+				RD_REQUEST_SUBMISSION_IN_PORT_URI[1],
+				RD1_REQUEST_SUBMISSION_OUT_PORT_URI,
+				RD1_REQUEST_NOTIFICATION_IN_PORT_URI,
+				RD_REQUEST_NOTIFICATION_OUT_PORT_URI[1]);
+		
+		this.addDeployedComponent(this.requestDispatcher[1]);
+		
+		RequestDispatcher.DEBUG_LEVEL = 1;
+		this.requestDispatcher[1].toggleTracing();
+		this.requestDispatcher[1].toggleLogging();
+		// --------------------------------------------------------------------
+		for (int i = 0; i < 4; i++) {
 			this.applicationVM[i].doPortConnection(
 					AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[i],
 					RD_REQUEST_NOTIFICATION_IN_PORT_URI[i],
-					RequestNotificationConnector.class.getCanonicalName());	
-		}
+					RequestNotificationConnector.class.getCanonicalName());
+		}	
 		// --------------------------------------------------------------------
 		for (int i = 0; i < 2; i++) {
 			this.requestGenerator[i].doPortConnection(
@@ -172,15 +191,21 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 			this.requestDispatcher[i].doPortConnection(
 					RD_REQUEST_NOTIFICATION_OUT_PORT_URI[i],
 					RG_REQUEST_NOTIFICATION_IN_PORT_URI[i],
-					RequestSubmissionConnector.class.getCanonicalName());
-			
-			for (int j = 0; j < 4; j++) {
-				this.requestDispatcher[i].doPortConnection(
-						RD_REQUEST_SUBMISSION_OUT_PORT_URI[j],
-						AVM_REQUEST_SUBMISSION_IN_PORT_URI[j],
-						RequestSubmissionConnector.class.getCanonicalName());
-			}
+					RequestSubmissionConnector.class.getCanonicalName());						
 		}				
+		// --------------------------------------------------------------------
+		for (int i = 0; i < 2; i++) {
+			this.requestDispatcher[0].doPortConnection(
+					RD_REQUEST_SUBMISSION_OUT_PORT_URI[i],
+					AVM_REQUEST_SUBMISSION_IN_PORT_URI[i],
+					RequestSubmissionConnector.class.getCanonicalName());
+		}		
+		for (int i = 2; i < 4; i++) {
+			this.requestDispatcher[1].doPortConnection(
+					RD_REQUEST_SUBMISSION_OUT_PORT_URI[i],
+					AVM_REQUEST_SUBMISSION_IN_PORT_URI[i],
+					RequestSubmissionConnector.class.getCanonicalName());
+		}
 		// --------------------------------------------------------------------
 		super.deploy();
 	}
@@ -203,24 +228,56 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 		this.csOutPort.doDisconnection();
 		
 		for (int i = 0; i < 4; i++) {
-			this.applicationVM[i].doPortDisconnection(AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[i]);
-			this.requestDispatcher[i].doPortDisconnection(RD_REQUEST_SUBMISSION_OUT_PORT_URI[i]);
+			this.applicationVM[i].doPortDisconnection(AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[i]);			
 			this.avmOutPort[i].doDisconnection();
 		}
 		for (int i = 0; i < 2; i++) {
 			this.requestGenerator[i].doPortDisconnection(RG_REQUEST_SUBMISSION_OUT_PORT_URI[i]);
 			this.requestDispatcher[i].doPortDisconnection(RD_REQUEST_NOTIFICATION_OUT_PORT_URI[i]);
+			this.requestDispatcher[0].doPortDisconnection(RD_REQUEST_SUBMISSION_OUT_PORT_URI[i]);
 			this.rgmOutPort[i].doDisconnection();
 		}
-				
+		for (int i = 2; i < 4; i++) {		
+			this.requestDispatcher[1].doPortDisconnection(RD_REQUEST_SUBMISSION_OUT_PORT_URI[i]);
+		}
 		super.shutdown();
 	}
 	
-	public void scenarioUniqueApplicationAndThreeAVMs() throws Exception {
+	public void scenarioUniqueApplicationAndTwoAVMs() throws Exception {
+		
+		System.out.println("-- Scenario unique application and two AVMs.");
 		
 		this.rgmOutPort[0].startGeneration();
 		Thread.sleep(20000L);		
 		this.rgmOutPort[0].stopGeneration();
+	}
+	
+	public void scenarioOneApplicationThenAnotherTwoAVMsEach() throws Exception {
+		
+		System.out.println("-- Scenario one application then another two AVMs each.");
+		
+		this.rgmOutPort[0].startGeneration();
+		Thread.sleep(20000L);		
+		this.rgmOutPort[0].stopGeneration();
+		
+		Thread.sleep(10000L);
+		
+		this.rgmOutPort[1].startGeneration();
+		Thread.sleep(15000L);		
+		this.rgmOutPort[1].stopGeneration();
+	}
+	
+	public void scenarioTwoApplicationsSimultaneouslyTwoAVMsEach() throws Exception {
+		
+		System.out.println("-- Scenario two applications simultaneously two aVMs each.");
+		
+		this.rgmOutPort[0].startGeneration();
+		this.rgmOutPort[1].startGeneration();
+		
+		Thread.sleep(20000L);		
+		
+		this.rgmOutPort[0].stopGeneration();
+		this.rgmOutPort[1].stopGeneration();			
 	}
 	
 	public static void main(String[] args) {
@@ -236,7 +293,9 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 				@Override
 				public void run() {
 					try {
-						test.scenarioUniqueApplicationAndThreeAVMs();
+						//test.scenarioUniqueApplicationAndTwoAVMs();
+						//test.scenarioOneApplicationThenAnotherTwoAVMsEach();
+						test.scenarioTwoApplicationsSimultaneouslyTwoAVMsEach();
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}

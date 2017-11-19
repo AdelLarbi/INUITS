@@ -2,7 +2,6 @@ package fr.upmc.inuits.software.application.ports;
 
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractInboundPort;
-import fr.upmc.datacenter.software.interfaces.RequestSubmissionI;
 import fr.upmc.inuits.software.application.interfaces.ApplicationSubmissionHandlerI;
 import fr.upmc.inuits.software.application.interfaces.ApplicationSubmissionI;
 
@@ -21,7 +20,7 @@ public class ApplicationSubmissionInboundPort
 
 	public ApplicationSubmissionInboundPort(String uri, ComponentI owner ) throws Exception {
 		
-		super(uri, RequestSubmissionI.class, owner);
+		super(uri, ApplicationSubmissionI.class, owner);
 
 		assert uri != null && owner instanceof ApplicationSubmissionHandlerI;
 	}
