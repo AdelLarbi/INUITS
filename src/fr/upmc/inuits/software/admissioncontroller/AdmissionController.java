@@ -1,5 +1,7 @@
 package fr.upmc.inuits.software.admissioncontroller;
 
+import java.util.ArrayList;
+
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.cvm.AbstractCVM;
 import fr.upmc.components.cvm.pre.dcc.connectors.DynamicComponentCreationConnector;
@@ -78,29 +80,29 @@ public class AdmissionController
 	boolean[][] reservedCores;
 		
 	public AdmissionController(
-			String[] computersURI,			
-			String[] computerServicesOutboundPortURI,
-			String[] computerStaticStateDataOutboundPortURI,
-			String[] computerDynamicStateDataOutboundPortURI,
-			String[] applicationManagementOutboundPortURI,
-			String[] applicationSubmissionInboundPortURI,
-			String[] applicationNotificationOutboundPortURI) throws Exception {
+			ArrayList<String> computersURI,			
+			ArrayList<String> computerServicesOutboundPortURI,
+			ArrayList<String> computerStaticStateDataOutboundPortURI,
+			ArrayList<String> computerDynamicStateDataOutboundPortURI,
+			ArrayList<String> applicationManagementOutboundPortURI,
+			ArrayList<String> applicationSubmissionInboundPortURI,
+			ArrayList<String> applicationNotificationOutboundPortURI) throws Exception {
 		
 		super(1, 1);
 		
-		assert computersURI != null && computersURI.length > 0;
-		assert computerServicesOutboundPortURI != null && computerServicesOutboundPortURI.length > 0;
-		assert computerStaticStateDataOutboundPortURI != null && computerStaticStateDataOutboundPortURI.length > 0;
-		assert computerDynamicStateDataOutboundPortURI != null && computerDynamicStateDataOutboundPortURI.length > 0;		
-		assert applicationManagementOutboundPortURI != null && applicationManagementOutboundPortURI.length > 0;
-		assert applicationSubmissionInboundPortURI != null && applicationSubmissionInboundPortURI.length > 0;
-		assert applicationNotificationOutboundPortURI != null && applicationNotificationOutboundPortURI.length > 0;
+		assert computersURI != null && computersURI.size() > 0;
+		assert computerServicesOutboundPortURI != null && computerServicesOutboundPortURI.size() > 0;
+		assert computerStaticStateDataOutboundPortURI != null && computerStaticStateDataOutboundPortURI.size() > 0;
+		assert computerDynamicStateDataOutboundPortURI != null && computerDynamicStateDataOutboundPortURI.size() > 0;		
+		assert applicationManagementOutboundPortURI != null && applicationManagementOutboundPortURI.size() > 0;
+		assert applicationSubmissionInboundPortURI != null && applicationSubmissionInboundPortURI.size() > 0;
+		assert applicationNotificationOutboundPortURI != null && applicationNotificationOutboundPortURI.size() > 0;
 	
 		this.shiftRDIndex = 0;
 		this.shiftAVMIndex = 0;
 			
-		this.TOTAL_COMPUTERS_USED = computersURI.length;
-		this.TOTAL_APPLICATION_EXECUTION_REQUESTED = applicationManagementOutboundPortURI.length;
+		this.TOTAL_COMPUTERS_USED = computersURI.size();
+		this.TOTAL_APPLICATION_EXECUTION_REQUESTED = applicationManagementOutboundPortURI.size();
 		this.totalAVMReserved = 0;
 		this.totalApplicationAccepted = 0;		
 	
@@ -135,15 +137,15 @@ public class AdmissionController
 		this.addRequiredInterface(ControlledDataRequiredI.ControlledPullI.class);
 		
 		for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
-			this.csop[i] = new ComputerServicesOutboundPort(computerServicesOutboundPortURI[i], this);
+			this.csop[i] = new ComputerServicesOutboundPort(computerServicesOutboundPortURI.get(i), this);
 			this.addPort(this.csop[i]);
 			this.csop[i].publishPort();			
 					
-			this.cssdop[i] = new ComputerStaticStateDataOutboundPort(computerStaticStateDataOutboundPortURI[i], this, computersURI[i]);
+			this.cssdop[i] = new ComputerStaticStateDataOutboundPort(computerStaticStateDataOutboundPortURI.get(i), this, computersURI.get(i));
 			this.addPort(this.cssdop[i]);
 			this.cssdop[i].publishPort();
 			
-			this.cdsdop[i] = new ComputerDynamicStateDataOutboundPort(computerDynamicStateDataOutboundPortURI[i], this, computersURI[i]);
+			this.cdsdop[i] = new ComputerDynamicStateDataOutboundPort(computerDynamicStateDataOutboundPortURI.get(i), this, computersURI.get(i));
 			this.addPort(this.cdsdop[i]);
 			this.cdsdop[i].publishPort();	
 		}		
@@ -153,15 +155,15 @@ public class AdmissionController
 		this.addRequiredInterface(ApplicationNotificationI.class);
 		
 		for (int i = 0; i < TOTAL_APPLICATION_EXECUTION_REQUESTED; i++) {
-			this.amop[i] = new ApplicationManagementOutboundPort(applicationManagementOutboundPortURI[i], this);
+			this.amop[i] = new ApplicationManagementOutboundPort(applicationManagementOutboundPortURI.get(i), this);
 			this.addPort(this.amop[i]);
 			this.amop[i].publishPort();		
 			
-			this.asip[i] = new ApplicationSubmissionInboundPort(applicationSubmissionInboundPortURI[i], this);			
+			this.asip[i] = new ApplicationSubmissionInboundPort(applicationSubmissionInboundPortURI.get(i), this);			
 			this.addPort(this.asip[i]);
 			this.asip[i].publishPort();		
 			
-			this.anop[i] = new ApplicationNotificationOutboundPort(applicationNotificationOutboundPortURI[i], this);
+			this.anop[i] = new ApplicationNotificationOutboundPort(applicationNotificationOutboundPortURI.get(i), this);
 			this.addPort(this.anop[i]);
 			this.anop[i].publishPort();	
 		}													

@@ -294,8 +294,8 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 				public void run() {
 					try {
 						//test.scenarioUniqueApplicationAndTwoAVMs();
-						//test.scenarioOneApplicationThenAnotherTwoAVMsEach();
-						test.scenarioTwoApplicationsSimultaneouslyTwoAVMsEach();
+						test.scenarioOneApplicationThenAnotherTwoAVMsEach();
+						//test.scenarioTwoApplicationsSimultaneouslyTwoAVMsEach();
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}

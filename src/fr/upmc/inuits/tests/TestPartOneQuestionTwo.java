@@ -1,5 +1,6 @@
 package fr.upmc.inuits.tests;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -26,12 +27,23 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	public static final String C_STATIC_STATE_DATA_IN_PORT_URI = "cssd-ip";
 	public static final String C_DYNAMIC_STATE_DATA_IN_PORT_URI = "cdsd-ip";
 	
-	public static final String[] AC_SERVICES_OUT_PORT_URI = {"acs-op"};
-	public static final String[] AC_STATIC_STATE_DATA_OUT_PORT_URI = {"acssd-op"};
-	public static final String[] AC_DYNAMIC_STATE_DATA_OUT_PORT_URI = {"acdsd-op"};
-	public static final String[] AC_APPLICATION_MANAGEMENT_OUT_PORT_URI = {"a1cam-op", "a2cam-op"};
-	public static final String[] AC_APPLICATION_SUBMISSION_IN_PORT_URI = {"a1cas-ip", "a2cas-ip"};
-	public static final String[] AC_APPLICATION_NOTIFICATION_OUT_PORT_URI = {"acan-op", "a2can-op"};	
+	public static final ArrayList<String> AC_SERVICES_OUT_PORT_URI = new ArrayList<>();
+	public static final ArrayList<String> AC_STATIC_STATE_DATA_OUT_PORT_URI = new ArrayList<>();
+	public static final ArrayList<String> AC_DYNAMIC_STATE_DATA_OUT_PORT_URI = new ArrayList<>();
+	public static final ArrayList<String> AC_APPLICATION_MANAGEMENT_OUT_PORT_URI = new ArrayList<>();
+	public static final ArrayList<String> AC_APPLICATION_SUBMISSION_IN_PORT_URI = new ArrayList<>();
+	public static final ArrayList<String> AC_APPLICATION_NOTIFICATION_OUT_PORT_URI = new ArrayList<>();
+	{
+		AC_SERVICES_OUT_PORT_URI.add("acs-op");
+		AC_STATIC_STATE_DATA_OUT_PORT_URI.add("acssd-op");
+		AC_DYNAMIC_STATE_DATA_OUT_PORT_URI.add("acdsd-op");		
+		AC_APPLICATION_MANAGEMENT_OUT_PORT_URI.add("a1cam-op");
+		AC_APPLICATION_MANAGEMENT_OUT_PORT_URI.add("a2cam-op");		
+		AC_APPLICATION_SUBMISSION_IN_PORT_URI.add("a1cas-ip");
+		AC_APPLICATION_SUBMISSION_IN_PORT_URI.add("a2cas-ip");		
+		AC_APPLICATION_NOTIFICATION_OUT_PORT_URI.add("acan-op");
+		AC_APPLICATION_NOTIFICATION_OUT_PORT_URI.add("a2can-op");
+	}
 	
 	public static final String A1_MANAGEMENT_IN_PORT_URI = "a1m-ip";
 	public static final String A1_SERVICES_IN_PORT_URI = "a1s-ip";
@@ -62,11 +74,11 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		//AbstractComponent.configureLogging(System.getProperty("user.home"), "log", 400, '|');
 		Processor.DEBUG = true;
 		// --------------------------------------------------------------------
-		String[] computersURI = new String[1];
+		ArrayList<String> computersURI = new ArrayList<>();
 		
 		int numberOfProcessors = 5;
 		int numberOfCores = 4;
-		computersURI[0] = "computer0";		
+		computersURI.add("computer0");		
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>();
 		admissibleFrequencies.add(1500);
 		admissibleFrequencies.add(3000);
@@ -76,7 +88,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		
 		
 		Computer computer = new Computer(
-				computersURI[0], 
+				computersURI.get(0),
 				admissibleFrequencies, 
 				processingPower, 
 				1500, 
@@ -105,17 +117,17 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		this.admissionController.toggleLogging();			
 		
 		this.admissionController.doPortConnection(				
-				AC_SERVICES_OUT_PORT_URI[0],
+				AC_SERVICES_OUT_PORT_URI.get(0),
 				C_SERVICES_IN_PORT_URI,
 				ComputerServicesConnector.class.getCanonicalName());
 		
 		this.admissionController.doPortConnection(
-				AC_STATIC_STATE_DATA_OUT_PORT_URI[0],
+				AC_STATIC_STATE_DATA_OUT_PORT_URI.get(0),
 				C_STATIC_STATE_DATA_IN_PORT_URI,
 				DataConnector.class.getCanonicalName());
 
 		this.admissionController.doPortConnection(
-				AC_DYNAMIC_STATE_DATA_OUT_PORT_URI[0],
+				AC_DYNAMIC_STATE_DATA_OUT_PORT_URI.get(0),
 				C_DYNAMIC_STATE_DATA_IN_PORT_URI,
 				ControlledDataConnector.class.getCanonicalName());			
 		// --------------------------------------------------------------------
@@ -137,16 +149,16 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	
 		this.application1.doPortConnection(
 				A1_APPLICATION_SUBMISSION_OUT_PORT_URI,
-				AC_APPLICATION_SUBMISSION_IN_PORT_URI[0],
+				AC_APPLICATION_SUBMISSION_IN_PORT_URI.get(0),
 				ApplicationSubmissionConnector.class.getCanonicalName());
 		
 		this.admissionController.doPortConnection(				
-				AC_APPLICATION_NOTIFICATION_OUT_PORT_URI[0],
+				AC_APPLICATION_NOTIFICATION_OUT_PORT_URI.get(0),
 				A1_APPLICATION_NOTIFICATION_IN_PORT_URI,
 				ApplicationNotificationConnector.class.getCanonicalName());
 		
 		this.admissionController.doPortConnection(				
-				AC_APPLICATION_MANAGEMENT_OUT_PORT_URI[0],
+				AC_APPLICATION_MANAGEMENT_OUT_PORT_URI.get(0),
 				A1_MANAGEMENT_IN_PORT_URI,
 				ApplicationManagementConnector.class.getCanonicalName());
 		// --------------------------------------------------------------------
@@ -178,16 +190,16 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	
 		this.application2.doPortConnection(
 				A2_APPLICATION_SUBMISSION_OUT_PORT_URI,
-				AC_APPLICATION_SUBMISSION_IN_PORT_URI[1],
+				AC_APPLICATION_SUBMISSION_IN_PORT_URI.get(1),
 				ApplicationSubmissionConnector.class.getCanonicalName());
 		
 		this.admissionController.doPortConnection(				
-				AC_APPLICATION_NOTIFICATION_OUT_PORT_URI[1],
+				AC_APPLICATION_NOTIFICATION_OUT_PORT_URI.get(1),
 				A2_APPLICATION_NOTIFICATION_IN_PORT_URI,
 				ApplicationNotificationConnector.class.getCanonicalName());
 		
 		this.admissionController.doPortConnection(				
-				AC_APPLICATION_MANAGEMENT_OUT_PORT_URI[1],
+				AC_APPLICATION_MANAGEMENT_OUT_PORT_URI.get(1),
 				A2_MANAGEMENT_IN_PORT_URI,
 				ApplicationManagementConnector.class.getCanonicalName());
 		// --------------------------------------------------------------------
@@ -207,13 +219,13 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	@Override
 	public void shutdown() throws Exception {
 				
-		this.admissionController.doPortDisconnection(AC_SERVICES_OUT_PORT_URI[0]);
-		this.admissionController.doPortDisconnection(AC_STATIC_STATE_DATA_OUT_PORT_URI[0]);
-		this.admissionController.doPortDisconnection(AC_DYNAMIC_STATE_DATA_OUT_PORT_URI[0]);
-		this.admissionController.doPortDisconnection(AC_APPLICATION_MANAGEMENT_OUT_PORT_URI[0]);
-		this.admissionController.doPortDisconnection(AC_APPLICATION_MANAGEMENT_OUT_PORT_URI[1]);
-		this.admissionController.doPortDisconnection(AC_APPLICATION_NOTIFICATION_OUT_PORT_URI[0]);
-		this.admissionController.doPortDisconnection(AC_APPLICATION_NOTIFICATION_OUT_PORT_URI[1]);
+		this.admissionController.doPortDisconnection(AC_SERVICES_OUT_PORT_URI.get(0));
+		this.admissionController.doPortDisconnection(AC_STATIC_STATE_DATA_OUT_PORT_URI.get(0));
+		this.admissionController.doPortDisconnection(AC_DYNAMIC_STATE_DATA_OUT_PORT_URI.get(0));
+		this.admissionController.doPortDisconnection(AC_APPLICATION_MANAGEMENT_OUT_PORT_URI.get(0));
+		this.admissionController.doPortDisconnection(AC_APPLICATION_MANAGEMENT_OUT_PORT_URI.get(1));
+		this.admissionController.doPortDisconnection(AC_APPLICATION_NOTIFICATION_OUT_PORT_URI.get(0));
+		this.admissionController.doPortDisconnection(AC_APPLICATION_NOTIFICATION_OUT_PORT_URI.get(1));
 		
 		this.asMockUpOutPort1.doDisconnection();
 		this.asMockUpOutPort2.doDisconnection();
