@@ -77,7 +77,7 @@ public class AdmissionController
 	
 	protected int numberOfProcessors;
 	protected int numberOfCoresPerProcessor;	
-	boolean[][] reservedCores;
+	protected boolean[][] reservedCores;
 		
 	public AdmissionController(
 			ArrayList<String> computersURI,			
@@ -183,8 +183,7 @@ public class AdmissionController
 		super.start();			
 				
 		try {									
-			// start the pushing of dynamic state information from the computer;
-			// here only one push of information is planned after one second.
+			// start the pushing of dynamic state information from the computer.
 			for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
 				this.cdsdop[i].startUnlimitedPushing(ANALYSE_DATA_TIMER); 
 			}
