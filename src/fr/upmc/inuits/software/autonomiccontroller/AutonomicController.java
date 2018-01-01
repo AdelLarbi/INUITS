@@ -13,7 +13,7 @@ public class AutonomicController
 	implements RequestDispatcherStateDataConsumerI {
 
 	public static int DEBUG_LEVEL = 1;
-	public static int ANALYSE_DATA_TIMER = 1000;
+	public static int ANALYSE_DATA_TIMER = 500;
 	
 	protected RequestDispatcherDynamicStateDataOutboundPort rddsdop;
 	

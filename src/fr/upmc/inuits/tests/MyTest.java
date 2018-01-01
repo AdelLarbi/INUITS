@@ -7,6 +7,7 @@ import java.util.Set;
 
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.cvm.AbstractCVM;
+import fr.upmc.datacenter.connectors.ControlledDataConnector;
 import fr.upmc.datacenter.hardware.computers.Computer;
 import fr.upmc.datacenter.hardware.computers.Computer.AllocatedCore;
 import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
@@ -19,6 +20,7 @@ import fr.upmc.datacenter.software.connectors.RequestSubmissionConnector;
 import fr.upmc.datacenterclient.requestgenerator.RequestGenerator;
 import fr.upmc.datacenterclient.requestgenerator.connectors.RequestGeneratorManagementConnector;
 import fr.upmc.datacenterclient.requestgenerator.ports.RequestGeneratorManagementOutboundPort;
+import fr.upmc.inuits.software.autonomiccontroller.AutonomicController;
 import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 
 public class MyTest extends AbstractCVM {
@@ -36,7 +38,10 @@ public class MyTest extends AbstractCVM {
 	public static final String[] RD_REQUEST_SUBMISSION_IN_PORT_URI = {"rd1rs-ip", "rd2rs-ip"};
 	public static final String[] RD_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd1rs-op", "rd2rs-op", "rd3rs-op", "rd4rs-op"};
 	public static final String[] RD_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd1rn-ip", "rd2rn-ip", "rd3rn-ip", "rd4rn-ip"};
-	public static final String[] RD_REQUEST_NOTIFICATION_OUT_PORT_URI = {"rd1rn-op", "rd2rn-op"};
+	public static final String[] RD_REQUEST_NOTIFICATION_OUT_PORT_URI = {"rd1rn-op", "rd2rn-op"};	
+	public static final String RD_DYNAMIC_STATE_DATA_IN_PORT_URI = "rddsd-ip";
+	
+	public static final String ATC_DYNAMIC_STATE_DATA_OUT_PORT_URI = "atcdsd-op";
 	
 	public static final String[] RG_MANAGEMENT_IN_PORT_URI = {"rg1m-ip", "rg2m-ip"};
 	public static final String[] RG_MANAGEMENT_OUT_PORT_URI = {"rg1m-op", "rg2m-op"};
@@ -46,6 +51,7 @@ public class MyTest extends AbstractCVM {
 	protected ApplicationVM[] applicationVM = new ApplicationVM[4];
 	protected RequestGenerator[] requestGenerator = new RequestGenerator[2];
 	protected RequestDispatcher[] requestDispatcher = new RequestDispatcher[2];
+	protected AutonomicController autonomicController;
 	
 	protected ComputerServicesOutboundPort csOutPort;
 	protected ApplicationVMManagementOutboundPort[] avmOutPort = new ApplicationVMManagementOutboundPort[4];
@@ -78,7 +84,7 @@ public class MyTest extends AbstractCVM {
 				computerURI, 
 				admissibleFrequencies, 
 				processingPower, 
-				1500,//1500 
+				6000,//1500 
 				1500, 
 				numberOfProcessors, 
 				numberOfCores, 
@@ -154,13 +160,13 @@ public class MyTest extends AbstractCVM {
 				RD0_REQUEST_SUBMISSION_OUT_PORT_URI,
 				RD0_REQUEST_NOTIFICATION_IN_PORT_URI,
 				RD_REQUEST_NOTIFICATION_OUT_PORT_URI[0],
-				"rddd0");
+				RD_DYNAMIC_STATE_DATA_IN_PORT_URI);
 		
 		this.addDeployedComponent(this.requestDispatcher[0]);
 		
 		RequestDispatcher.DEBUG_LEVEL = 0;
 		this.requestDispatcher[0].toggleTracing();
-		this.requestDispatcher[0].toggleLogging();
+		this.requestDispatcher[0].toggleLogging();			
 		
 		final String[] RD1_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd3rs-op", "rd4rs-op"};
 		final String[] RD1_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd3rn-ip", "rd4rn-ip"};
@@ -171,13 +177,28 @@ public class MyTest extends AbstractCVM {
 				RD1_REQUEST_SUBMISSION_OUT_PORT_URI,
 				RD1_REQUEST_NOTIFICATION_IN_PORT_URI,
 				RD_REQUEST_NOTIFICATION_OUT_PORT_URI[1],
-				"rddd1");
+				"??????");
 		
 		this.addDeployedComponent(this.requestDispatcher[1]);
 		
 		RequestDispatcher.DEBUG_LEVEL = 0;
 		this.requestDispatcher[1].toggleTracing();
 		this.requestDispatcher[1].toggleLogging();
+		// --------------------------------------------------------------------
+		this.autonomicController = new AutonomicController(
+				"rd0", 
+				ATC_DYNAMIC_STATE_DATA_OUT_PORT_URI);
+		
+		this.addDeployedComponent(this.autonomicController);
+		
+		AutonomicController.DEBUG_LEVEL = 2;
+		this.autonomicController.toggleTracing();
+		this.autonomicController.toggleLogging();
+				
+		this.autonomicController.doPortConnection(
+				ATC_DYNAMIC_STATE_DATA_OUT_PORT_URI,
+				RD_DYNAMIC_STATE_DATA_IN_PORT_URI,
+				ControlledDataConnector.class.getCanonicalName());
 		// --------------------------------------------------------------------
 		for (int i = 0; i < 4; i++) {
 			this.applicationVM[i].doPortConnection(
@@ -243,9 +264,11 @@ public class MyTest extends AbstractCVM {
 		for (int i = 2; i < 4; i++) {		
 			this.requestDispatcher[1].doPortDisconnection(RD_REQUEST_SUBMISSION_OUT_PORT_URI[i]);
 		}
+		this.autonomicController.doPortDisconnection(ATC_DYNAMIC_STATE_DATA_OUT_PORT_URI);
+		
 		super.shutdown();
 	}
-	
+		
 	public void scenarioUniqueApplicationAndTwoAVMs() throws Exception {
 		
 		System.out.println("-- Scenario unique application and two AVMs.");
@@ -256,15 +279,7 @@ public class MyTest extends AbstractCVM {
 	}	
 	
 	public static void main(String[] args) {
-		
-		/*double alpha = 0.3;
-		double yt    = 525.0;
-		double ytm1p = 515.0;
-		
-		double ytp = alpha * yt + (1 - alpha) * ytm1p;
-		
-		System.out.println(ytp);*/
-		
+				
 		try {
 			final MyTest test = new MyTest();
 			test.deploy();
@@ -294,5 +309,5 @@ public class MyTest extends AbstractCVM {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-	}
+	}		
 }

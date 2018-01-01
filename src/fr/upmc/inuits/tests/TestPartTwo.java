@@ -8,7 +8,7 @@ import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 public class TestPartTwo extends AbstractCVM {
 
 	public static final String RD_DYNAMIC_STATE_DATA_IN_PORT_URI = "rddsd-ip";
-	public static final String AC_DYNAMIC_STATE_DATA_OUT_PORT_URI = "acdsd-op";
+	public static final String ATC_DYNAMIC_STATE_DATA_OUT_PORT_URI = "atcdsd-op";
 	
 	public static final String RD_URI = "rd0";
 	
@@ -41,7 +41,7 @@ public class TestPartTwo extends AbstractCVM {
 		// --------------------------------------------------------------------
 		this.autonomicController = new AutonomicController(
 				RD_URI, 
-				AC_DYNAMIC_STATE_DATA_OUT_PORT_URI);
+				ATC_DYNAMIC_STATE_DATA_OUT_PORT_URI);
 		
 		this.addDeployedComponent(this.autonomicController);
 		
@@ -50,7 +50,7 @@ public class TestPartTwo extends AbstractCVM {
 		this.autonomicController.toggleLogging();
 				
 		this.autonomicController.doPortConnection(
-				AC_DYNAMIC_STATE_DATA_OUT_PORT_URI,
+				ATC_DYNAMIC_STATE_DATA_OUT_PORT_URI,
 				RD_DYNAMIC_STATE_DATA_IN_PORT_URI,
 				ControlledDataConnector.class.getCanonicalName());
 		super.deploy();
@@ -59,7 +59,7 @@ public class TestPartTwo extends AbstractCVM {
 	@Override
 	public void shutdown() throws Exception {
 				
-		this.autonomicController.doPortDisconnection(AC_DYNAMIC_STATE_DATA_OUT_PORT_URI);
+		this.autonomicController.doPortDisconnection(ATC_DYNAMIC_STATE_DATA_OUT_PORT_URI);
 		
 		super.shutdown();
 	}

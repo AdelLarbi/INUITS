@@ -137,38 +137,62 @@ public class RequestDispatcher
 		
 	protected HashMap<String, Long> beginningTime = new HashMap<>();
 	protected HashMap<String, Long> executionTime = new HashMap<>();
-	protected double[] exponentialSmoothing_3 = new double[100];
-	/*protected double[] exponentialSmoothing_5 = new double[100];
-	protected double[] exponentialSmoothing_7 = new double[100];
-	protected double[] exponentialSmoothing_9 = new double[100];*/
-	protected int index = 0;
-	protected final double ALPHA_3 = 0.5;
-	/*protected final double ALPHA_5 = 0.99999;
-	protected final double ALPHA_7 = 0.999999;
-	protected final double ALPHA_9 = 1;*/
-	
-	protected double t_3 = 0;
-	/*protected double t_5 = 0;
-	protected double t_7 = 0;
-	protected double t_9 = 0;*/
 	
 	private class Smoothing {
-	
-		private final double ALPHA = 0.5;		
-		private double oldMesurmentValue;
+		
+		private final double ALPHA = 0.7;		
+		private double observedValue;
+		private double oldSmoothedValue;		
+		private int internalCounter;
 		
 		public Smoothing() {
-			this.oldMesurmentValue = -1;
+			this.internalCounter = 0;
 		}
 		
-		public synchronized double getExponentialSmoothing(double newMesurmentValue) {
+		public int calculateExponentialSmoothing(double newMesurmentValue) {
 			
-			if (oldMesurmentValue != -1) {
-				return oldMesurmentValue = ALPHA * newMesurmentValue + (1 - ALPHA) * oldMesurmentValue;	
-			}
+			if (internalCounter > 1) {
+				oldSmoothedValue = ALPHA * observedValue + (1 - ALPHA) * oldSmoothedValue;					
+				
+			} else if (internalCounter == 1) {
+				oldSmoothedValue = (observedValue + newMesurmentValue) / 2;
+				
+			} else {
+				oldSmoothedValue = -1;				
+			}	
 			
-			return oldMesurmentValue = newMesurmentValue;
-		}		
+			observedValue = newMesurmentValue;
+			internalCounter++;
+			
+			return (int) Math.round(oldSmoothedValue);
+		}
+
+		/*private double[] alpha            = {0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1};
+		private double[] observedValue    = {0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0};
+		private double[] oldSmoothedValue = {0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0};
+		private int[] internalCounter     = {0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0};
+		
+		private double[] cse              = {0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0};*/
+		
+		/*public double foo(double newMesurmentValue, int i) {
+			if (internalCounter[i] > 1) {
+				oldSmoothedValue[i] = alpha[i] * observedValue[i] + (1 - alpha[i]) * oldSmoothedValue[i];
+				
+				cse[i] += (oldSmoothedValue[i] - newMesurmentValue) * (oldSmoothedValue[i] - newMesurmentValue);
+				//System.out.println("								CSE of (" + alpha[i] + ") : " + cse[i]);				
+				
+			} else if (internalCounter[i] == 1) {
+				oldSmoothedValue[i] = (observedValue[i] + newMesurmentValue) / 2;
+				
+			} else {
+				oldSmoothedValue[i] = -1;				
+			}	
+			
+			observedValue[i] = newMesurmentValue;
+			internalCounter[i]++;
+			
+			return cse[i];
+		}*/		
 	}
 
 	@Override
@@ -217,58 +241,24 @@ public class RequestDispatcher
 				
 		long beginning = beginningTime.get(r.getRequestURI());
 		executionTime.put(r.getRequestURI(), System.currentTimeMillis() - beginning);
-		this.logMessage("							[Execution time of " + r.getRequestURI() + "] : " + executionTime.get(r.getRequestURI()));
+		
+		//this.logMessage("							[Execution time of " + r.getRequestURI() + "] : " + executionTime.get(r.getRequestURI()));		
 		
 		long currentExecutionTime = executionTime.get(r.getRequestURI());
 		
-		if (index > 0) {
-			exponentialSmoothing_3[index] = ALPHA_3 * currentExecutionTime + (1- ALPHA_3) * exponentialSmoothing_3[index - 1];
-			/*exponentialSmoothing_5[index] = ALPHA_5 * currentExecutionTime + (1- ALPHA_5) * exponentialSmoothing_5[index - 1];
-			exponentialSmoothing_7[index] = ALPHA_7 * currentExecutionTime + (1- ALPHA_7) * exponentialSmoothing_7[index - 1];
-			exponentialSmoothing_9[index] = ALPHA_9 * currentExecutionTime + (1- ALPHA_7) * exponentialSmoothing_9[index - 1];*/
-		} else {
-			// initial value
-			exponentialSmoothing_3[0] = currentExecutionTime;
-			/*exponentialSmoothing_5[0] = currentExecutionTime;
-			exponentialSmoothing_7[0] = currentExecutionTime;
-			exponentialSmoothing_9[0] = currentExecutionTime;*/
-		}				
-		t_3 += (exponentialSmoothing_3[index] - currentExecutionTime) * (exponentialSmoothing_3[index] - currentExecutionTime);
-		/*t_5 += (exponentialSmoothing_5[index] - currentExecutionTime) * (exponentialSmoothing_5[index] - currentExecutionTime);
-		t_7 += (exponentialSmoothing_7[index] - currentExecutionTime) * (exponentialSmoothing_7[index] - currentExecutionTime);
-		t_9 += (exponentialSmoothing_9[index] - currentExecutionTime) * (exponentialSmoothing_9[index] - currentExecutionTime);*/
-		
-		this.logMessage("							[Exponential smoothing curr] : " + currentExecutionTime);
-		this.logMessage("							[Exponential smoothing nimp] : " + exponentialSmoothing_3[index]);
-		/*this.logMessage("							[Exponential smoothing .998] : " + t_5);
-		this.logMessage("							[Exponential smoothing .999] : " + t_7);
-		this.logMessage("							[Exponential smoothing 1.00] : " + t_9);*/
-		
-		exponentialSmoothing = smoothing.getExponentialSmoothing(currentExecutionTime);
-		this.logMessage("							[Exponential smoothing clas] : " + exponentialSmoothing);
-		
-		index++;
-		
+		synchronized (this) {
+			exponentialSmoothing = smoothing.calculateExponentialSmoothing(currentExecutionTime);
+		}
+						
+		this.logMessage("							[Exponential smoothing ex] : " + exponentialSmoothing);		
+				
 		this.rnop.notifyRequestTermination(r);
 	}
 	
 	public RequestDispatcherDynamicStateI getDynamicState() throws Exception {
-		
-		final double averageExecutionTime = calculateAverageExecutionTime();
-		
-		//TODO keep or remove this
-		if (averageExecutionTime == -1) {
-			return null;
-		}
-		
-		return new RequestDispatcherDynamicState(this.rdURI, averageExecutionTime);
-	}
-	
-	public double calculateAverageExecutionTime() {
-		// TODO Auto-generated method stub
-		// y=filter(1-a, [1 -a],u);
-		return 99;
-	}
+						
+		return new RequestDispatcherDynamicState(this.rdURI, exponentialSmoothing);
+	}	
 
 	@Override
 	public void startLimitedPushing(int interval, int numberOfPushes) throws Exception {
