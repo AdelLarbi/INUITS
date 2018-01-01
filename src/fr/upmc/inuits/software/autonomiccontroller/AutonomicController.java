@@ -76,6 +76,7 @@ public class AutonomicController
 			
 			sb.append("Autonomic controller accepting dynamic data from " + rdURI + "\n");
 			sb.append("  average execution time : " + averageExecutionTime + "\n");
+			//sb.append("  current time millis : " + System.currentTimeMillis() + "\n");			
 			
 			this.logMessage(sb.toString());
 		}		

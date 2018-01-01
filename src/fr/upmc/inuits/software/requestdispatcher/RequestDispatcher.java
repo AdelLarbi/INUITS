@@ -1,5 +1,6 @@
 package fr.upmc.inuits.software.requestdispatcher;
 
+import java.util.HashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -41,6 +42,10 @@ public class RequestDispatcher
 	
 	/** future of the task scheduled to push dynamic data. */
 	protected ScheduledFuture<?> pushingFuture;
+	
+	/** TODO */
+	protected Smoothing smoothing; 
+	protected double exponentialSmoothing;
 	
 	public RequestDispatcher(
 			String rdURI, 
@@ -96,6 +101,8 @@ public class RequestDispatcher
 		this.addPort(rddsdip);
 		this.rddsdip.publishPort();
 		
+		this.smoothing = new Smoothing();
+		
 		assert this.rdURI != null;
 		assert this.AVAILABLE_APPLICATION_VM == requestNotificationIntboundPortURI.length;
 		assert this.applicationVMCounter == 0;
@@ -128,6 +135,42 @@ public class RequestDispatcher
 		super.shutdown();
 	}	
 		
+	protected HashMap<String, Long> beginningTime = new HashMap<>();
+	protected HashMap<String, Long> executionTime = new HashMap<>();
+	protected double[] exponentialSmoothing_3 = new double[100];
+	/*protected double[] exponentialSmoothing_5 = new double[100];
+	protected double[] exponentialSmoothing_7 = new double[100];
+	protected double[] exponentialSmoothing_9 = new double[100];*/
+	protected int index = 0;
+	protected final double ALPHA_3 = 0.5;
+	/*protected final double ALPHA_5 = 0.99999;
+	protected final double ALPHA_7 = 0.999999;
+	protected final double ALPHA_9 = 1;*/
+	
+	protected double t_3 = 0;
+	/*protected double t_5 = 0;
+	protected double t_7 = 0;
+	protected double t_9 = 0;*/
+	
+	private class Smoothing {
+	
+		private final double ALPHA = 0.5;		
+		private double oldMesurmentValue;
+		
+		public Smoothing() {
+			this.oldMesurmentValue = -1;
+		}
+		
+		public synchronized double getExponentialSmoothing(double newMesurmentValue) {
+			
+			if (oldMesurmentValue != -1) {
+				return oldMesurmentValue = ALPHA * newMesurmentValue + (1 - ALPHA) * oldMesurmentValue;	
+			}
+			
+			return oldMesurmentValue = newMesurmentValue;
+		}		
+	}
+
 	@Override
 	public void acceptRequestSubmission(RequestI r) throws Exception {
 		
@@ -138,9 +181,11 @@ public class RequestDispatcher
 					r.getPredictedNumberOfInstructions());
 		}
 		
+		beginningTime.put(r.getRequestURI(), System.currentTimeMillis());
+		
 		this.rsop[getNextApplicationVM()].submitRequest(r);		
-	}
-
+	}	
+	
 	@Override
 	public void acceptRequestSubmissionAndNotify(RequestI r) throws Exception {
 		
@@ -150,6 +195,8 @@ public class RequestDispatcher
 					TimeProcessing.toString(System.currentTimeMillis()) + " with number of instructions " + 
 					r.getPredictedNumberOfInstructions());
 		}
+				
+		beginningTime.put(r.getRequestURI(), System.currentTimeMillis());
 		
 		this.rsop[getNextApplicationVM()].submitRequestAndNotify(r);
 	}
@@ -157,7 +204,7 @@ public class RequestDispatcher
 	public int getNextApplicationVM() {
 		
 		return (applicationVMCounter++ % AVAILABLE_APPLICATION_VM);		
-	}
+	}	
 	
 	@Override
 	public void acceptRequestTerminationNotification(RequestI r) throws Exception {
@@ -168,6 +215,40 @@ public class RequestDispatcher
 					r.getPredictedNumberOfInstructions());
 		}
 				
+		long beginning = beginningTime.get(r.getRequestURI());
+		executionTime.put(r.getRequestURI(), System.currentTimeMillis() - beginning);
+		this.logMessage("							[Execution time of " + r.getRequestURI() + "] : " + executionTime.get(r.getRequestURI()));
+		
+		long currentExecutionTime = executionTime.get(r.getRequestURI());
+		
+		if (index > 0) {
+			exponentialSmoothing_3[index] = ALPHA_3 * currentExecutionTime + (1- ALPHA_3) * exponentialSmoothing_3[index - 1];
+			/*exponentialSmoothing_5[index] = ALPHA_5 * currentExecutionTime + (1- ALPHA_5) * exponentialSmoothing_5[index - 1];
+			exponentialSmoothing_7[index] = ALPHA_7 * currentExecutionTime + (1- ALPHA_7) * exponentialSmoothing_7[index - 1];
+			exponentialSmoothing_9[index] = ALPHA_9 * currentExecutionTime + (1- ALPHA_7) * exponentialSmoothing_9[index - 1];*/
+		} else {
+			// initial value
+			exponentialSmoothing_3[0] = currentExecutionTime;
+			/*exponentialSmoothing_5[0] = currentExecutionTime;
+			exponentialSmoothing_7[0] = currentExecutionTime;
+			exponentialSmoothing_9[0] = currentExecutionTime;*/
+		}				
+		t_3 += (exponentialSmoothing_3[index] - currentExecutionTime) * (exponentialSmoothing_3[index] - currentExecutionTime);
+		/*t_5 += (exponentialSmoothing_5[index] - currentExecutionTime) * (exponentialSmoothing_5[index] - currentExecutionTime);
+		t_7 += (exponentialSmoothing_7[index] - currentExecutionTime) * (exponentialSmoothing_7[index] - currentExecutionTime);
+		t_9 += (exponentialSmoothing_9[index] - currentExecutionTime) * (exponentialSmoothing_9[index] - currentExecutionTime);*/
+		
+		this.logMessage("							[Exponential smoothing curr] : " + currentExecutionTime);
+		this.logMessage("							[Exponential smoothing nimp] : " + exponentialSmoothing_3[index]);
+		/*this.logMessage("							[Exponential smoothing .998] : " + t_5);
+		this.logMessage("							[Exponential smoothing .999] : " + t_7);
+		this.logMessage("							[Exponential smoothing 1.00] : " + t_9);*/
+		
+		exponentialSmoothing = smoothing.getExponentialSmoothing(currentExecutionTime);
+		this.logMessage("							[Exponential smoothing clas] : " + exponentialSmoothing);
+		
+		index++;
+		
 		this.rnop.notifyRequestTermination(r);
 	}
 	
@@ -185,6 +266,7 @@ public class RequestDispatcher
 	
 	public double calculateAverageExecutionTime() {
 		// TODO Auto-generated method stub
+		// y=filter(1-a, [1 -a],u);
 		return 99;
 	}
 
