@@ -1,11 +1,13 @@
 package fr.upmc.inuits.tests;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import fr.upmc.components.AbstractComponent;
+import fr.upmc.components.connectors.DataConnector;
 import fr.upmc.components.cvm.AbstractCVM;
 import fr.upmc.datacenter.connectors.ControlledDataConnector;
 import fr.upmc.datacenter.hardware.computers.Computer;
@@ -41,7 +43,15 @@ public class MyTest extends AbstractCVM {
 	public static final String RD_REQUEST_NOTIFICATION_OUT_PORT_URI = "rd1rn-op";	
 	public static final String RD_DYNAMIC_STATE_DATA_IN_PORT_URI = "rddsd-ip";
 	
-	public static final String ATC_DYNAMIC_STATE_DATA_OUT_PORT_URI = "atcdsd-op";
+	public static final ArrayList<String> ATC_SERVICES_OUT_PORT_URI = new ArrayList<>();
+	public static final ArrayList<String> ATC_C_STATIC_STATE_DATA_OUT_PORT_URI = new ArrayList<>();
+	public static final ArrayList<String> ATC_C_DYNAMIC_STATE_DATA_OUT_PORT_URI = new ArrayList<>();
+	public static final String ATC_RD_DYNAMIC_STATE_DATA_OUT_PORT_URI = "atcrddsd-op";
+	{
+		ATC_SERVICES_OUT_PORT_URI.add("atcs-op");
+		ATC_C_STATIC_STATE_DATA_OUT_PORT_URI.add("atccssd-op");
+		ATC_C_DYNAMIC_STATE_DATA_OUT_PORT_URI.add("atccdsd-op");
+	}
 	
 	public static final String RG_MANAGEMENT_IN_PORT_URI = "rg1m-ip";
 	public static final String RG_MANAGEMENT_OUT_PORT_URI = "rg1m-op";
@@ -68,7 +78,8 @@ public class MyTest extends AbstractCVM {
 		//AbstractCVM.toggleDebugMode();
 		//Processor.DEBUG = false;
 		// --------------------------------------------------------------------
-		String computerURI = "computer0";
+		ArrayList<String> computersURI = new ArrayList<>();
+		computersURI.add("computer0");
 		int numberOfProcessors = 2;
 		int numberOfCores = 4;
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>();
@@ -81,7 +92,7 @@ public class MyTest extends AbstractCVM {
 		processingPower.put(6000, 6000000);
 		
 		Computer computer = new Computer(
-				computerURI, 
+				computersURI.get(0), 
 				admissibleFrequencies, 
 				processingPower, 
 				6000,//1500 
@@ -165,8 +176,12 @@ public class MyTest extends AbstractCVM {
 		this.requestDispatcher.toggleLogging();						
 		// --------------------------------------------------------------------
 		this.autonomicController = new AutonomicController(
+				computersURI,
+				ATC_SERVICES_OUT_PORT_URI,
+				ATC_C_STATIC_STATE_DATA_OUT_PORT_URI, 
+				ATC_C_DYNAMIC_STATE_DATA_OUT_PORT_URI,
 				"rd0", 
-				ATC_DYNAMIC_STATE_DATA_OUT_PORT_URI);
+				ATC_RD_DYNAMIC_STATE_DATA_OUT_PORT_URI);
 		
 		this.addDeployedComponent(this.autonomicController);
 		
@@ -174,8 +189,23 @@ public class MyTest extends AbstractCVM {
 		this.autonomicController.toggleTracing();
 		this.autonomicController.toggleLogging();
 				
+		this.autonomicController.doPortConnection(				
+				ATC_SERVICES_OUT_PORT_URI.get(0),
+				C_SERVICES_IN_PORT_URI,
+				ComputerServicesConnector.class.getCanonicalName());
+		
 		this.autonomicController.doPortConnection(
-				ATC_DYNAMIC_STATE_DATA_OUT_PORT_URI,
+				ATC_C_STATIC_STATE_DATA_OUT_PORT_URI.get(0),
+				C_STATIC_STATE_DATA_IN_PORT_URI,
+				DataConnector.class.getCanonicalName());
+
+		this.autonomicController.doPortConnection(
+				ATC_C_DYNAMIC_STATE_DATA_OUT_PORT_URI.get(0),
+				C_DYNAMIC_STATE_DATA_IN_PORT_URI,
+				ControlledDataConnector.class.getCanonicalName());
+		
+		this.autonomicController.doPortConnection(
+				ATC_RD_DYNAMIC_STATE_DATA_OUT_PORT_URI,
 				RD_DYNAMIC_STATE_DATA_IN_PORT_URI,
 				ControlledDataConnector.class.getCanonicalName());
 		// --------------------------------------------------------------------
@@ -235,7 +265,11 @@ public class MyTest extends AbstractCVM {
 		}
 		
 		this.rgmOutPort.doDisconnection();
-		this.autonomicController.doPortDisconnection(ATC_DYNAMIC_STATE_DATA_OUT_PORT_URI);
+		
+		this.autonomicController.doPortDisconnection(ATC_SERVICES_OUT_PORT_URI.get(0));
+		this.autonomicController.doPortDisconnection(ATC_C_STATIC_STATE_DATA_OUT_PORT_URI.get(0));
+		this.autonomicController.doPortDisconnection(ATC_C_DYNAMIC_STATE_DATA_OUT_PORT_URI.get(0));
+		this.autonomicController.doPortDisconnection(ATC_RD_DYNAMIC_STATE_DATA_OUT_PORT_URI);
 		
 		super.shutdown();
 	}

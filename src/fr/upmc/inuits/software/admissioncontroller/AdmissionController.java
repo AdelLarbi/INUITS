@@ -247,7 +247,7 @@ public class AdmissionController
 	public void acceptComputerStaticData(String computerURI, ComputerStaticStateI staticState) throws Exception {
 		
 		this.numberOfProcessors = staticState.getNumberOfProcessors();
-		this.numberOfCoresPerProcessor = staticState.getNumberOfCoresPerProcessor();			
+		this.numberOfCoresPerProcessor = staticState.getNumberOfCoresPerProcessor();						
 		
 		if (AdmissionController.DEBUG_LEVEL == 2) {
 			StringBuffer sb = new StringBuffer();
@@ -280,7 +280,7 @@ public class AdmissionController
 	public void acceptComputerDynamicData(String computerURI, ComputerDynamicStateI currentDynamicState)
 			throws Exception {
 				
-		this.reservedCores = currentDynamicState.getCurrentCoreReservations();			
+		this.reservedCores = currentDynamicState.getCurrentCoreReservations();					
 		
 		if (AdmissionController.DEBUG_LEVEL == 2) {
 			StringBuffer sb = new StringBuffer();
