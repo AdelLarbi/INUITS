@@ -9,6 +9,7 @@ import fr.upmc.inuits.software.application.interfaces.ApplicationManagementI;
 import fr.upmc.inuits.software.application.interfaces.ApplicationNotificationI;
 import fr.upmc.inuits.software.application.interfaces.ApplicationServicesI;
 import fr.upmc.inuits.software.application.interfaces.ApplicationSubmissionI;
+import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerManagementI;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -22,8 +23,11 @@ public abstract class Javassist {
 	private static Class<?> applicationNotificationConnector;
 	private static Class<?> applicationServicesConnector;
 	private static Class<?> applicationSubmissionConnector;
+	
 	private static Class<?> requestNotificationConnector;
 	private static Class<?> requestSubmissionConnector;
+	
+	private static Class<?> autonomicControllerManagementConnector;
 
 	public synchronized static String getApplicationManagementConnectorClassName() throws Exception {
 		
@@ -79,6 +83,15 @@ public abstract class Javassist {
 		return requestSubmissionConnector.getCanonicalName();					
 	}	
 	
+	public synchronized static String getAutonomicControllerManagementConnectorClassName() throws Exception {
+		
+		if (autonomicControllerManagementConnector == null) {			
+			autonomicControllerManagementConnector = makeConnectorClass("AutonomicControllerManagementConnector", AutonomicControllerManagementI.class);
+		}
+		
+		return autonomicControllerManagementConnector.getCanonicalName();		
+	}
+
 	private static Class<?> makeConnectorClass(
 			String className,
 			Class<?> connectorImplementedInterface) throws Exception {

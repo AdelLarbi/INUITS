@@ -10,12 +10,14 @@ public class ApplicationManagementOutboundPort
 	implements ApplicationManagementI {
 
 	public ApplicationManagementOutboundPort(ComponentI owner) throws Exception {
+		
 		super(ApplicationManagementI.class, owner);
 			
 		assert owner != null;
 	}
 
 	public ApplicationManagementOutboundPort(String uri, ComponentI owner) throws Exception {
+		
 		super(uri, ApplicationManagementI.class, owner);
 
 		assert uri != null && owner != null;

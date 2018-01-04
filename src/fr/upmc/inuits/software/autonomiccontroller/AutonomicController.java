@@ -3,11 +3,14 @@ package fr.upmc.inuits.software.autonomiccontroller;
 import java.util.ArrayList;
 
 import fr.upmc.components.AbstractComponent;
+import fr.upmc.components.connectors.DataConnector;
 import fr.upmc.components.exceptions.ComponentShutdownException;
 import fr.upmc.components.exceptions.ComponentStartException;
 import fr.upmc.components.interfaces.DataRequiredI;
+import fr.upmc.datacenter.connectors.ControlledDataConnector;
 import fr.upmc.datacenter.hardware.computers.Computer;
 import fr.upmc.datacenter.hardware.computers.Computer.AllocatedCore;
+import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
 import fr.upmc.datacenter.hardware.computers.interfaces.ComputerDynamicStateI;
 import fr.upmc.datacenter.hardware.computers.interfaces.ComputerServicesI;
 import fr.upmc.datacenter.hardware.computers.interfaces.ComputerStateDataConsumerI;
@@ -16,24 +19,31 @@ import fr.upmc.datacenter.hardware.computers.ports.ComputerDynamicStateDataOutbo
 import fr.upmc.datacenter.hardware.computers.ports.ComputerServicesOutboundPort;
 import fr.upmc.datacenter.hardware.computers.ports.ComputerStaticStateDataOutboundPort;
 import fr.upmc.datacenter.interfaces.ControlledDataRequiredI;
+import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerManagementI;
+import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerManagementInboundPort;
 import fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherDynamicStateI;
 import fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherStateDataConsumerI;
 import fr.upmc.inuits.software.requestdispatcher.ports.RequestDispatcherDynamicStateDataOutboundPort;
 
 public class AutonomicController 
 	extends AbstractComponent 
-	implements ComputerStateDataConsumerI, RequestDispatcherStateDataConsumerI {
+	implements AutonomicControllerManagementI, ComputerStateDataConsumerI, RequestDispatcherStateDataConsumerI {
 
 	public static int DEBUG_LEVEL = 1;
 	public static int ANALYSE_DATA_TIMER = 1000;//500
 	
 	protected final int TOTAL_COMPUTERS_USED;
 	
+	protected ArrayList<String> computerServicesOutboundPortURI;
+	protected ArrayList<String> computerStaticStateDataOutboundPortURI;
+	protected ArrayList<String> computerDynamicStateDataOutboundPortURI;
+	
 	protected ComputerServicesOutboundPort[] csop;
 	protected ComputerStaticStateDataOutboundPort[] cssdop;
-	protected ComputerDynamicStateDataOutboundPort[] cdsdop;
+	protected ComputerDynamicStateDataOutboundPort[] cdsdop;	
 	
 	protected RequestDispatcherDynamicStateDataOutboundPort rddsdop;
+	protected AutonomicControllerManagementInboundPort atcmip;
 	
 	protected double averageExecutionTime;
 	
@@ -43,7 +53,8 @@ public class AutonomicController
 			ArrayList<String> computerStaticStateDataOutboundPortURI,
 			ArrayList<String> computerDynamicStateDataOutboundPortURI,
 			String requestDispatcherUri, 
-			String requestDispatcherDynamicStateDataOutboundPortURI)  throws Exception {
+			String requestDispatcherDynamicStateDataOutboundPortURI,
+			String autonomicControllerManagementInboundPortURI)  throws Exception {
 	
 		super(1, 1);
 		
@@ -53,8 +64,13 @@ public class AutonomicController
 		assert computerDynamicStateDataOutboundPortURI != null && computerDynamicStateDataOutboundPortURI.size() > 0;
 		assert requestDispatcherDynamicStateDataOutboundPortURI != null 
 				&& requestDispatcherDynamicStateDataOutboundPortURI.length() > 0;
+		assert autonomicControllerManagementInboundPortURI != null;
 				
 		this.TOTAL_COMPUTERS_USED = computersURI.size();
+		
+		this.computerServicesOutboundPortURI = computerServicesOutboundPortURI;
+		this.computerStaticStateDataOutboundPortURI = computerStaticStateDataOutboundPortURI;
+		this.computerDynamicStateDataOutboundPortURI = computerDynamicStateDataOutboundPortURI;
 		
 		this.csop = new ComputerServicesOutboundPort[TOTAL_COMPUTERS_USED];
 		this.cssdop = new ComputerStaticStateDataOutboundPort[TOTAL_COMPUTERS_USED];
@@ -84,26 +100,22 @@ public class AutonomicController
 		this.addPort(this.rddsdop);
 		this.rddsdop.publishPort();
 		
+		this.addOfferedInterface(AutonomicControllerManagementI.class);
+		this.atcmip = new AutonomicControllerManagementInboundPort(autonomicControllerManagementInboundPortURI, this);
+		this.addPort(this.atcmip);
+		this.atcmip.publishPort();
+		
 		assert this.cssdop != null && this.cssdop[0] instanceof DataRequiredI.PullI; // or : ComputerStaticStateDataI
 		assert this.cdsdop != null && this.cdsdop[0] instanceof ControlledDataRequiredI.ControlledPullI;
 		assert this.rddsdop != null && this.rddsdop instanceof ControlledDataRequiredI.ControlledPullI;
+		assert this.atcmip != null && this.atcmip instanceof AutonomicControllerManagementI;
 	}
 
 	@Override
 	public void start() throws ComponentStartException {
 		
 		super.start();			
-				
-		try {									
-			// start the pushing of dynamic state information from the computer.
-			for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
-				this.cdsdop[i].startUnlimitedPushing(ANALYSE_DATA_TIMER); 
-			}			
-													
-		} catch (Exception e) {
-			throw new ComponentStartException("Unable to start pushing dynamic data from the computer component.", e);
-		}
-		
+								
 		try {									
 			// start the pushing of dynamic state information from the request dispatcher.
 			this.rddsdop.startUnlimitedPushing(ANALYSE_DATA_TIMER);					
@@ -137,6 +149,53 @@ public class AutonomicController
 		}
 
 		super.shutdown();
+	}
+	
+	@Override
+	public void doConnectionWithComputerForServices(ArrayList<String> computerServicesInboundPortUri) throws Exception {
+
+		for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
+			this.doPortConnection(				
+					computerServicesOutboundPortURI.get(i),
+					computerServicesInboundPortUri.get(i),
+					ComputerServicesConnector.class.getCanonicalName());
+		}
+	}
+
+	@Override
+	public void doConnectionWithComputerForStaticState(ArrayList<String> computerStaticStateInboundPortUri) 
+			throws Exception {
+		
+		for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
+			this.doPortConnection(
+					this.computerStaticStateDataOutboundPortURI.get(i),
+					computerStaticStateInboundPortUri.get(i),
+					DataConnector.class.getCanonicalName());
+		}
+	}
+
+	@Override
+	public void doConnectionWithComputerForDynamicState(ArrayList<String> computerDynamicStateInboundPortUri, 
+			boolean isStartPushing) throws Exception {
+		
+		for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
+			this.doPortConnection(
+					this.computerDynamicStateDataOutboundPortURI.get(i),
+					computerDynamicStateInboundPortUri.get(i),
+					ControlledDataConnector.class.getCanonicalName());
+		}
+		
+		// start the pushing of dynamic state information from the computer if true.
+		if (isStartPushing) {
+			try {												
+				for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
+					this.cdsdop[i].startUnlimitedPushing(ANALYSE_DATA_TIMER); 
+				}			
+														
+			} catch (Exception e) {
+				throw new ComponentStartException("Unable to start pushing dynamic data from the computer component.", e);
+			}	
+		}		
 	}
 	
 	@Override
