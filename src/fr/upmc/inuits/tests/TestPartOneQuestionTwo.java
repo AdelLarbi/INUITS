@@ -248,7 +248,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		this.asMockUpOutPort1.sendRequestForApplicationExecution(9);
 		this.asMockUpOutPort2.sendRequestForApplicationExecution(8);
 	}
-	
+
 	public void scenarioTwoApplicationsSimultaneouslyAndThreeAVMsEach_refuse() throws Exception {
 		this.asMockUpOutPort1.sendRequestForApplicationExecution(14);
 		this.asMockUpOutPort2.sendRequestForApplicationExecution(8);

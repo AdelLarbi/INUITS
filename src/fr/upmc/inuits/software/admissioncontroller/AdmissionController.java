@@ -398,8 +398,8 @@ public class AdmissionController
 					});	
 		}							
 		
-		this.RD_REQUEST_SUBMISSION_IN_PORT_URI.put(RD_URI, "rrsip");
-		this.RD_REQUEST_NOTIFICATION_OUT_PORT_URI.put(RD_URI, "rrnop");
+		this.RD_REQUEST_SUBMISSION_IN_PORT_URI.put(RD_URI, RD_URI + "-rrsip");
+		this.RD_REQUEST_NOTIFICATION_OUT_PORT_URI.put(RD_URI, RD_URI + "-rrnop");
 		
 		this.portToRequestDispatcherJVM.get(RD_URI).createComponent(
 				RequestDispatcher.class.getCanonicalName(),
