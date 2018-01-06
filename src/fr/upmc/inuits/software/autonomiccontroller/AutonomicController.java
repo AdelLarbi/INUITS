@@ -37,6 +37,7 @@ public class AutonomicController
 	protected ArrayList<String> computerServicesOutboundPortURI;
 	protected ArrayList<String> computerStaticStateDataOutboundPortURI;
 	protected ArrayList<String> computerDynamicStateDataOutboundPortURI;
+	protected String requestDispatcherURI;
 	protected String requestDispatcherDynamicStateDataOutboundPortURI;
 	
 	protected ComputerServicesOutboundPort[] csop;
@@ -53,7 +54,7 @@ public class AutonomicController
 			ArrayList<String> computerServicesOutboundPortURI,
 			ArrayList<String> computerStaticStateDataOutboundPortURI,
 			ArrayList<String> computerDynamicStateDataOutboundPortURI,			
-			String requestDispatcherUri, 
+			String requestDispatcherURI, 
 			String requestDispatcherDynamicStateDataOutboundPortURI,
 			String autonomicControllerManagementInboundPortURI)  throws Exception {
 	
@@ -73,6 +74,7 @@ public class AutonomicController
 		this.computerStaticStateDataOutboundPortURI = computerStaticStateDataOutboundPortURI;
 		this.computerDynamicStateDataOutboundPortURI = computerDynamicStateDataOutboundPortURI;
 		this.requestDispatcherDynamicStateDataOutboundPortURI = requestDispatcherDynamicStateDataOutboundPortURI;
+		this.requestDispatcherURI = requestDispatcherURI; 
 		
 		this.csop = new ComputerServicesOutboundPort[TOTAL_COMPUTERS_USED];
 		this.cssdop = new ComputerStaticStateDataOutboundPort[TOTAL_COMPUTERS_USED];
@@ -98,7 +100,7 @@ public class AutonomicController
 			this.cdsdop[i].publishPort();	
 		}
 			
-		this.rddsdop = new RequestDispatcherDynamicStateDataOutboundPort(requestDispatcherDynamicStateDataOutboundPortURI, this, requestDispatcherUri);
+		this.rddsdop = new RequestDispatcherDynamicStateDataOutboundPort(requestDispatcherDynamicStateDataOutboundPortURI, this, requestDispatcherURI);
 		this.addPort(this.rddsdop);
 		this.rddsdop.publishPort();
 		
@@ -110,7 +112,8 @@ public class AutonomicController
 		assert this.computerServicesOutboundPortURI != null && this.computerServicesOutboundPortURI.size() > 0;
 		assert this.computerStaticStateDataOutboundPortURI != null && this.computerStaticStateDataOutboundPortURI.size() > 0;
 		assert this.computerDynamicStateDataOutboundPortURI != null && this.computerDynamicStateDataOutboundPortURI.size() > 0;
-		assert this.requestDispatcherDynamicStateDataOutboundPortURI != null && this.requestDispatcherDynamicStateDataOutboundPortURI.length() > 0;		
+		assert this.requestDispatcherDynamicStateDataOutboundPortURI != null && this.requestDispatcherDynamicStateDataOutboundPortURI.length() > 0;
+		assert this.requestDispatcherURI != null && this.requestDispatcherURI.length() > 0;
 		assert this.cssdop != null && this.cssdop[0] instanceof DataRequiredI.PullI; // or : ComputerStaticStateDataI
 		assert this.cdsdop != null && this.cdsdop[0] instanceof ControlledDataRequiredI.ControlledPullI;
 		assert this.rddsdop != null && this.rddsdop instanceof ControlledDataRequiredI.ControlledPullI;
@@ -289,17 +292,19 @@ public class AutonomicController
 	public void acceptRequestDispatcherDynamicData(String rdURI, RequestDispatcherDynamicStateI currentDynamicState)
 			throws Exception {
 		
-		this.averageExecutionTime = currentDynamicState.getCurrentAverageExecutionTime();
-		
-		if (AutonomicController.DEBUG_LEVEL == 2) {
-			StringBuffer sb = new StringBuffer();
+		if (rdURI == this.requestDispatcherURI) {
+			this.averageExecutionTime = currentDynamicState.getCurrentAverageExecutionTime();
 			
-			sb.append("Autonomic controller accepting dynamic data from " + rdURI + "\n");
-			sb.append("  average execution time : " + averageExecutionTime + "\n");
-			//sb.append("  current time millis : " + System.currentTimeMillis() + "\n");			
-			
-			this.logMessage(sb.toString());
-		}		
+			if (AutonomicController.DEBUG_LEVEL == 2) {
+				StringBuffer sb = new StringBuffer();
+				
+				sb.append("Autonomic controller accepting dynamic data from " + rdURI + "\n");
+				sb.append("  average execution time : " + averageExecutionTime + "\n");
+				//sb.append("  current time millis : " + System.currentTimeMillis() + "\n");			
+				
+				this.logMessage(sb.toString());
+			}
+		}			
 	}
 	
 	public void foo(int nbC) throws Exception {
