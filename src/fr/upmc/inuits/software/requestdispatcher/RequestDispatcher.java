@@ -35,8 +35,8 @@ public class RequestDispatcher
 	protected int applicationVMCounter;
 	
 	protected RequestSubmissionInboundPort rsip;
-	protected RequestSubmissionOutboundPort[] rsop;
-	protected RequestNotificationInboundPort[] rnip;
+	protected HashMap<Integer,RequestSubmissionOutboundPort> rsop;
+	protected HashMap<Integer,RequestNotificationInboundPort> rnip;
 	protected RequestNotificationOutboundPort rnop;
 	
 	protected RequestDispatcherDynamicStateDataInboundPort rddsdip;
@@ -70,8 +70,8 @@ public class RequestDispatcher
 		this.rdURI = rdURI;
 		this.AVAILABLE_APPLICATION_VM = requestSubmissionOutboundPortURI.size();
 		this.applicationVMCounter = 0;		
-		this.rsop = new RequestSubmissionOutboundPort[this.AVAILABLE_APPLICATION_VM];
-		this.rnip = new RequestNotificationInboundPort[this.AVAILABLE_APPLICATION_VM];
+		this.rsop = new HashMap<>();
+		this.rnip = new HashMap<>();
 				
 		this.addOfferedInterface(RequestSubmissionI.class);
 		this.rsip = new RequestSubmissionInboundPort(requestSubmissionIntboundPortURI, this);
@@ -82,13 +82,13 @@ public class RequestDispatcher
 		this.addOfferedInterface(RequestNotificationI.class);
 		
 		for (int i = 0; i < this.AVAILABLE_APPLICATION_VM; i++) {			
-			this.rsop[i] = new RequestSubmissionOutboundPort(requestSubmissionOutboundPortURI.get(i), this);
-			this.addPort(this.rsop[i]);
-			this.rsop[i].publishPort();			
+			this.rsop.put(i, new RequestSubmissionOutboundPort(requestSubmissionOutboundPortURI.get(i), this));
+			this.addPort(this.rsop.get(i));
+			this.rsop.get(i).publishPort();			
 			
-			this.rnip[i] = new RequestNotificationInboundPort(requestNotificationIntboundPortURI.get(i), this);
-			this.addPort(this.rnip[i]);
-			this.rnip[i].publishPort();
+			this.rnip.put(i, new RequestNotificationInboundPort(requestNotificationIntboundPortURI.get(i), this));
+			this.addPort(this.rnip.get(i));
+			this.rnip.get(i).publishPort();
 		}				
 		
 		this.addRequiredInterface(RequestNotificationI.class);
@@ -108,8 +108,8 @@ public class RequestDispatcher
 		assert this.AVAILABLE_APPLICATION_VM == requestNotificationIntboundPortURI.size();
 		assert this.applicationVMCounter == 0;
 		assert this.rsip != null && this.rsip instanceof RequestSubmissionI;
-		assert this.rsop != null && this.rsop[0] instanceof RequestSubmissionI;
-		assert this.rnip != null && this.rnip[0] instanceof RequestNotificationI;
+		assert this.rsop != null && this.rsop.get(0) instanceof RequestSubmissionI;
+		assert this.rnip != null && this.rnip.get(0) instanceof RequestNotificationI;
 		assert this.rnop != null && this.rnop instanceof RequestNotificationI;		
 		assert this.rddsdip != null && this.rddsdip instanceof ControlledDataOfferedI.ControlledPullI;
 	}
@@ -117,12 +117,12 @@ public class RequestDispatcher
 	@Override
 	public void shutdown() throws ComponentShutdownException {
 		
-		try {			
-			for (int i = 0; i < rsop.length; i++) {
-				if (this.rsop[i].connected()) {
-					this.rsop[i].doDisconnection();
+		try {
+			for (RequestSubmissionOutboundPort thisRsop : this.rsop.values()) {
+				if (thisRsop.connected()) {
+					thisRsop.doDisconnection();
 				}
-			} 
+			}
 			if (this.rnop.connected()) {				
 				this.rnop.doDisconnection();							
 			}			
@@ -208,7 +208,7 @@ public class RequestDispatcher
 		
 		beginningTime.put(r.getRequestURI(), System.currentTimeMillis());
 		
-		this.rsop[getNextApplicationVM()].submitRequest(r);		
+		this.rsop.get(getNextApplicationVM()).submitRequest(r);		
 	}	
 	
 	@Override
@@ -223,7 +223,7 @@ public class RequestDispatcher
 				
 		beginningTime.put(r.getRequestURI(), System.currentTimeMillis());
 		
-		this.rsop[getNextApplicationVM()].submitRequestAndNotify(r);
+		this.rsop.get(getNextApplicationVM()).submitRequestAndNotify(r);
 	}
 	
 	public int getNextApplicationVM() {
