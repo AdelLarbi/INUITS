@@ -8,8 +8,8 @@ public class ApplicationSubmissionConnector
 	implements ApplicationSubmissionI {
 
 	@Override
-	public void submitApplicationAndNotify(String appUri, int appIndex, int mustHaveCores) throws Exception {
+	public void submitApplicationAndNotify(String appUri, int mustHaveCores) throws Exception {
 		
-		((ApplicationSubmissionI)this.offering).submitApplicationAndNotify(appUri, appIndex, mustHaveCores);		
+		((ApplicationSubmissionI)this.offering).submitApplicationAndNotify(appUri, mustHaveCores);		
 	}
 }

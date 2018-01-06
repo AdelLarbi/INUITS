@@ -138,7 +138,6 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		// --------------------------------------------------------------------
 		this.application1 = new Application(				
 				appsURI.get(0),
-				0,
 				500.0,
 				6000000000L,
 				A1_MANAGEMENT_IN_PORT_URI,
@@ -179,7 +178,6 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		// --------------------------------------------------------------------
 		this.application2 = new Application(				
 				appsURI.get(1),
-				1,
 				500.0,
 				6000000000L,
 				A2_MANAGEMENT_IN_PORT_URI,

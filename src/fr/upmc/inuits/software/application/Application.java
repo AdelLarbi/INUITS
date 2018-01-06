@@ -34,8 +34,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 
 	protected final String REQUEST_GENERATOR_JVM_URI = "";
 	
-	protected final String appURI;	
-	protected final int appIndex;	
+	protected final String appURI;		
 	protected ReflectionOutboundPort rop;
 	
 	protected ApplicationManagementInboundPort amip;
@@ -56,7 +55,6 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	
 	public Application(
 			String appURI,
-			int appIndex,			
 			Double meanInterArrivalTime,
 			Long meanNumberOfInstructions,
 			String applicationManagementInboundPortURI,
@@ -82,7 +80,6 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		this.rgRequestNotificationInboundPortURI = appURI + "-rgrn-ip";
 		
 		this.appURI = appURI;
-		this.appIndex = appIndex;
 		
 		this.addOfferedInterface(ApplicationManagementI.class);
 		this.amip = new ApplicationManagementInboundPort(applicationManagementInboundPortURI, this);
@@ -112,7 +109,6 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		this.addRequiredInterface(DynamicComponentCreationI.class);
 						
 		assert this.appURI != null && this.appURI.length() > 0;
-		assert this.appIndex >= 0;
 		assert this.amip != null && this.amip instanceof ApplicationManagementI;
 		assert this.asip != null && this.asip instanceof ApplicationServicesI;
 		assert this.asop != null && this.asop instanceof ApplicationSubmissionI;
@@ -229,7 +225,7 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		
 		dynamicRequestGeneratorDeploy();
 		
-		this.asop.submitApplicationAndNotify(this.appURI, this.appIndex, coresToReserve);
+		this.asop.submitApplicationAndNotify(this.appURI, coresToReserve);
 	}
 	
 	@Override
