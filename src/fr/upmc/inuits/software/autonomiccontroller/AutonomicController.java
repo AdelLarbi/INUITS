@@ -32,6 +32,7 @@ public class AutonomicController
 	public static int DEBUG_LEVEL = 1;
 	public static int ANALYSE_DATA_TIMER = 1000;//500
 	
+	protected final String atcURI;
 	protected final int TOTAL_COMPUTERS_USED;
 	
 	protected ArrayList<String> computerServicesOutboundPortURI;
@@ -50,6 +51,7 @@ public class AutonomicController
 	protected double averageExecutionTime;
 	
 	public AutonomicController(
+			String atcURI,
 			ArrayList<String> computersURI,			
 			ArrayList<String> computerServicesOutboundPortURI,
 			ArrayList<String> computerStaticStateDataOutboundPortURI,
@@ -58,8 +60,9 @@ public class AutonomicController
 			String requestDispatcherDynamicStateDataOutboundPortURI,
 			String autonomicControllerManagementInboundPortURI)  throws Exception {
 	
-		super(1, 1);
+		super(atcURI, 1, 1);
 		
+		assert atcURI != null && atcURI.length() > 0;
 		assert computersURI != null && computersURI.size() > 0;
 		assert computerServicesOutboundPortURI != null && computerServicesOutboundPortURI.size() > 0;
 		assert computerStaticStateDataOutboundPortURI != null && computerStaticStateDataOutboundPortURI.size() > 0;
@@ -68,6 +71,7 @@ public class AutonomicController
 				&& requestDispatcherDynamicStateDataOutboundPortURI.length() > 0;
 		assert autonomicControllerManagementInboundPortURI != null;
 				
+		this.atcURI = atcURI;
 		this.TOTAL_COMPUTERS_USED = computersURI.size();
 		
 		this.computerServicesOutboundPortURI = computerServicesOutboundPortURI;
@@ -109,6 +113,7 @@ public class AutonomicController
 		this.addPort(this.atcmip);
 		this.atcmip.publishPort();
 		
+		assert this.atcURI != null;
 		assert this.computerServicesOutboundPortURI != null && this.computerServicesOutboundPortURI.size() > 0;
 		assert this.computerStaticStateDataOutboundPortURI != null && this.computerStaticStateDataOutboundPortURI.size() > 0;
 		assert this.computerDynamicStateDataOutboundPortURI != null && this.computerDynamicStateDataOutboundPortURI.size() > 0;

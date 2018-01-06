@@ -8,7 +8,6 @@ import java.util.Set;
 
 import fr.upmc.components.AbstractComponent;
 import fr.upmc.components.cvm.AbstractCVM;
-import fr.upmc.datacenter.connectors.ControlledDataConnector;
 import fr.upmc.datacenter.hardware.computers.Computer;
 import fr.upmc.datacenter.hardware.computers.Computer.AllocatedCore;
 import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
@@ -44,10 +43,16 @@ public class MyTest extends AbstractCVM {
 	public static final String[] AVM_REQUEST_NOTIFICATION_OUT_PORT_URI = {"a1rn-op", "a2rn-op"};
 	
 	public static final String RD_REQUEST_SUBMISSION_IN_PORT_URI = "rd1rs-ip";
-	public static final String[] RD_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd1rs-op", "rd2rs-op"};
-	public static final String[] RD_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd1rn-ip", "rd2rn-ip"};
+	public static final ArrayList<String> RD_REQUEST_SUBMISSION_OUT_PORT_URI = new ArrayList<>();
+	public static final ArrayList<String> RD_REQUEST_NOTIFICATION_IN_PORT_URI = new ArrayList<>();
 	public static final String RD_REQUEST_NOTIFICATION_OUT_PORT_URI = "rd1rn-op";	
 	public static final String RD_DYNAMIC_STATE_DATA_IN_PORT_URI = "rddsd-ip";
+	{
+		RD_REQUEST_SUBMISSION_OUT_PORT_URI.add("rd1rs-op");
+		RD_REQUEST_SUBMISSION_OUT_PORT_URI.add("rd2rs-op");
+		RD_REQUEST_NOTIFICATION_IN_PORT_URI.add("rd1rn-ip");
+		RD_REQUEST_NOTIFICATION_IN_PORT_URI.add("rd2rn-ip");
+	}
 	
 	public static final String ATC_MANAGEMENT_IN_PORT_URI = "atcm-ip";
 	public static final String ATC_MANAGEMENT_OUT_PORT_URI = "atcm-op";
@@ -187,6 +192,7 @@ public class MyTest extends AbstractCVM {
 		this.requestDispatcher.toggleLogging();						
 		// --------------------------------------------------------------------
 		this.autonomicController = new AutonomicController(
+				"atc0",
 				computersURI,
 				ATC_SERVICES_OUT_PORT_URI,
 				ATC_C_STATIC_STATE_DATA_OUT_PORT_URI, 
@@ -239,7 +245,7 @@ public class MyTest extends AbstractCVM {
 		for (int i = 0; i < 2; i++) {
 			this.applicationVM[i].doPortConnection(
 					AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[i],
-					RD_REQUEST_NOTIFICATION_IN_PORT_URI[i],
+					RD_REQUEST_NOTIFICATION_IN_PORT_URI.get(i),
 					RequestNotificationConnector.class.getCanonicalName());
 		}	
 		// --------------------------------------------------------------------		
@@ -255,7 +261,7 @@ public class MyTest extends AbstractCVM {
 		// --------------------------------------------------------------------
 		for (int i = 0; i < 2; i++) {
 			this.requestDispatcher.doPortConnection(
-					RD_REQUEST_SUBMISSION_OUT_PORT_URI[i],
+					RD_REQUEST_SUBMISSION_OUT_PORT_URI.get(i),
 					AVM_REQUEST_SUBMISSION_IN_PORT_URI[i],
 					RequestSubmissionConnector.class.getCanonicalName());
 		}		
@@ -279,7 +285,7 @@ public class MyTest extends AbstractCVM {
 	public void shutdown() throws Exception {
 		
 		for (int i = 0; i < 2; i++) {
-			this.requestDispatcher.doPortDisconnection(RD_REQUEST_SUBMISSION_OUT_PORT_URI[i]);
+			this.requestDispatcher.doPortDisconnection(RD_REQUEST_SUBMISSION_OUT_PORT_URI.get(i));
 			this.applicationVM[i].doPortDisconnection(AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[i]);			
 			this.avmOutPort[i].doDisconnection();
 		}

@@ -23,9 +23,14 @@ import fr.upmc.inuits.software.application.ports.ApplicationServicesOutboundPort
 
 public class TestPartOneQuestionTwo extends AbstractCVM {
 
-	public static final String C_SERVICES_IN_PORT_URI = "cs-ip";
-	public static final String C_STATIC_STATE_DATA_IN_PORT_URI = "cssd-ip";
-	public static final String C_DYNAMIC_STATE_DATA_IN_PORT_URI = "cdsd-ip";
+	public static final ArrayList<String> C_SERVICES_IN_PORT_URI = new ArrayList<>();
+	public static final ArrayList<String> C_STATIC_STATE_DATA_IN_PORT_URI = new ArrayList<>();
+	public static final ArrayList<String> C_DYNAMIC_STATE_DATA_IN_PORT_URI = new ArrayList<>();
+	{
+		C_SERVICES_IN_PORT_URI.add("cs-ip");
+		C_STATIC_STATE_DATA_IN_PORT_URI.add("cssd-ip");
+		C_DYNAMIC_STATE_DATA_IN_PORT_URI.add("cdsd-ip");
+	}
 	
 	public static final ArrayList<String> AC_SERVICES_OUT_PORT_URI = new ArrayList<>();
 	public static final ArrayList<String> AC_STATIC_STATE_DATA_OUT_PORT_URI = new ArrayList<>();
@@ -95,9 +100,9 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				1500, 
 				numberOfProcessors, 
 				numberOfCores, 
-				C_SERVICES_IN_PORT_URI, 
-				C_STATIC_STATE_DATA_IN_PORT_URI, 
-				C_DYNAMIC_STATE_DATA_IN_PORT_URI);		
+				C_SERVICES_IN_PORT_URI.get(0), 
+				C_STATIC_STATE_DATA_IN_PORT_URI.get(0), 
+				C_DYNAMIC_STATE_DATA_IN_PORT_URI.get(0));		
 		
 		this.addDeployedComponent(computer);				
 		// --------------------------------------------------------------------
@@ -107,8 +112,11 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		
 		this.admissionController = new AdmissionController(								
 				computersURI,
+				C_SERVICES_IN_PORT_URI,
 				AC_SERVICES_OUT_PORT_URI,
+				C_STATIC_STATE_DATA_IN_PORT_URI,
 				AC_STATIC_STATE_DATA_OUT_PORT_URI, 
+				C_DYNAMIC_STATE_DATA_IN_PORT_URI,
 				AC_DYNAMIC_STATE_DATA_OUT_PORT_URI,
 				appsURI,
 				AC_APPLICATION_MANAGEMENT_OUT_PORT_URI,
@@ -123,17 +131,17 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		
 		this.admissionController.doPortConnection(				
 				AC_SERVICES_OUT_PORT_URI.get(0),
-				C_SERVICES_IN_PORT_URI,
+				C_SERVICES_IN_PORT_URI.get(0),
 				ComputerServicesConnector.class.getCanonicalName());
 		
 		this.admissionController.doPortConnection(
 				AC_STATIC_STATE_DATA_OUT_PORT_URI.get(0),
-				C_STATIC_STATE_DATA_IN_PORT_URI,
+				C_STATIC_STATE_DATA_IN_PORT_URI.get(0),
 				DataConnector.class.getCanonicalName());
 
 		this.admissionController.doPortConnection(
 				AC_DYNAMIC_STATE_DATA_OUT_PORT_URI.get(0),
-				C_DYNAMIC_STATE_DATA_IN_PORT_URI,
+				C_DYNAMIC_STATE_DATA_IN_PORT_URI.get(0),
 				ControlledDataConnector.class.getCanonicalName());			
 		// --------------------------------------------------------------------
 		this.application1 = new Application(				
