@@ -1,5 +1,6 @@
 package fr.upmc.inuits.software.requestdispatcher;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -50,8 +51,8 @@ public class RequestDispatcher
 	public RequestDispatcher(
 			String rdURI, 
 			String requestSubmissionIntboundPortURI, 
-			String[] requestSubmissionOutboundPortURI,
-			String[] requestNotificationIntboundPortURI, 
+			ArrayList<String> requestSubmissionOutboundPortURI,
+			ArrayList<String> requestNotificationIntboundPortURI, 
 			String requestNotificationOutboundPortURI,
 			String requestDispatcherDynamicStateDataInboundPortURI) throws Exception {
 		
@@ -59,15 +60,15 @@ public class RequestDispatcher
 		
 		assert rdURI != null;
 		assert requestSubmissionIntboundPortURI != null && requestSubmissionIntboundPortURI.length() > 0;
-		assert requestSubmissionOutboundPortURI != null && requestSubmissionOutboundPortURI.length > 0;
-		assert requestNotificationIntboundPortURI != null && requestNotificationIntboundPortURI.length > 0;
-		assert requestSubmissionOutboundPortURI.length == requestNotificationIntboundPortURI.length;
+		assert requestSubmissionOutboundPortURI != null && requestSubmissionOutboundPortURI.size() > 0;
+		assert requestNotificationIntboundPortURI != null && requestNotificationIntboundPortURI.size() > 0;
+		assert requestSubmissionOutboundPortURI.size() == requestNotificationIntboundPortURI.size();
 		assert requestNotificationOutboundPortURI != null && requestNotificationOutboundPortURI.length() > 0;
 		assert requestDispatcherDynamicStateDataInboundPortURI != null 
 				&& requestDispatcherDynamicStateDataInboundPortURI.length() > 0;
 		
 		this.rdURI = rdURI;
-		this.AVAILABLE_APPLICATION_VM = requestSubmissionOutboundPortURI.length;
+		this.AVAILABLE_APPLICATION_VM = requestSubmissionOutboundPortURI.size();
 		this.applicationVMCounter = 0;		
 		this.rsop = new RequestSubmissionOutboundPort[this.AVAILABLE_APPLICATION_VM];
 		this.rnip = new RequestNotificationInboundPort[this.AVAILABLE_APPLICATION_VM];
@@ -81,11 +82,11 @@ public class RequestDispatcher
 		this.addOfferedInterface(RequestNotificationI.class);
 		
 		for (int i = 0; i < this.AVAILABLE_APPLICATION_VM; i++) {			
-			this.rsop[i] = new RequestSubmissionOutboundPort(requestSubmissionOutboundPortURI[i], this);
+			this.rsop[i] = new RequestSubmissionOutboundPort(requestSubmissionOutboundPortURI.get(i), this);
 			this.addPort(this.rsop[i]);
 			this.rsop[i].publishPort();			
 			
-			this.rnip[i] = new RequestNotificationInboundPort(requestNotificationIntboundPortURI[i], this);
+			this.rnip[i] = new RequestNotificationInboundPort(requestNotificationIntboundPortURI.get(i), this);
 			this.addPort(this.rnip[i]);
 			this.rnip[i].publishPort();
 		}				
@@ -104,7 +105,7 @@ public class RequestDispatcher
 		this.smoothing = new Smoothing();
 		
 		assert this.rdURI != null;
-		assert this.AVAILABLE_APPLICATION_VM == requestNotificationIntboundPortURI.length;
+		assert this.AVAILABLE_APPLICATION_VM == requestNotificationIntboundPortURI.size();
 		assert this.applicationVMCounter == 0;
 		assert this.rsip != null && this.rsip instanceof RequestSubmissionI;
 		assert this.rsop != null && this.rsop[0] instanceof RequestSubmissionI;

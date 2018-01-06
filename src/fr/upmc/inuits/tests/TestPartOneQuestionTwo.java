@@ -101,11 +101,16 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		
 		this.addDeployedComponent(computer);				
 		// --------------------------------------------------------------------
+		ArrayList<String> appsURI = new ArrayList<>();
+		appsURI.add("app0");
+		appsURI.add("app1");
+		
 		this.admissionController = new AdmissionController(								
 				computersURI,
 				AC_SERVICES_OUT_PORT_URI,
 				AC_STATIC_STATE_DATA_OUT_PORT_URI, 
 				AC_DYNAMIC_STATE_DATA_OUT_PORT_URI,
+				appsURI,
 				AC_APPLICATION_MANAGEMENT_OUT_PORT_URI,
 				AC_APPLICATION_SUBMISSION_IN_PORT_URI,
 				AC_APPLICATION_NOTIFICATION_OUT_PORT_URI);
@@ -132,7 +137,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				ControlledDataConnector.class.getCanonicalName());			
 		// --------------------------------------------------------------------
 		this.application1 = new Application(				
-				"app0",
+				appsURI.get(0),
 				0,
 				500.0,
 				6000000000L,
@@ -173,7 +178,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				ApplicationServicesConnector.class.getCanonicalName());
 		// --------------------------------------------------------------------
 		this.application2 = new Application(				
-				"app1",
+				appsURI.get(1),
 				1,
 				500.0,
 				6000000000L,
