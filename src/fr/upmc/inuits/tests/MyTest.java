@@ -214,11 +214,7 @@ public class MyTest extends AbstractCVM {
 		atcmOutPort.doConnectionWithComputerForServices(C_SERVICES_IN_PORT_URI);
 		atcmOutPort.doConnectionWithComputerForStaticState(C_STATIC_STATE_DATA_IN_PORT_URI);
 		atcmOutPort.doConnectionWithComputerForDynamicState(C_DYNAMIC_STATE_DATA_IN_PORT_URI, true);
-		
-		this.autonomicController.doPortConnection(
-				ATC_RD_DYNAMIC_STATE_DATA_OUT_PORT_URI,
-				RD_DYNAMIC_STATE_DATA_IN_PORT_URI,
-				ControlledDataConnector.class.getCanonicalName());
+		atcmOutPort.doConnectionWithRequestDispatcherForDynamicState(RD_DYNAMIC_STATE_DATA_IN_PORT_URI, true);
 		/*
 		 this.autonomicController.doPortConnection(				
 				ATC_SERVICES_OUT_PORT_URI.get(0),
@@ -233,6 +229,11 @@ public class MyTest extends AbstractCVM {
 		this.autonomicController.doPortConnection(
 				ATC_C_DYNAMIC_STATE_DATA_OUT_PORT_URI.get(0),
 				C_DYNAMIC_STATE_DATA_IN_PORT_URI,
+				ControlledDataConnector.class.getCanonicalName());
+		
+		this.autonomicController.doPortConnection(
+				ATC_RD_DYNAMIC_STATE_DATA_OUT_PORT_URI,
+				RD_DYNAMIC_STATE_DATA_IN_PORT_URI,
 				ControlledDataConnector.class.getCanonicalName());*/
 		// --------------------------------------------------------------------
 		for (int i = 0; i < 2; i++) {

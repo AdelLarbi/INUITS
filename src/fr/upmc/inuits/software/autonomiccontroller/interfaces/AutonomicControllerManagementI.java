@@ -12,4 +12,7 @@ public interface AutonomicControllerManagementI {
 	
 	public void doConnectionWithComputerForDynamicState(ArrayList<String> computerDynamicStateInboundPortUri, 
 			boolean isStartPushing) throws Exception;	
+	
+	public void doConnectionWithRequestDispatcherForDynamicState(String requestDispatcherDynamicStateInboundPortUri, 
+			boolean isStartPushing) throws Exception;	
 }

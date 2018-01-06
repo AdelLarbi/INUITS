@@ -73,4 +73,21 @@ public class AutonomicControllerManagementInboundPort
 					}
 				});
 	}
+
+	@Override
+	public void doConnectionWithRequestDispatcherForDynamicState(String requestDispatcherDynamicStateInboundPortUri, 
+			boolean isStartPushing) throws Exception {
+		
+		final AutonomicController ac = (AutonomicController) this.owner;
+		
+		this.owner.handleRequestAsync(
+				new ComponentI.ComponentService<Void>() {
+					@Override
+					public Void call() throws Exception {
+						ac.doConnectionWithRequestDispatcherForDynamicState(requestDispatcherDynamicStateInboundPortUri,
+								isStartPushing);
+						return null;
+					}
+				});
+	}
 }

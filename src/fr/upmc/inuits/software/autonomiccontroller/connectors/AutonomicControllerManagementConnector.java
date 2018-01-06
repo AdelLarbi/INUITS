@@ -17,7 +17,8 @@ public class AutonomicControllerManagementConnector
 	}
 
 	@Override
-	public void doConnectionWithComputerForStaticState(ArrayList<String> computerStaticStateInboundPortUri) throws Exception {
+	public void doConnectionWithComputerForStaticState(ArrayList<String> computerStaticStateInboundPortUri) 
+			throws Exception {
 		
 		((AutonomicControllerManagementI)this.offering).
 			doConnectionWithComputerForStaticState(computerStaticStateInboundPortUri);
@@ -29,5 +30,13 @@ public class AutonomicControllerManagementConnector
 	
 		((AutonomicControllerManagementI)this.offering).
 			doConnectionWithComputerForDynamicState(computerDynamicStateInboundPortUri, isStartPushing);
+	}
+
+	@Override
+	public void doConnectionWithRequestDispatcherForDynamicState(String requestDispatcherDynamicStateInboundPortUri, 
+			boolean isStartPushing) throws Exception {
+		
+		((AutonomicControllerManagementI)this.offering).
+			doConnectionWithRequestDispatcherForDynamicState(requestDispatcherDynamicStateInboundPortUri, isStartPushing);		
 	}
 }

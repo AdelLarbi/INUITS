@@ -37,6 +37,7 @@ public class AutonomicController
 	protected ArrayList<String> computerServicesOutboundPortURI;
 	protected ArrayList<String> computerStaticStateDataOutboundPortURI;
 	protected ArrayList<String> computerDynamicStateDataOutboundPortURI;
+	protected String requestDispatcherDynamicStateDataOutboundPortURI;
 	
 	protected ComputerServicesOutboundPort[] csop;
 	protected ComputerStaticStateDataOutboundPort[] cssdop;
@@ -51,7 +52,7 @@ public class AutonomicController
 			ArrayList<String> computersURI,			
 			ArrayList<String> computerServicesOutboundPortURI,
 			ArrayList<String> computerStaticStateDataOutboundPortURI,
-			ArrayList<String> computerDynamicStateDataOutboundPortURI,
+			ArrayList<String> computerDynamicStateDataOutboundPortURI,			
 			String requestDispatcherUri, 
 			String requestDispatcherDynamicStateDataOutboundPortURI,
 			String autonomicControllerManagementInboundPortURI)  throws Exception {
@@ -71,6 +72,7 @@ public class AutonomicController
 		this.computerServicesOutboundPortURI = computerServicesOutboundPortURI;
 		this.computerStaticStateDataOutboundPortURI = computerStaticStateDataOutboundPortURI;
 		this.computerDynamicStateDataOutboundPortURI = computerDynamicStateDataOutboundPortURI;
+		this.requestDispatcherDynamicStateDataOutboundPortURI = requestDispatcherDynamicStateDataOutboundPortURI;
 		
 		this.csop = new ComputerServicesOutboundPort[TOTAL_COMPUTERS_USED];
 		this.cssdop = new ComputerStaticStateDataOutboundPort[TOTAL_COMPUTERS_USED];
@@ -105,6 +107,10 @@ public class AutonomicController
 		this.addPort(this.atcmip);
 		this.atcmip.publishPort();
 		
+		assert this.computerServicesOutboundPortURI != null && this.computerServicesOutboundPortURI.size() > 0;
+		assert this.computerStaticStateDataOutboundPortURI != null && this.computerStaticStateDataOutboundPortURI.size() > 0;
+		assert this.computerDynamicStateDataOutboundPortURI != null && this.computerDynamicStateDataOutboundPortURI.size() > 0;
+		assert this.requestDispatcherDynamicStateDataOutboundPortURI != null && this.requestDispatcherDynamicStateDataOutboundPortURI.length() > 0;		
 		assert this.cssdop != null && this.cssdop[0] instanceof DataRequiredI.PullI; // or : ComputerStaticStateDataI
 		assert this.cdsdop != null && this.cdsdop[0] instanceof ControlledDataRequiredI.ControlledPullI;
 		assert this.rddsdop != null && this.rddsdop instanceof ControlledDataRequiredI.ControlledPullI;
@@ -115,15 +121,7 @@ public class AutonomicController
 	public void start() throws ComponentStartException {
 		
 		super.start();			
-								
-		try {									
-			// start the pushing of dynamic state information from the request dispatcher.
-			this.rddsdop.startUnlimitedPushing(ANALYSE_DATA_TIMER);					
-													
-		} catch (Exception e) {
-			throw new ComponentStartException("Unable to start pushing dynamic data from the request dispatcher "
-					+ "component.", e);
-		}		
+											
 	}
 	
 	@Override
@@ -173,7 +171,7 @@ public class AutonomicController
 					DataConnector.class.getCanonicalName());
 		}
 	}
-
+	
 	@Override
 	public void doConnectionWithComputerForDynamicState(ArrayList<String> computerDynamicStateInboundPortUri, 
 			boolean isStartPushing) throws Exception {
@@ -196,6 +194,27 @@ public class AutonomicController
 				throw new ComponentStartException("Unable to start pushing dynamic data from the computer component.", e);
 			}	
 		}		
+	}
+	
+	@Override
+	public void doConnectionWithRequestDispatcherForDynamicState(String requestDispatcherDynamicStateInboundPortUri, 
+			boolean isStartPushing) throws Exception {
+		
+		this.doPortConnection(
+				this.requestDispatcherDynamicStateDataOutboundPortURI,
+				requestDispatcherDynamicStateInboundPortUri,
+				ControlledDataConnector.class.getCanonicalName());
+		
+		// start the pushing of dynamic state information from the request dispatcher.
+		if (isStartPushing) {
+			try {												
+				this.rddsdop.startUnlimitedPushing(ANALYSE_DATA_TIMER);					
+														
+			} catch (Exception e) {
+				throw new ComponentStartException("Unable to start pushing dynamic data from the request dispatcher "
+						+ "component.", e);
+			}
+		}
 	}
 	
 	@Override
