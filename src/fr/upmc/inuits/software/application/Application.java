@@ -248,8 +248,8 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 				RequestGeneratorManagementConnector.class.getCanonicalName());			
 									
 		this.rgmop.startGeneration();
-		//Thread.sleep(20000L);		
-		Thread.sleep(5000L);
+		Thread.sleep(40000L);		
+		//Thread.sleep(5000L);
 		this.rgmop.stopGeneration();
 	}
 }

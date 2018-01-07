@@ -87,16 +87,17 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>();
 		admissibleFrequencies.add(1500);
 		admissibleFrequencies.add(3000);
+		admissibleFrequencies.add(9000);
 		Map<Integer,Integer> processingPower = new HashMap<Integer,Integer>();
 		processingPower.put(1500, 1500000);
 		processingPower.put(3000, 3000000);
-		
+		processingPower.put(9000, 9000000);
 		
 		Computer computer = new Computer(
 				computersURI.get(0),
 				admissibleFrequencies, 
 				processingPower, 
-				1500, 
+				9000, 
 				1500, 
 				numberOfProcessors, 
 				numberOfCores, 
@@ -146,7 +147,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		// --------------------------------------------------------------------
 		this.application1 = new Application(				
 				appsURI.get(0),
-				500.0,
+				1000.0, //500.0
 				6000000000L,
 				A1_MANAGEMENT_IN_PORT_URI,
 				A1_SERVICES_IN_PORT_URI,
@@ -287,13 +288,13 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				@Override
 				public void run() {
 					try {
-						//test.scenarioUniqueApplicationAndThreeAVMs_accept();
+						test.scenarioUniqueApplicationAndThreeAVMs_accept();
 						//test.scenarioUniqueApplicationAndThreeAVMs_refuse();
 						
 						//test.scenarioTwoApplicationsSimultaneouslyAndThreeAVMsEach_accept();
 						//test.scenarioTwoApplicationsSimultaneouslyAndThreeAVMsEach_refuse();
 						
-						test.scenarioOneApplicationThenAnotherAndThreeAVMsEach_accept();
+						//test.scenarioOneApplicationThenAnotherAndThreeAVMsEach_accept();
 						//test.scenarioOneApplicationThenAnotherAndThreeAVMsEach_refuse();
 					} catch (Exception e) {
 						throw new RuntimeException(e);
@@ -301,8 +302,8 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				}
 			}).start();
 			
-			//Thread.sleep(90000L);			
-			Thread.sleep(40000L);
+			Thread.sleep(90000L);			
+			//Thread.sleep(40000L);
 			
 			System.out.println("shutting down...");
 			test.shutdown();

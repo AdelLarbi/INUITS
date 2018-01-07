@@ -20,6 +20,7 @@ import fr.upmc.datacenter.hardware.computers.ports.ComputerServicesOutboundPort;
 import fr.upmc.datacenter.hardware.computers.ports.ComputerStaticStateDataOutboundPort;
 import fr.upmc.datacenter.interfaces.ControlledDataRequiredI;
 import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerManagementI;
+import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerServicesI;
 import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerManagementInboundPort;
 import fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherDynamicStateI;
 import fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherStateDataConsumerI;
@@ -27,7 +28,8 @@ import fr.upmc.inuits.software.requestdispatcher.ports.RequestDispatcherDynamicS
 
 public class AutonomicController 
 	extends AbstractComponent 
-	implements AutonomicControllerManagementI, ComputerStateDataConsumerI, RequestDispatcherStateDataConsumerI {
+	implements AutonomicControllerManagementI, AutonomicControllerServicesI, ComputerStateDataConsumerI, 
+	           RequestDispatcherStateDataConsumerI {
 
 	public static int DEBUG_LEVEL = 1;
 	public static int ANALYSE_DATA_TIMER = 1000;//500
@@ -230,7 +232,7 @@ public class AutonomicController
 			
 		//TODO
 		
-		if (AutonomicController.DEBUG_LEVEL == 2) {
+		if (AutonomicController.DEBUG_LEVEL == 3) {
 			StringBuffer sb = new StringBuffer();
 			
 			sb.append("Autonomic controller accepting static data from " + computerURI + "\n");
@@ -263,7 +265,7 @@ public class AutonomicController
 				
 		//TODO					
 		
-		if (AutonomicController.DEBUG_LEVEL == 2) {
+		if (AutonomicController.DEBUG_LEVEL == 3) {
 			StringBuffer sb = new StringBuffer();
 			
 			sb.append("Autonomic controller accepting dynamic data from " + computerURI + "\n");
@@ -304,7 +306,7 @@ public class AutonomicController
 				StringBuffer sb = new StringBuffer();
 				
 				sb.append("Autonomic controller accepting dynamic data from " + rdURI + "\n");
-				sb.append("  average execution time : " + averageExecutionTime + "\n");
+				sb.append("  average execution time : [" + averageExecutionTime + "]\n");
 				//sb.append("  current time millis : " + System.currentTimeMillis() + "\n");			
 				
 				this.logMessage(sb.toString());
@@ -316,5 +318,35 @@ public class AutonomicController
 
 		//TODO
 		AllocatedCore[] ac = this.csop[0].allocateCores(nbC);		
+	}
+
+	@Override
+	public void changeFrequency() throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void addCores() throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void removeCores() throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void addAVM() throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void removeAVM() throws Exception {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -81,6 +81,8 @@ public class MyTest extends AbstractCVM {
 	protected RequestGeneratorManagementOutboundPort rgmOutPort;
 	protected AutonomicControllerManagementOutboundPort atcmOutPort;
 
+	Computer computer;
+	
 	public MyTest() throws Exception {
 		super();
 	}
@@ -94,7 +96,7 @@ public class MyTest extends AbstractCVM {
 		// --------------------------------------------------------------------
 		ArrayList<String> computersURI = new ArrayList<>();
 		computersURI.add("computer0");
-		int numberOfProcessors = 2;
+		int numberOfProcessors = 5;
 		int numberOfCores = 4;
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>();
 		admissibleFrequencies.add(1500);
@@ -105,7 +107,7 @@ public class MyTest extends AbstractCVM {
 		processingPower.put(3000, 3000000);
 		processingPower.put(6000, 6000000);
 		
-		Computer computer = new Computer(
+		this.computer = new Computer(
 				computersURI.get(0), 
 				admissibleFrequencies, 
 				processingPower, 
@@ -155,7 +157,7 @@ public class MyTest extends AbstractCVM {
 		
 		this.requestGenerator = new RequestGenerator(				
 				"rg0",
-				500.0,//500.0,
+				1000.0,//500.0,
 				6000000000L,
 				RG_MANAGEMENT_IN_PORT_URI,
 				RG_REQUEST_SUBMISSION_OUT_PORT_URI,
@@ -274,10 +276,10 @@ public class MyTest extends AbstractCVM {
 		
 		super.start();
 
-		AllocatedCore[] ac = this.csOutPort.allocateCores(4);
+		AllocatedCore[] ac = this.csOutPort.allocateCores(4);				
 		
 		for (int i = 0; i < 2; i++) {
-			this.avmOutPort[i].allocateCores(ac);
+			this.avmOutPort[i].allocateCores(ac);					
 		}
 	}
 	
@@ -313,6 +315,37 @@ public class MyTest extends AbstractCVM {
 		this.rgmOutPort.stopGeneration();
 	}	
 	
+	public void scenarioUniqueApplicationAndTwoAVMs_addCors() throws Exception {
+		
+		System.out.println("-- Scenario unique application and two AVMs + Add cores.");
+		
+		this.rgmOutPort.startGeneration();
+		Thread.sleep(10000L);
+		addCores(4);
+		Thread.sleep(20000L);
+		this.rgmOutPort.stopGeneration();
+	}	
+	
+	private void addCores(int nbCoresToAdd) throws Exception {
+		
+		System.out.println("******************** Add cores");
+		
+		AllocatedCore[] ac = this.csOutPort.allocateCores(nbCoresToAdd);				
+		
+		for (int i = 0; i < 2; i++) {
+			this.avmOutPort[i].allocateCores(ac);
+		}
+	}
+	
+	public void foo() throws Exception {
+						
+		System.out.println("-- FOO"); //t=20, a=4
+		//addCores(16);
+		this.rgmOutPort.startGeneration();				
+		Thread.sleep(50000L);
+		this.rgmOutPort.stopGeneration();
+	}
+
 	public static void main(String[] args) {
 				
 		try {
@@ -326,7 +359,9 @@ public class MyTest extends AbstractCVM {
 				@Override
 				public void run() {
 					try {
-						test.scenarioUniqueApplicationAndTwoAVMs();	
+						//test.scenarioUniqueApplicationAndTwoAVMs();
+						//test.scenarioUniqueApplicationAndTwoAVMs_addCors();	
+						test.foo();
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}

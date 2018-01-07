@@ -47,6 +47,12 @@ public class RequestDispatcher
 	/** TODO */
 	protected Smoothing smoothing; 
 	protected double exponentialSmoothing;
+	protected Average average;
+	protected double calculatedAverage;
+	
+	/** TODO */
+	protected int totalRequestSubmitted; 
+	protected int totalRequestTerminated;
 	
 	public RequestDispatcher(
 			String rdURI, 
@@ -103,6 +109,9 @@ public class RequestDispatcher
 		this.rddsdip.publishPort();
 		
 		this.smoothing = new Smoothing();
+		this.average = new Average();
+		this.totalRequestSubmitted = 0; 
+		this.totalRequestTerminated = 0;
 		
 		assert this.rdURI != null;
 		assert this.AVAILABLE_APPLICATION_VM == requestNotificationIntboundPortURI.size();
@@ -138,6 +147,34 @@ public class RequestDispatcher
 		
 	protected HashMap<String, Long> beginningTime = new HashMap<>();
 	protected HashMap<String, Long> executionTime = new HashMap<>();
+	
+	private class Average {
+		
+		private final int N = 4;
+		private ArrayList<Double> observedValue;
+		private int internalCounter;
+		
+		public Average() {
+			this.observedValue = new ArrayList<>();
+			this.internalCounter = 1;
+		}
+		
+		public int calculateAverage(double newObservedValue) {
+			
+			double sum = 0.0;
+			this.observedValue.add(newObservedValue);
+			
+			if (internalCounter >= N) {
+				for (int i = internalCounter - N; i < observedValue.size(); i++) {					
+					sum += observedValue.get(i);	
+				}
+			} 
+						
+			internalCounter++;
+			
+			return (int) Math.round(sum / N);
+		}
+	}
 	
 	private class Smoothing {
 		
@@ -222,6 +259,7 @@ public class RequestDispatcher
 		}
 				
 		beginningTime.put(r.getRequestURI(), System.currentTimeMillis());
+		totalRequestSubmitted++;
 		
 		this.rsop.get(getNextApplicationVM()).submitRequestAndNotify(r);
 	}
@@ -237,8 +275,8 @@ public class RequestDispatcher
 		if (RequestDispatcher.DEBUG_LEVEL == 1) {			
 			this.logMessage("Request dispatcher " + this.rdURI + " notifying request " + r.getRequestURI() + " at " +
 					TimeProcessing.toString(System.currentTimeMillis()) + " with number of instructions " + 
-					r.getPredictedNumberOfInstructions());
-		}
+					r.getPredictedNumberOfInstructions());					
+		}		
 				
 		long beginning = beginningTime.get(r.getRequestURI());
 		executionTime.put(r.getRequestURI(), System.currentTimeMillis() - beginning);
@@ -249,16 +287,22 @@ public class RequestDispatcher
 		
 		synchronized (this) {
 			exponentialSmoothing = smoothing.calculateExponentialSmoothing(currentExecutionTime);
+			calculatedAverage = average.calculateAverage(currentExecutionTime);
 		}
-						
-		this.logMessage("							[Exponential smoothing ex] : " + exponentialSmoothing);		
-				
+			
+		this.logMessage("							[Exponential smoothing] : " + exponentialSmoothing);
+		this.logMessage("							[Calculated average]    : " + calculatedAverage);
+		
+		totalRequestTerminated++;
+		//this.logMessage("							[TOTAL] : " + totalRequestTerminated + "/" + totalRequestSubmitted);
+		
 		this.rnop.notifyRequestTermination(r);
 	}
 	
 	public RequestDispatcherDynamicStateI getDynamicState() throws Exception {
-						
-		return new RequestDispatcherDynamicState(this.rdURI, exponentialSmoothing);
+				
+		//return new RequestDispatcherDynamicState(this.rdURI, exponentialSmoothing);
+		return new RequestDispatcherDynamicState(this.rdURI, calculatedAverage);
 	}	
 
 	@Override

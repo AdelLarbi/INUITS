@@ -235,13 +235,13 @@ public class AdmissionController
 		try {		
 			for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
 				if (this.csop[i].connected()) {
-					this.csop[i].doDisconnection();
+					this.csop[i].doDisconnection();//FIXME
 				}
 				if (this.cssdop[i].connected()) {
-					this.cssdop[i].doDisconnection();
+					this.cssdop[i].doDisconnection();//FIXME
 				}
 				if (this.cdsdop[i].connected()) {
-					this.cdsdop[i].doDisconnection();
+					this.cdsdop[i].doDisconnection();//FIXME
 				}
 			}
 			for (ApplicationManagementOutboundPort thisAmop : amop.values()) {
@@ -392,7 +392,7 @@ public class AdmissionController
 		this.logMessage("Admission controller allow application " + appUri + " to be executed.");
 		
 		// This will change when we start part 2 and 3.
-		final int AVM_TO_DEPLOY_COUNT = 3; 		
+		final int AVM_TO_DEPLOY_COUNT = 2; 		
 		deployComponents(appUri, AVM_TO_DEPLOY_COUNT);		
 		this.logMessage("Admission controller deployed " + AVM_TO_DEPLOY_COUNT + " AVMs for " + appUri);
 		
