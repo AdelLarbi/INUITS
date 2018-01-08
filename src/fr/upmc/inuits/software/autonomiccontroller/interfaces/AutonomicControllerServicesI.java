@@ -6,13 +6,15 @@ import fr.upmc.components.interfaces.RequiredI;
 public interface AutonomicControllerServicesI
 	extends OfferedI, RequiredI {
 	
-	public void changeFrequency() throws Exception;
+	public boolean increaseFrequency() throws Exception;
 	
-	public void addCores() throws Exception;
+	public boolean decreaseFrequency() throws Exception;
 	
-	public void removeCores() throws Exception;
+	public boolean addCores() throws Exception;
 	
-	public void addAVM() throws Exception;
+	public boolean removeCores() throws Exception;
 	
-	public void removeAVM() throws Exception;	
+	public void addAVMs() throws Exception;
+	
+	public void removeAVMs() throws Exception;	
 }

@@ -1,8 +1,10 @@
 package fr.upmc.inuits.software.autonomiccontroller;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import fr.upmc.components.AbstractComponent;
+import fr.upmc.components.ComponentI;
 import fr.upmc.components.connectors.DataConnector;
 import fr.upmc.components.exceptions.ComponentShutdownException;
 import fr.upmc.components.exceptions.ComponentStartException;
@@ -32,7 +34,8 @@ public class AutonomicController
 	           RequestDispatcherStateDataConsumerI {
 
 	public static int DEBUG_LEVEL = 1;
-	public static int ANALYSE_DATA_TIMER = 1000;//500
+	
+	public static int ANALYSE_DATA_TIMER = 1000;//500	
 	
 	protected final String atcURI;
 	protected final int TOTAL_COMPUTERS_USED;
@@ -131,7 +134,8 @@ public class AutonomicController
 	public void start() throws ComponentStartException {
 		
 		super.start();			
-											
+		
+		controlResources();			
 	}
 	
 	@Override
@@ -232,7 +236,7 @@ public class AutonomicController
 			
 		//TODO
 		
-		if (AutonomicController.DEBUG_LEVEL == 3) {
+		if (DEBUG_LEVEL == 4) {
 			StringBuffer sb = new StringBuffer();
 			
 			sb.append("Autonomic controller accepting static data from " + computerURI + "\n");
@@ -265,7 +269,7 @@ public class AutonomicController
 				
 		//TODO					
 		
-		if (AutonomicController.DEBUG_LEVEL == 3) {
+		if (DEBUG_LEVEL == 4) {
 			StringBuffer sb = new StringBuffer();
 			
 			sb.append("Autonomic controller accepting dynamic data from " + computerURI + "\n");
@@ -320,33 +324,178 @@ public class AutonomicController
 		AllocatedCore[] ac = this.csop[0].allocateCores(nbC);		
 	}
 
-	@Override
-	public void changeFrequency() throws Exception {
-		// TODO Auto-generated method stub
+	// -----------------------------------------------------------------------------------------------------------------
+	public static int CONTROL_RESOURCES_TIMER = ANALYSE_DATA_TIMER;
+	
+	protected final int LOWER_THRESHOLD = 500;
+	protected final int HIGHER_THRESHOLD = 1500;
+	
+	protected final int VM_TO_ALLOCATE_COUNT = 1;
+	protected final int VM_TO_DEALLOCATED_COUNT = VM_TO_ALLOCATE_COUNT;
+	
+	protected final int CORES_TO_ADD_COUNT = 4;
+	protected final int CORES_TO_REMOVE_COUNT = CORES_TO_ADD_COUNT;
+	
+	public void controlResources() {
 		
+		this.scheduleTask(
+				new ComponentI.ComponentTask() {
+					
+					@Override
+					public void run() {
+						try {
+							applyAdaptationPolicy();
+							
+						} catch (Exception e) {							
+							e.printStackTrace();
+						}
+						
+						controlResources();
+					}
+
+				}, CONTROL_RESOURCES_TIMER, TimeUnit.MILLISECONDS);
+	}
+	
+	protected void applyAdaptationPolicy() throws Exception {
+		
+		int averageExecutionTime = (int) this.averageExecutionTime;
+		
+		// The higher threshold is crossed upwards.	
+		if (averageExecutionTime >= HIGHER_THRESHOLD) {								
+			showLogMessageL3("__[The higher threshold is crossed upwards]");
+
+			// 1- Increase frequency if possible.
+			if (increaseFrequency()) {							
+				showLogMessageL3("______[[Frequency increased]]");
+				
+			// 2- Add cores if possible.
+			} else if (addCores()) {					
+				showLogMessageL3("______[[Cores added]]");
+			
+			// 3- Add AVMs.
+			} else {
+				addAVMs();
+				showLogMessageL3("______[[AVMs added]]");				
+			}
+			
+		// The lower threshold is crossed down.
+		} else if (averageExecutionTime <= LOWER_THRESHOLD) {						
+			showLogMessageL3("__[The lower threshold is crossed down]");			
+			
+			// 1- Decrease frequency if possible.
+			if (decreaseFrequency()) {
+				showLogMessageL3("______[[Frequency decreased]]");				
+				
+			// 2- Remove cores if possible.
+			} else if (removeCores()) {				
+				showLogMessageL3("______[[Cores removed]]");
+				
+			// 3- Remove AVMs.
+			} else {
+				removeAVMs();
+				showLogMessageL3("______[[AVMs removed]]");				
+			} 		
+			
+		// Normal situation.
+		} else {			
+			this.logMessage("__[Normal situation]");
+		}
 	}
 
 	@Override
-	public void addCores() throws Exception {
-		// TODO Auto-generated method stub
+	public boolean increaseFrequency() throws Exception {
 		
+		showLogMessageL3("____Increasing frequency...");
+		
+		boolean canIncreaseFrequency = false;
+		
+		if (!canIncreaseFrequency) {
+			showLogMessageL3("______[[Failed]]");
+		}
+		
+		return canIncreaseFrequency;				
 	}
 
 	@Override
-	public void removeCores() throws Exception {
-		// TODO Auto-generated method stub
+	public boolean decreaseFrequency() throws Exception {
 		
+		showLogMessageL3("____Decreasing frequency...");
+		
+		boolean canDecreaseFrequency = false;
+		
+		if (!canDecreaseFrequency) {
+			showLogMessageL3("______[[Failed]]");
+		}
+		
+		return canDecreaseFrequency;		
 	}
 
 	@Override
-	public void addAVM() throws Exception {
-		// TODO Auto-generated method stub
+	public boolean addCores() throws Exception {
+
+		showLogMessageL3("____Adding cores...");
 		
+		boolean canAddCores = false;
+		
+		if (!canAddCores) {
+			showLogMessageL3("______[[Failed]]");
+		}
+		
+		return canAddCores;
 	}
 
 	@Override
-	public void removeAVM() throws Exception {
-		// TODO Auto-generated method stub
+	public boolean removeCores() throws Exception {
+
+		showLogMessageL3("____Removing cores...");
 		
+		boolean canRemoveCores = false;
+		
+		if (!canRemoveCores) {
+			showLogMessageL3("______[[Failed]]");
+		}
+		
+		return canRemoveCores;
+	}
+
+	@Override
+	public void addAVMs() throws Exception {
+		
+		showLogMessageL3("____Adding AVMs...");
+	}
+
+	@Override
+	public void removeAVMs() throws Exception {
+		
+		showLogMessageL3("____Removing AVMs...");
+	}
+	
+	
+	protected void showLogMessageL1(String message) {
+		
+		if (DEBUG_LEVEL == 1) {
+			this.logMessage(message);
+		}
+	}
+
+	protected void showLogMessageL2(String message) {
+	
+		if (DEBUG_LEVEL == 2) {
+			this.logMessage(message);
+		}
+	}
+	
+	protected void showLogMessageL3(String message) {
+		
+		if (DEBUG_LEVEL == 3) {
+			this.logMessage(message);
+		}
+	}
+	
+	protected void showLogMessageL4(String message) {
+		
+		if (DEBUG_LEVEL == 4) {
+			this.logMessage(message);
+		}
 	}
 }
