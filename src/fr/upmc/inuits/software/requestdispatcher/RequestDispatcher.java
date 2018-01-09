@@ -134,11 +134,6 @@ public class RequestDispatcher
 		assert this.rddsdip != null && this.rddsdip instanceof ControlledDataOfferedI.ControlledPullI;
 	}
 
-	void fooSN(String s, String n) throws Exception {
-		
-		
-	}
-	
 	void barSN() throws Exception {
 		
 		this.availableApplicationVm--;
@@ -347,8 +342,8 @@ public class RequestDispatcher
 			calculatedAverage = average.calculateAverage(currentExecutionTime);
 		}
 			
-		this.logMessage("							[Exponential smoothing] : " + exponentialSmoothing);
-		this.logMessage("							[Calculated average]    : " + calculatedAverage);
+		//this.logMessage("							[Exponential smoothing] : " + exponentialSmoothing);
+		//this.logMessage("							[Calculated average]    : " + calculatedAverage);
 		
 		totalRequestTerminated++;
 		//this.logMessage("							[TOTAL] : " + totalRequestTerminated + "/" + totalRequestSubmitted);
@@ -358,8 +353,7 @@ public class RequestDispatcher
 	
 	public RequestDispatcherDynamicStateI getDynamicState() throws Exception {
 				
-		//return new RequestDispatcherDynamicState(this.rdURI, exponentialSmoothing);
-		return new RequestDispatcherDynamicState(this.rdURI, calculatedAverage);
+		return new RequestDispatcherDynamicState(rdURI, exponentialSmoothing, calculatedAverage, availableApplicationVm);
 	}	
 
 	@Override

@@ -1,7 +1,10 @@
 package fr.upmc.inuits.software.autonomiccontroller.ports;
 
+import java.util.ArrayList;
+
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractOutboundPort;
+import fr.upmc.datacenter.hardware.computers.Computer.AllocatedCore;
 import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerAVMsManagementI;
 
 public class AutonomicControllerAVMsManagementOutboundPort
@@ -21,10 +24,10 @@ public class AutonomicControllerAVMsManagementOutboundPort
 	}
 	
 	@Override
-	public void doRequestAddAVM(String appUri) throws Exception {
+	public void doRequestAddAVM(String appUri, ArrayList<AllocatedCore[]> allocatedCores) throws Exception {
 
 		if (((AutonomicControllerAVMsManagementI)this.connector) != null) {
-			((AutonomicControllerAVMsManagementI)this.connector).doRequestAddAVM(appUri);	
+			((AutonomicControllerAVMsManagementI)this.connector).doRequestAddAVM(appUri, allocatedCores);	
 		} else {
 			System.out.println("/!\\ No Client Connected with " + appUri + " for AutonomicControllerAVMsManagementI /!\\");
 		}		

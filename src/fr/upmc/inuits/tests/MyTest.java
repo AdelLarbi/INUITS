@@ -181,6 +181,7 @@ public class MyTest extends AbstractCVM {
 		// --------------------------------------------------------------------					
 		this.requestDispatcher = new RequestDispatcher(				
 				"rd0",				
+				"RD_MANAGMEMENT_IN_PORT_URI",
 				RD_REQUEST_SUBMISSION_IN_PORT_URI,
 				RD_REQUEST_SUBMISSION_OUT_PORT_URI,
 				RD_REQUEST_NOTIFICATION_IN_PORT_URI,
@@ -207,7 +208,7 @@ public class MyTest extends AbstractCVM {
 		
 		this.addDeployedComponent(this.autonomicController);
 		
-		AutonomicController.DEBUG_LEVEL = 3;
+		AutonomicController.DEBUG_LEVEL = 2;
 		this.autonomicController.toggleTracing();
 		this.autonomicController.toggleLogging();
 		// --------------------------------------------------------------------		
@@ -282,7 +283,7 @@ public class MyTest extends AbstractCVM {
 		
 		// 5p, 4c
 		
-		for(AllocatedCore c : ac) {
+		/*for(AllocatedCore c : ac) {
 			System.out.println("p=" + c.processorNo);
 			System.out.println("c=" + c.coreNo);
 			System.out.println("----");
@@ -294,7 +295,7 @@ public class MyTest extends AbstractCVM {
 			System.out.println("p=" + c.processorNo);
 			System.out.println("c=" + c.coreNo);
 			System.out.println("----");
-		}
+		}*/
 		
 		for (int i = 0; i < 2; i++) {
 			this.avmOutPort[i].allocateCores(ac);					

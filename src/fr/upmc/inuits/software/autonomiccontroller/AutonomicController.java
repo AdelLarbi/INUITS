@@ -59,8 +59,10 @@ public class AutonomicController
 	protected AutonomicControllerManagementInboundPort atcmip;
 	protected AutonomicControllerAVMsManagementOutboundPort atcamop;	
 	
+	protected double exponentialSmoothing;
 	protected double averageExecutionTime;
-	
+	protected int availableAVMsCount;
+		
 	public AutonomicController(
 			String atcURI,
 			ArrayList<String> computersURI,			
@@ -134,6 +136,10 @@ public class AutonomicController
 		this.atcamop = new AutonomicControllerAVMsManagementOutboundPort(autonomicControllerAVMsManagementOutboundPortURI, this);
 		this.addPort(this.atcamop);
 		this.atcamop.publishPort();
+		
+		this.exponentialSmoothing = -1;
+		this.averageExecutionTime = -1;
+		this.availableAVMsCount = -1;
 		
 		assert this.atcURI != null;
 		assert this.applicationURI != null;
@@ -337,12 +343,16 @@ public class AutonomicController
 		
 		if (rdURI == this.requestDispatcherURI) {
 			this.averageExecutionTime = currentDynamicState.getCurrentAverageExecutionTime();
+			this.availableAVMsCount = currentDynamicState.getAvailableAVMsCount();
+			this.exponentialSmoothing = currentDynamicState.getCurrentExponentialSmoothing();
 			
-			if (AutonomicController.DEBUG_LEVEL == 2) {
+			if (AutonomicController.DEBUG_LEVEL == 3) {
 				StringBuffer sb = new StringBuffer();
-				
+
 				sb.append("Autonomic controller accepting dynamic data from " + rdURI + "\n");
 				sb.append("  average execution time : [" + averageExecutionTime + "]\n");
+				sb.append("  exponential smoothing  : [" + exponentialSmoothing + "]\n");				
+				sb.append("  available AVMs count   : [" + availableAVMsCount + "]\n");
 				//sb.append("  current time millis : " + System.currentTimeMillis() + "\n");			
 				
 				this.logMessage(sb.toString());
@@ -359,7 +369,7 @@ public class AutonomicController
 	// -----------------------------------------------------------------------------------------------------------------
 	protected final int CONTROL_RESOURCES_TIMER = ANALYSE_DATA_TIMER;
 	
-	protected final int LOWER_THRESHOLD = 500;
+	protected final int LOWER_THRESHOLD = 400;
 	protected  int HIGHER_THRESHOLD = 600; //1500
 	
 	protected final int VM_TO_ALLOCATE_COUNT = 1;
@@ -367,6 +377,12 @@ public class AutonomicController
 	
 	protected final int CORES_TO_ADD_COUNT = 4;
 	protected final int CORES_TO_REMOVE_COUNT = CORES_TO_ADD_COUNT;
+	
+	// Do not remove AVM when only 2 AVMs left
+	protected final int MUST_HAVE_VM_COUNT = 2;
+	
+	// Store allocated cores history
+	ArrayList<AllocatedCore[]> allocatedCoresHistory = new ArrayList<>();
 	
 	public void controlResources() {
 		
@@ -390,6 +406,7 @@ public class AutonomicController
 	
 	protected void applyAdaptationPolicy() throws Exception {
 		
+		//int averageExecutionTime = (int) this.exponentialSmoothing;
 		int averageExecutionTime = (int) this.averageExecutionTime;
 		
 		// The higher threshold is crossed upwards.	
@@ -404,11 +421,11 @@ public class AutonomicController
 			} else if (addCores()) {					
 				showLogMessageL3("______[[Cores added]]");
 			
-			// 3- Add AVMs.
+			// 3- Add AVMs (always possible).
 			} else {
 				addAVMs();
 				showLogMessageL3("______[[AVMs added]]");
-				HIGHER_THRESHOLD = 9999; //FIXME remove and set final (for test only !)
+				//HIGHER_THRESHOLD = 9999; //FIXME remove and set final (for test only !)
 			}
 			
 		// The lower threshold is crossed down.
@@ -423,11 +440,14 @@ public class AutonomicController
 			} else if (removeCores()) {				
 				showLogMessageL3("______[[Cores removed]]");
 				
-			// 3- Remove AVMs.
+			// 3- Remove AVMs if possible.
+			} else if (removeAVMs()) {				
+				showLogMessageL3("______[[AVMs removed]]");
+			
+			// 4- Nothing else to do.
 			} else {
-				removeAVMs();
-				showLogMessageL3("______[[AVMs removed]]");				
-			} 		
+				showLogMessageL3("____Can't do nothing else.");
+			}
 			
 		// Normal situation.
 		} else {			
@@ -495,16 +515,26 @@ public class AutonomicController
 	public void addAVMs() throws Exception {
 		
 		showLogMessageL3("____Adding AVMs...");
-		
-		this.atcamop.doRequestAddAVM(this.applicationURI);
+				
+		this.atcamop.doRequestAddAVM(this.applicationURI, this.allocatedCoresHistory);
 	}
 
 	@Override
-	public void removeAVMs() throws Exception {
+	public boolean removeAVMs() throws Exception {
 		
 		showLogMessageL3("____Removing AVMs...");
 		
-		this.atcamop.doRequestRemoveAVM(this.applicationURI);
+		boolean canRemoveAVM = false;
+		
+		if (this.availableAVMsCount > MUST_HAVE_VM_COUNT) {
+			this.atcamop.doRequestRemoveAVM(this.applicationURI);	
+			canRemoveAVM = true;
+			
+		} else {
+			showLogMessageL3("______[[Failed]]");	
+		}				
+		
+		return canRemoveAVM;
 	}
 	
 	

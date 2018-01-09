@@ -8,5 +8,9 @@ public interface RequestDispatcherDynamicStateI
 
 	public String getRequestDispatcherURI();
 	
-	public double getCurrentAverageExecutionTime();	
+	public double getCurrentAverageExecutionTime();
+	
+	public double getCurrentExponentialSmoothing();
+	
+	public int getAvailableAVMsCount();
 }

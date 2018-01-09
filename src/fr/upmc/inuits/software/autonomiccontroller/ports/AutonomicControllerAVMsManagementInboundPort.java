@@ -1,7 +1,10 @@
 package fr.upmc.inuits.software.autonomiccontroller.ports;
 
+import java.util.ArrayList;
+
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractInboundPort;
+import fr.upmc.datacenter.hardware.computers.Computer.AllocatedCore;
 import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerAVMsManagementHandlerI;
 import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerAVMsManagementI;
 
@@ -26,7 +29,7 @@ public class AutonomicControllerAVMsManagementInboundPort
 	}
 	
 	@Override
-	public void doRequestAddAVM(String appUri) throws Exception {
+	public void doRequestAddAVM(String appUri, ArrayList<AllocatedCore[]> allocatedCores) throws Exception {
 		
 		final AutonomicControllerAVMsManagementHandlerI acAVMsManagementHandler = (AutonomicControllerAVMsManagementHandlerI) this.owner;
 
@@ -34,7 +37,7 @@ public class AutonomicControllerAVMsManagementInboundPort
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						acAVMsManagementHandler.acceptRequestAddAVM(appUri);
+						acAVMsManagementHandler.acceptRequestAddAVM(appUri, allocatedCores);
 						return null;
 					}
 				});
