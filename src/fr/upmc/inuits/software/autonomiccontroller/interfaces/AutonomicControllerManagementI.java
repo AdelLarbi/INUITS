@@ -15,4 +15,7 @@ public interface AutonomicControllerManagementI {
 	
 	public void doConnectionWithRequestDispatcherForDynamicState(String requestDispatcherDynamicStateInboundPortUri, 
 			boolean isStartPushing) throws Exception;	
+	
+	public void doConnectionWithAdmissionControllerForAVMsManagement(
+			String admissionControllerAtCAVMsManagementInboundPortUri) throws Exception;
 }

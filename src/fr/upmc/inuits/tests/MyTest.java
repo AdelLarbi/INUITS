@@ -201,7 +201,8 @@ public class MyTest extends AbstractCVM {
 				ATC_C_DYNAMIC_STATE_DATA_OUT_PORT_URI,
 				"rd0", 
 				ATC_RD_DYNAMIC_STATE_DATA_OUT_PORT_URI,
-				ATC_MANAGEMENT_IN_PORT_URI);
+				ATC_MANAGEMENT_IN_PORT_URI,
+				"AC_ATC_AVMS_MANAGEMENT_OUT_PORT_URI"); // Test should throws error when requesting Add() or Remove() AVM. 
 		
 		this.addDeployedComponent(this.autonomicController);
 		

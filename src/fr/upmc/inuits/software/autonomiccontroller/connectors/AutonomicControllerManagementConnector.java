@@ -39,4 +39,12 @@ public class AutonomicControllerManagementConnector
 		((AutonomicControllerManagementI)this.offering).
 			doConnectionWithRequestDispatcherForDynamicState(requestDispatcherDynamicStateInboundPortUri, isStartPushing);		
 	}
+
+	@Override
+	public void doConnectionWithAdmissionControllerForAVMsManagement(
+			String admissionControllerAtCAVMsManagementInboundPortUri) throws Exception {
+
+		((AutonomicControllerManagementI)this.offering).
+			doConnectionWithAdmissionControllerForAVMsManagement(admissionControllerAtCAVMsManagementInboundPortUri);
+	}
 }

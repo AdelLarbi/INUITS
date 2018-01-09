@@ -21,8 +21,11 @@ import fr.upmc.datacenter.hardware.computers.ports.ComputerDynamicStateDataOutbo
 import fr.upmc.datacenter.hardware.computers.ports.ComputerServicesOutboundPort;
 import fr.upmc.datacenter.hardware.computers.ports.ComputerStaticStateDataOutboundPort;
 import fr.upmc.datacenter.interfaces.ControlledDataRequiredI;
+import fr.upmc.inuits.software.autonomiccontroller.connectors.AutonomicControllerAVMsManagementConnector;
+import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerAVMsManagementI;
 import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerManagementI;
 import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerServicesI;
+import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerAVMsManagementOutboundPort;
 import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerManagementInboundPort;
 import fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherDynamicStateI;
 import fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherStateDataConsumerI;
@@ -45,6 +48,7 @@ public class AutonomicController
 	protected ArrayList<String> computerDynamicStateDataOutboundPortURI;
 	protected String requestDispatcherURI;
 	protected String requestDispatcherDynamicStateDataOutboundPortURI;
+	protected String admissionControllerAVMsManagementOutboundPortURI;
 	
 	protected ComputerServicesOutboundPort[] csop;
 	protected ComputerStaticStateDataOutboundPort[] cssdop;
@@ -52,6 +56,7 @@ public class AutonomicController
 	
 	protected RequestDispatcherDynamicStateDataOutboundPort rddsdop;
 	protected AutonomicControllerManagementInboundPort atcmip;
+	protected AutonomicControllerAVMsManagementOutboundPort atcamop;	
 	
 	protected double averageExecutionTime;
 	
@@ -63,7 +68,8 @@ public class AutonomicController
 			ArrayList<String> computerDynamicStateDataOutboundPortURI,			
 			String requestDispatcherURI, 
 			String requestDispatcherDynamicStateDataOutboundPortURI,
-			String autonomicControllerManagementInboundPortURI)  throws Exception {
+			String autonomicControllerManagementInboundPortURI,
+			String autonomicControllerAVMsManagementOutboundPortURI) throws Exception {
 	
 		super(atcURI, 1, 1);
 		
@@ -75,6 +81,8 @@ public class AutonomicController
 		assert requestDispatcherDynamicStateDataOutboundPortURI != null 
 				&& requestDispatcherDynamicStateDataOutboundPortURI.length() > 0;
 		assert autonomicControllerManagementInboundPortURI != null;
+		assert autonomicControllerAVMsManagementOutboundPortURI != null 
+				&& autonomicControllerAVMsManagementOutboundPortURI.length() > 0;
 				
 		this.atcURI = atcURI;
 		this.TOTAL_COMPUTERS_USED = computersURI.size();
@@ -84,6 +92,7 @@ public class AutonomicController
 		this.computerDynamicStateDataOutboundPortURI = computerDynamicStateDataOutboundPortURI;
 		this.requestDispatcherDynamicStateDataOutboundPortURI = requestDispatcherDynamicStateDataOutboundPortURI;
 		this.requestDispatcherURI = requestDispatcherURI; 
+		this.admissionControllerAVMsManagementOutboundPortURI = autonomicControllerAVMsManagementOutboundPortURI; 
 		
 		this.csop = new ComputerServicesOutboundPort[TOTAL_COMPUTERS_USED];
 		this.cssdop = new ComputerStaticStateDataOutboundPort[TOTAL_COMPUTERS_USED];
@@ -118,6 +127,11 @@ public class AutonomicController
 		this.addPort(this.atcmip);
 		this.atcmip.publishPort();
 		
+		this.addRequiredInterface(AutonomicControllerAVMsManagementI.class);
+		this.atcamop = new AutonomicControllerAVMsManagementOutboundPort(autonomicControllerAVMsManagementOutboundPortURI, this);
+		this.addPort(this.atcamop);
+		this.atcamop.publishPort();
+		
 		assert this.atcURI != null;
 		assert this.computerServicesOutboundPortURI != null && this.computerServicesOutboundPortURI.size() > 0;
 		assert this.computerStaticStateDataOutboundPortURI != null && this.computerStaticStateDataOutboundPortURI.size() > 0;
@@ -128,6 +142,7 @@ public class AutonomicController
 		assert this.cdsdop != null && this.cdsdop[0] instanceof ControlledDataRequiredI.ControlledPullI;
 		assert this.rddsdop != null && this.rddsdop instanceof ControlledDataRequiredI.ControlledPullI;
 		assert this.atcmip != null && this.atcmip instanceof AutonomicControllerManagementI;
+		assert this.atcamop != null && this.atcamop instanceof AutonomicControllerAVMsManagementI;		
 	}
 
 	@Override
@@ -155,6 +170,9 @@ public class AutonomicController
 			}
 			if (this.rddsdop.connected()) {
 				this.rddsdop.doDisconnection();
+			}
+			if (this.atcamop.connected()) {
+				this.atcamop.doDisconnection();
 			}
 		} catch (Exception e) {
 			throw new ComponentShutdownException("Port disconnection error", e);
@@ -229,6 +247,16 @@ public class AutonomicController
 						+ "component.", e);
 			}
 		}
+	}
+	
+	@Override
+	public void doConnectionWithAdmissionControllerForAVMsManagement(
+			String admissionControllerAtCAVMsManagementInboundPortUri) throws Exception {
+
+		this.doPortConnection(
+				this.admissionControllerAVMsManagementOutboundPortURI,
+				admissionControllerAtCAVMsManagementInboundPortUri,
+				AutonomicControllerAVMsManagementConnector.class.getCanonicalName());	
 	}
 	
 	@Override
@@ -398,7 +426,7 @@ public class AutonomicController
 			
 		// Normal situation.
 		} else {			
-			this.logMessage("__[Normal situation]");
+			showLogMessageL3("__[Normal situation]");
 		}
 	}
 
@@ -462,12 +490,16 @@ public class AutonomicController
 	public void addAVMs() throws Exception {
 		
 		showLogMessageL3("____Adding AVMs...");
+		
+		this.atcamop.doRequestAddAVM(this.atcURI);
 	}
 
 	@Override
 	public void removeAVMs() throws Exception {
 		
 		showLogMessageL3("____Removing AVMs...");
+		
+		this.atcamop.doRequestRemoveAVM(this.atcURI);
 	}
 	
 	

@@ -38,16 +38,19 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	public static final ArrayList<String> AC_APPLICATION_MANAGEMENT_OUT_PORT_URI = new ArrayList<>();
 	public static final ArrayList<String> AC_APPLICATION_SUBMISSION_IN_PORT_URI = new ArrayList<>();
 	public static final ArrayList<String> AC_APPLICATION_NOTIFICATION_OUT_PORT_URI = new ArrayList<>();
+	public static final ArrayList<String> AC_AVMS_MANAGEMENT_IN_PORT_URI = new ArrayList<>();	
 	{
 		AC_SERVICES_OUT_PORT_URI.add("acs-op");
 		AC_STATIC_STATE_DATA_OUT_PORT_URI.add("acssd-op");
 		AC_DYNAMIC_STATE_DATA_OUT_PORT_URI.add("acdsd-op");		
-		AC_APPLICATION_MANAGEMENT_OUT_PORT_URI.add("a1cam-op");
-		AC_APPLICATION_MANAGEMENT_OUT_PORT_URI.add("a2cam-op");		
-		AC_APPLICATION_SUBMISSION_IN_PORT_URI.add("a1cas-ip");
-		AC_APPLICATION_SUBMISSION_IN_PORT_URI.add("a2cas-ip");		
-		AC_APPLICATION_NOTIFICATION_OUT_PORT_URI.add("acan-op");
-		AC_APPLICATION_NOTIFICATION_OUT_PORT_URI.add("a2can-op");
+		AC_APPLICATION_MANAGEMENT_OUT_PORT_URI.add("ac1am-op");
+		AC_APPLICATION_MANAGEMENT_OUT_PORT_URI.add("ac2am-op");		
+		AC_APPLICATION_SUBMISSION_IN_PORT_URI.add("ac1as-ip");
+		AC_APPLICATION_SUBMISSION_IN_PORT_URI.add("ac2as-ip");		
+		AC_APPLICATION_NOTIFICATION_OUT_PORT_URI.add("ac1an-op");
+		AC_APPLICATION_NOTIFICATION_OUT_PORT_URI.add("ac2an-op");
+		AC_AVMS_MANAGEMENT_IN_PORT_URI.add("ac1avm-ip");
+		AC_AVMS_MANAGEMENT_IN_PORT_URI.add("ac2avm-ip");
 	}
 	
 	public static final String A1_MANAGEMENT_IN_PORT_URI = "a1m-ip";
@@ -122,7 +125,8 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				appsURI,
 				AC_APPLICATION_MANAGEMENT_OUT_PORT_URI,
 				AC_APPLICATION_SUBMISSION_IN_PORT_URI,
-				AC_APPLICATION_NOTIFICATION_OUT_PORT_URI);
+				AC_APPLICATION_NOTIFICATION_OUT_PORT_URI,
+				AC_AVMS_MANAGEMENT_IN_PORT_URI);
 		
 		this.addDeployedComponent(this.admissionController);
 		

@@ -36,14 +36,17 @@ import fr.upmc.inuits.software.application.ports.ApplicationNotificationOutbound
 import fr.upmc.inuits.software.application.ports.ApplicationSubmissionInboundPort;
 import fr.upmc.inuits.software.autonomiccontroller.AutonomicController;
 import fr.upmc.inuits.software.autonomiccontroller.connectors.AutonomicControllerManagementConnector;
+import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerAVMsManagementHandlerI;
+import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerAVMsManagementI;
 import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerManagementI;
+import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerAVMsManagementInboundPort;
 import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerManagementOutboundPort;
 import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 import fr.upmc.inuits.utils.Javassist;
 
 public class AdmissionController 
 	extends AbstractComponent 
-	implements ComputerStateDataConsumerI, ApplicationSubmissionHandlerI {
+	implements ComputerStateDataConsumerI, ApplicationSubmissionHandlerI, AutonomicControllerAVMsManagementHandlerI {
 	
 	public static int DEBUG_LEVEL = 1;
 	public static int ANALYSE_DATA_TIMER = 1000;		
@@ -55,7 +58,7 @@ public class AdmissionController
 	protected final ArrayList<String> COMPUTER_STATIC_STATE_DATA_OUT_BOUND_PORT_URI;
 	protected final ArrayList<String> COMPUTER_DYNAMIC_STATE_DATA_IN_BOUND_PORT_URI;
 	protected final ArrayList<String> COMPUTER_DYNAMIC_STATE_DATA_OUT_BOUND_PORT_URI;
-	
+		
 	protected HashMap<String,String> avmManagementInPortUri;
 	protected HashMap<String,String> avmManagementOutPortUri;	
 	protected HashMap<String,String> avmRequestSubmissionInPortUri;
@@ -65,6 +68,8 @@ public class AdmissionController
 	protected HashMap<String,ArrayList<String>> rdRequestSubmissionOutPortUri;
 	protected HashMap<String,ArrayList<String>> rdRequestNotificationInPortUri;
 	protected HashMap<String,String> rdRequestNotificationOutPortUri;
+	
+	protected final HashMap<String,String> atcAvmsManagementInPortUri;
 	
 	protected final String APPLICATION_VM_JVM_URI = "";
 	protected final String REQUEST_DISPATCHER_JVM_URI = "";
@@ -76,6 +81,7 @@ public class AdmissionController
 	protected HashMap<String,ApplicationManagementOutboundPort> amop;
 	protected HashMap<String,ApplicationSubmissionInboundPort> asip;
 	protected HashMap<String,ApplicationNotificationOutboundPort> anop;
+	protected HashMap<String,AutonomicControllerAVMsManagementInboundPort> atcamip;	
 	
 	protected HashMap<String,DynamicComponentCreationOutboundPort> portToApplicationVMJVM;	
 	protected HashMap<String,DynamicComponentCreationOutboundPort> portToRequestDispatcherJVM;
@@ -101,7 +107,8 @@ public class AdmissionController
 			ArrayList<String> appsURI,			
 			ArrayList<String> applicationManagementOutboundPortURI,
 			ArrayList<String> applicationSubmissionInboundPortURI,
-			ArrayList<String> applicationNotificationOutboundPortURI) throws Exception {
+			ArrayList<String> applicationNotificationOutboundPortURI,
+			ArrayList<String> autonomicControllerAVMsManagementInboundPortURI) throws Exception {
 		
 		super(1, 1);
 		
@@ -116,6 +123,8 @@ public class AdmissionController
 		assert applicationManagementOutboundPortURI != null && applicationManagementOutboundPortURI.size() > 0;
 		assert applicationSubmissionInboundPortURI != null && applicationSubmissionInboundPortURI.size() > 0;
 		assert applicationNotificationOutboundPortURI != null && applicationNotificationOutboundPortURI.size() > 0;
+		assert autonomicControllerAVMsManagementInboundPortURI != null 
+				&& autonomicControllerAVMsManagementInboundPortURI.size() > 0;		
 				
 		this.COMPUTERS_URI = computersURI;
 		this.COMPUTER_SERVICES_IN_BOUND_PORT_URI = computerServicesInboundPortURI;
@@ -138,9 +147,12 @@ public class AdmissionController
 		this.rdRequestNotificationInPortUri = new HashMap<>();
 		this.rdRequestNotificationOutPortUri = new HashMap<>();
 		
+		this.atcAvmsManagementInPortUri = new HashMap<>();
+		
 		this.amop = new HashMap<>();
 		this.asip = new HashMap<>();
 		this.anop = new HashMap<>();
+		this.atcamip = new HashMap<>();
 		
 		this.portToApplicationVMJVM = new HashMap<>();		
 		this.portToRequestDispatcherJVM = new HashMap<>();
@@ -173,34 +185,47 @@ public class AdmissionController
 			
 			this.cdsdop[i] = new ComputerDynamicStateDataOutboundPort(computerDynamicStateDataOutboundPortURI.get(i), this, computersURI.get(i));
 			this.addPort(this.cdsdop[i]);
-			this.cdsdop[i].publishPort();	
+			this.cdsdop[i].publishPort();
 		}		
 				
 		this.addRequiredInterface(ApplicationManagementI.class);
 		this.addOfferedInterface(ApplicationSubmissionI.class);
 		this.addRequiredInterface(ApplicationNotificationI.class);
+		this.addRequiredInterface(AutonomicControllerAVMsManagementI.class);
 		
 		for (int i = 0; i < TOTAL_APPLICATION_EXECUTION_REQUESTED; i++) {
-			this.amop.put(appsURI.get(i), new ApplicationManagementOutboundPort(applicationManagementOutboundPortURI.get(i), this));
+			this.amop.put(appsURI.get(i), 
+					new ApplicationManagementOutboundPort(applicationManagementOutboundPortURI.get(i), this));
 			this.addPort(this.amop.get(appsURI.get(i)));
 			this.amop.get(appsURI.get(i)).publishPort();		
 			
-			this.asip.put(appsURI.get(i), new ApplicationSubmissionInboundPort(applicationSubmissionInboundPortURI.get(i), this));			
+			this.asip.put(appsURI.get(i), 
+					new ApplicationSubmissionInboundPort(applicationSubmissionInboundPortURI.get(i), this));			
 			this.addPort(this.asip.get(appsURI.get(i)));
 			this.asip.get(appsURI.get(i)).publishPort();		
 			
-			this.anop.put(appsURI.get(i), new ApplicationNotificationOutboundPort(applicationNotificationOutboundPortURI.get(i), this));
+			this.anop.put(appsURI.get(i), 
+					new ApplicationNotificationOutboundPort(applicationNotificationOutboundPortURI.get(i), this));
 			this.addPort(this.anop.get(appsURI.get(i)));
-			this.anop.get(appsURI.get(i)).publishPort();	
+			this.anop.get(appsURI.get(i)).publishPort();
+						
+			this.atcamip.put(appsURI.get(i), 
+					new AutonomicControllerAVMsManagementInboundPort(autonomicControllerAVMsManagementInboundPortURI.get(i), this));
+			this.addPort(this.atcamip.get(appsURI.get(i)));
+			this.atcamip.get(appsURI.get(i)).publishPort();
+			
+			// Useful for autonomic controller AVMs management (Add AVM, Remove AVM..)
+			this.atcAvmsManagementInPortUri.put(appsURI.get(i), autonomicControllerAVMsManagementInboundPortURI.get(i));
 		}													
 		
-		this.addRequiredInterface(DynamicComponentCreationI.class);			
+		this.addRequiredInterface(DynamicComponentCreationI.class);									
 		
 		assert this.cssdop != null && this.cssdop[0] instanceof DataRequiredI.PullI; // or : ComputerStaticStateDataI
 		assert this.cdsdop != null && this.cdsdop[0] instanceof ControlledDataRequiredI.ControlledPullI;
 		assert this.amop != null && this.amop.get(appsURI.get(0)) instanceof ApplicationManagementI;
 		assert this.asip != null && this.asip.get(appsURI.get(0)) instanceof ApplicationSubmissionI;
-		assert this.anop != null && this.anop.get(appsURI.get(0)) instanceof ApplicationNotificationI;		
+		assert this.anop != null && this.anop.get(appsURI.get(0)) instanceof ApplicationNotificationI;
+		assert this.atcamip != null && this.atcamip.get(appsURI.get(0)) instanceof AutonomicControllerAVMsManagementI;
 	}
 	
 	@Override
@@ -455,7 +480,8 @@ public class AdmissionController
 		
 		// --------------------------------------------------------------------				
 		final String RD_DYNAMIC_STATE_DATA_OUT_PORT_URI = RD_URI + "-dsd-op";
-		final String ATC_MANAGEMENT_IN_PORT_URI = ATC_URI + "-dsd-ip";
+		final String ATC_MANAGEMENT_IN_PORT_URI = ATC_URI + "-m-ip";
+		final String ATC_AVMS_MANAGEMENT_OUT_PORT_URI = ATC_URI + "-am-op";
 		
 		this.portToAutonomicControllerJVM.get(ATC_URI).createComponent(
 				AutonomicController.class.getCanonicalName(),
@@ -467,11 +493,12 @@ public class AdmissionController
 						this.COMPUTER_DYNAMIC_STATE_DATA_OUT_BOUND_PORT_URI,			
 						RD_URI, 
 						RD_DYNAMIC_STATE_DATA_OUT_PORT_URI,
-						ATC_MANAGEMENT_IN_PORT_URI
+						ATC_MANAGEMENT_IN_PORT_URI,
+						ATC_AVMS_MANAGEMENT_OUT_PORT_URI
 				});
 				
 		// --------------------------------------------------------------------
-		final String ATC_MANAGEMENT_OUT_PORT_URI = ATC_URI + "-dsd-op";
+		final String ATC_MANAGEMENT_OUT_PORT_URI = ATC_URI + "-m-op";
 		
 		this.atcmOutPort.put(ATC_URI, new AutonomicControllerManagementOutboundPort(ATC_MANAGEMENT_OUT_PORT_URI, this));		
 		this.addPort(this.atcmOutPort.get(ATC_URI));
@@ -524,6 +551,7 @@ public class AdmissionController
 		this.atcmOutPort.get(ATC_URI).doConnectionWithComputerForStaticState(this.COMPUTER_STATIC_STATE_DATA_IN_BOUND_PORT_URI);
 		this.atcmOutPort.get(ATC_URI).doConnectionWithComputerForDynamicState(this.COMPUTER_DYNAMIC_STATE_DATA_IN_BOUND_PORT_URI, true);
 		this.atcmOutPort.get(ATC_URI).doConnectionWithRequestDispatcherForDynamicState(RD_DYNAMIC_STATE_DATA_IN_PORT_URI, true);
+		this.atcmOutPort.get(ATC_URI).doConnectionWithAdmissionControllerForAVMsManagement(atcAvmsManagementInPortUri.get(appUri));			
 		
 		rop.doDisconnection();
 		
@@ -586,5 +614,25 @@ public class AdmissionController
 		this.portToAutonomicControllerJVM.get(atcUri).doConnection(					
 				this.AUTONOMIC_CONTROLLER_JVM_URI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
 				DynamicComponentCreationConnector.class.getCanonicalName());
+	}
+
+	@Override
+	public void acceptRequestAddAVM(String atcUri) throws Exception {
+		
+		if (AdmissionController.DEBUG_LEVEL == 1) {
+			this.logMessage("Admission controller adding AVM for " + atcUri + "...");
+		}
+		
+		// TODO Add AVM
+	}
+
+	@Override
+	public void acceptRequestRemoveAVM(String atcUri) throws Exception {
+
+		if (AdmissionController.DEBUG_LEVEL == 1) {
+			this.logMessage("Admission controller removing AVM for " + atcUri + "...");
+		}
+		
+		// TODO Add AVM
 	}
 }

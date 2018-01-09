@@ -30,13 +30,13 @@ public class AutonomicControllerManagementInboundPort
 	@Override
 	public void doConnectionWithComputerForServices(ArrayList<String> computerServicesInboundPortUri) throws Exception {
 		
-		final AutonomicController ac = (AutonomicController) this.owner;
+		final AutonomicController atc = (AutonomicController) this.owner;
 		
 		this.owner.handleRequestAsync(
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						ac.doConnectionWithComputerForServices(computerServicesInboundPortUri);
+						atc.doConnectionWithComputerForServices(computerServicesInboundPortUri);
 						return null;
 					}
 				});
@@ -46,13 +46,13 @@ public class AutonomicControllerManagementInboundPort
 	public void doConnectionWithComputerForStaticState(ArrayList<String> computerStaticStateInboundPortUri) 
 			throws Exception {
 		
-		final AutonomicController ac = (AutonomicController) this.owner;
+		final AutonomicController atc = (AutonomicController) this.owner;
 		
 		this.owner.handleRequestAsync(
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						ac.doConnectionWithComputerForStaticState(computerStaticStateInboundPortUri);
+						atc.doConnectionWithComputerForStaticState(computerStaticStateInboundPortUri);
 						return null;
 					}
 				});
@@ -62,13 +62,13 @@ public class AutonomicControllerManagementInboundPort
 	public void doConnectionWithComputerForDynamicState(ArrayList<String> computerDynamicStateInboundPortUri, 
 			boolean isStartPushing) throws Exception {
 		
-		final AutonomicController ac = (AutonomicController) this.owner;
+		final AutonomicController atc = (AutonomicController) this.owner;
 		
 		this.owner.handleRequestAsync(
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						ac.doConnectionWithComputerForDynamicState(computerDynamicStateInboundPortUri, isStartPushing);
+						atc.doConnectionWithComputerForDynamicState(computerDynamicStateInboundPortUri, isStartPushing);
 						return null;
 					}
 				});
@@ -78,14 +78,31 @@ public class AutonomicControllerManagementInboundPort
 	public void doConnectionWithRequestDispatcherForDynamicState(String requestDispatcherDynamicStateInboundPortUri, 
 			boolean isStartPushing) throws Exception {
 		
-		final AutonomicController ac = (AutonomicController) this.owner;
+		final AutonomicController atc = (AutonomicController) this.owner;
 		
 		this.owner.handleRequestAsync(
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						ac.doConnectionWithRequestDispatcherForDynamicState(requestDispatcherDynamicStateInboundPortUri,
+						atc.doConnectionWithRequestDispatcherForDynamicState(requestDispatcherDynamicStateInboundPortUri,
 								isStartPushing);
+						return null;
+					}
+				});
+	}
+
+	@Override
+	public void doConnectionWithAdmissionControllerForAVMsManagement(
+			String admissionControllerAtCAVMsManagementInboundPortUri) throws Exception {
+		
+		final AutonomicController atc = (AutonomicController) this.owner;
+		
+		this.owner.handleRequestAsync(
+				new ComponentI.ComponentService<Void>() {
+					@Override
+					public Void call() throws Exception {
+						atc.doConnectionWithAdmissionControllerForAVMsManagement(
+								admissionControllerAtCAVMsManagementInboundPortUri);
 						return null;
 					}
 				});
