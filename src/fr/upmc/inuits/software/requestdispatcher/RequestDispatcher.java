@@ -22,11 +22,13 @@ import fr.upmc.datacenter.software.ports.RequestSubmissionInboundPort;
 import fr.upmc.datacenter.software.ports.RequestSubmissionOutboundPort;
 import fr.upmc.datacenterclient.utils.TimeProcessing;
 import fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherDynamicStateI;
+import fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherManagementI;
 import fr.upmc.inuits.software.requestdispatcher.ports.RequestDispatcherDynamicStateDataInboundPort;
+import fr.upmc.inuits.software.requestdispatcher.ports.RequestDispatcherManagementInboundPort;
 
 public class RequestDispatcher 
 	extends AbstractComponent 
-	implements RequestSubmissionHandlerI, RequestNotificationHandlerI, PushModeControllingI {
+	implements RequestDispatcherManagementI, RequestSubmissionHandlerI, RequestNotificationHandlerI, PushModeControllingI {
 
 	public static int DEBUG_LEVEL = 1;
 	
@@ -34,6 +36,7 @@ public class RequestDispatcher
 	protected int availableApplicationVm;
 	protected int applicationVMSelector;
 	
+	protected RequestDispatcherManagementInboundPort rdmip;
 	protected RequestSubmissionInboundPort rsip;
 	protected HashMap<Integer,RequestSubmissionOutboundPort> rsop;
 	protected HashMap<Integer,RequestNotificationInboundPort> rnip;
@@ -55,7 +58,8 @@ public class RequestDispatcher
 	protected int totalRequestTerminated;
 	
 	public RequestDispatcher(
-			String rdURI, 
+			String rdURI,
+			String requestDispatcherManagementIntboundPortURI,
 			String requestSubmissionIntboundPortURI, 
 			ArrayList<String> requestSubmissionOutboundPortURI,
 			ArrayList<String> requestNotificationIntboundPortURI, 
@@ -65,6 +69,7 @@ public class RequestDispatcher
 		super(rdURI, 1, 1);
 		
 		assert rdURI != null;
+		assert requestDispatcherManagementIntboundPortURI != null && requestDispatcherManagementIntboundPortURI.length() > 0;
 		assert requestSubmissionIntboundPortURI != null && requestSubmissionIntboundPortURI.length() > 0;
 		assert requestSubmissionOutboundPortURI != null && requestSubmissionOutboundPortURI.size() > 0;
 		assert requestNotificationIntboundPortURI != null && requestNotificationIntboundPortURI.size() > 0;
@@ -75,19 +80,24 @@ public class RequestDispatcher
 		
 		this.rdURI = rdURI;
 		this.availableApplicationVm = requestSubmissionOutboundPortURI.size();
-		this.applicationVMSelector = 0;		
+		this.applicationVMSelector = 0;
 		this.rsop = new HashMap<>();
-		this.rnip = new HashMap<>();
-				
+		this.rnip = new HashMap<>();								
+		
+		this.addOfferedInterface(RequestDispatcherManagementI.class);
+		this.rdmip = new RequestDispatcherManagementInboundPort(requestDispatcherManagementIntboundPortURI, this);
+		this.addPort(this.rdmip);
+		this.rdmip.publishPort();
+		
 		this.addOfferedInterface(RequestSubmissionI.class);
 		this.rsip = new RequestSubmissionInboundPort(requestSubmissionIntboundPortURI, this);
 		this.addPort(this.rsip);
 		this.rsip.publishPort();			
-		
+				
 		this.addRequiredInterface(RequestSubmissionI.class);
 		this.addOfferedInterface(RequestNotificationI.class);
 		
-		for (int i = 0; i < this.availableApplicationVm; i++) {			
+		for (int i = 0; i < this.availableApplicationVm; i++) {						
 			this.rsop.put(i, new RequestSubmissionOutboundPort(requestSubmissionOutboundPortURI.get(i), this));
 			this.addPort(this.rsop.get(i));
 			this.rsop.get(i).publishPort();			
@@ -116,6 +126,7 @@ public class RequestDispatcher
 		assert this.rdURI != null;
 		assert this.availableApplicationVm == requestNotificationIntboundPortURI.size();
 		assert this.applicationVMSelector == 0;
+		assert this.rdmip != null && this.rdmip instanceof RequestDispatcherManagementI;
 		assert this.rsip != null && this.rsip instanceof RequestSubmissionI;
 		assert this.rsop != null && this.rsop.get(0) instanceof RequestSubmissionI;
 		assert this.rnip != null && this.rnip.get(0) instanceof RequestNotificationI;
@@ -125,24 +136,7 @@ public class RequestDispatcher
 
 	void fooSN(String s, String n) throws Exception {
 		
-		assert s != null && s.length() > 0;
 		
-		int i = availableApplicationVm;
-		
-		// s
-		this.rsop.put(i, new RequestSubmissionOutboundPort(s, this));
-		this.addPort(this.rsop.get(i));
-		this.rsop.get(i).publishPort();
-		
-		// n
-		this.rnip.put(i, new RequestNotificationInboundPort(n, this));
-		this.addPort(this.rnip.get(i));
-		this.rnip.get(i).publishPort();
-		
-		this.availableApplicationVm++;
-		
-		assert this.rsop != null && this.rsop.get(i) instanceof RequestSubmissionI;
-		assert this.rnip != null && this.rnip.get(i) instanceof RequestNotificationI;
 	}
 	
 	void barSN() throws Exception {
@@ -181,6 +175,33 @@ public class RequestDispatcher
 		super.shutdown();
 	}	
 		
+	@Override
+	public void createRequestSubmissionAndNotificationPorts(String requestSubmissionOutboundPortUri,
+			String requestNotificationIntboundPortUri) throws Exception {
+
+		assert requestSubmissionOutboundPortUri != null && requestSubmissionOutboundPortUri.length() > 0;
+		assert requestNotificationIntboundPortUri != null && requestNotificationIntboundPortUri.length() > 0;
+		
+		int i = availableApplicationVm;
+		
+		// requestSubmissionOutboundPortUri
+		this.rsop.put(i, new RequestSubmissionOutboundPort(requestSubmissionOutboundPortUri, this));
+		this.addPort(this.rsop.get(i));
+		this.rsop.get(i).publishPort();
+		
+		// requestNotificationIntboundPortUri
+		this.rnip.put(i, new RequestNotificationInboundPort(requestNotificationIntboundPortUri, this));
+		this.addPort(this.rnip.get(i));
+		this.rnip.get(i).publishPort();
+		
+		this.availableApplicationVm++;
+		
+		assert this.rsop != null && this.rsop.get(i) instanceof RequestSubmissionI;
+		assert this.rnip != null && this.rnip.get(i) instanceof RequestNotificationI;
+		
+		//TODO notify AC
+	}
+	
 	protected HashMap<String, Long> beginningTime = new HashMap<>();
 	protected HashMap<String, Long> executionTime = new HashMap<>();
 	

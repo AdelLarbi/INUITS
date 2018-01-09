@@ -42,6 +42,9 @@ import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControlle
 import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerAVMsManagementInboundPort;
 import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerManagementOutboundPort;
 import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
+import fr.upmc.inuits.software.requestdispatcher.connector.RequestDispatcherManagementConnector;
+import fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherManagementI;
+import fr.upmc.inuits.software.requestdispatcher.ports.RequestDispatcherManagementOutboundPort;
 import fr.upmc.inuits.utils.Javassist;
 
 public class AdmissionController 
@@ -67,7 +70,9 @@ public class AdmissionController
 	protected HashMap<String,String> avmRequestNotificationOutPortUri;
 	// Association between applications and their AVM index count.
 	protected HashMap<String, Integer> avmIndexPerApp;
-	
+	// Association between applications and their cores at the beginning.
+	protected HashMap<String, AllocatedCore[]> mustHaveCoresPerApp;
+		
 	protected HashMap<String,String> rdRequestSubmissionInPortUri;
 	protected HashMap<String,ArrayList<String>> rdRequestSubmissionOutPortUri;
 	protected HashMap<String,ArrayList<String>> rdRequestNotificationInPortUri;
@@ -85,7 +90,8 @@ public class AdmissionController
 	protected HashMap<String,ApplicationManagementOutboundPort> amop;
 	protected HashMap<String,ApplicationSubmissionInboundPort> asip;
 	protected HashMap<String,ApplicationNotificationOutboundPort> anop;
-	protected HashMap<String,AutonomicControllerAVMsManagementInboundPort> atcamip;	
+	protected HashMap<String,AutonomicControllerAVMsManagementInboundPort> atcamip;
+	protected HashMap<String,RequestDispatcherManagementOutboundPort> rdmop;
 	
 	protected HashMap<String,DynamicComponentCreationOutboundPort> portToApplicationVMJVM;	
 	protected HashMap<String,DynamicComponentCreationOutboundPort> portToRequestDispatcherJVM;
@@ -146,7 +152,9 @@ public class AdmissionController
 		this.avmRequestSubmissionInPortUri = new HashMap<>();
 		this.avmRequestNotificationOutPortUri = new HashMap<>();
 		this.avmIndexPerApp = new HashMap<>();
+		this.mustHaveCoresPerApp = new HashMap<>();
 						
+		//this.rdManagementInPortUri = new HashMap<>();
 		this.rdRequestSubmissionInPortUri = new HashMap<>();
 		this.rdRequestSubmissionOutPortUri = new HashMap<>();
 		this.rdRequestNotificationInPortUri = new HashMap<>();
@@ -158,6 +166,7 @@ public class AdmissionController
 		this.asip = new HashMap<>();
 		this.anop = new HashMap<>();
 		this.atcamip = new HashMap<>();
+		this.rdmop = new HashMap<>();
 		
 		this.portToApplicationVMJVM = new HashMap<>();		
 		this.portToRequestDispatcherJVM = new HashMap<>();
@@ -167,17 +176,22 @@ public class AdmissionController
 		this.cssdop = new ComputerStaticStateDataOutboundPort[TOTAL_COMPUTERS_USED];
 		this.cdsdop = new ComputerDynamicStateDataOutboundPort[TOTAL_COMPUTERS_USED];
 		
+		// To manage the AtC component (connect to different other components).
 		this.addRequiredInterface(AutonomicControllerManagementI.class);
 		this.atcmOutPort = new HashMap<>();
 		
+		// To manage the AVM component (allocate cores).
 		this.addRequiredInterface(ApplicationVMManagementI.class);
 		this.avmOutPort = new HashMap<>();
 		
+		// To manage the RD component (create RequestSubmission, RequestNotification ports).
+		this.addRequiredInterface(RequestDispatcherManagementI.class);
+				
 		this.addRequiredInterface(ComputerServicesI.class);
 		// this.addOfferedInterface(ComputerStaticStateDataI.class); or :
 		this.addOfferedInterface(DataRequiredI.PushI.class);
 		this.addRequiredInterface(DataRequiredI.PullI.class);
-		this.addRequiredInterface(ControlledDataRequiredI.ControlledPullI.class);
+		this.addRequiredInterface(ControlledDataRequiredI.ControlledPullI.class);		
 		
 		for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
 			this.csop[i] = new ComputerServicesOutboundPort(computerServicesOutboundPortURI.get(i), this);
@@ -196,7 +210,7 @@ public class AdmissionController
 		this.addRequiredInterface(ApplicationManagementI.class);
 		this.addOfferedInterface(ApplicationSubmissionI.class);
 		this.addRequiredInterface(ApplicationNotificationI.class);
-		this.addRequiredInterface(AutonomicControllerAVMsManagementI.class);
+		this.addRequiredInterface(AutonomicControllerAVMsManagementI.class);		
 		
 		for (int i = 0; i < TOTAL_APPLICATION_EXECUTION_REQUESTED; i++) {
 			this.amop.put(appsURI.get(i), 
@@ -217,7 +231,7 @@ public class AdmissionController
 			this.atcamip.put(appsURI.get(i), 
 					new AutonomicControllerAVMsManagementInboundPort(autonomicControllerAVMsManagementInboundPortURI.get(i), this));
 			this.addPort(this.atcamip.get(appsURI.get(i)));
-			this.atcamip.get(appsURI.get(i)).publishPort();
+			this.atcamip.get(appsURI.get(i)).publishPort();									
 			
 			// Initialize each application with -1 as index for AVMs allocated.
 			this.avmIndexPerApp.put(appsURI.get(i), -1);
@@ -440,6 +454,8 @@ public class AdmissionController
 		for (int i = 0; i < AVMS_TO_ALLOCATE_COUNT; i++) {
 			this.avmOutPort.get(appUri + i).allocateCores(ac);		
 		}
+		
+		this.mustHaveCoresPerApp.put(appUri, ac);
 	}
 	
 	public void rejectApplication(String appUri) {
@@ -469,7 +485,8 @@ public class AdmissionController
 					});	
 		}	
 		
-		// --------------------------------------------------------------------		
+		// --------------------------------------------------------------------				
+		final String RD_MANAGEMENT_IN_PORT_URI = RD_URI + "-mip";
 		this.rdRequestSubmissionInPortUri.put(RD_URI, RD_URI + "-rrsip");
 		this.rdRequestNotificationOutPortUri.put(RD_URI, RD_URI + "-rrnop");
 		final String RD_DYNAMIC_STATE_DATA_IN_PORT_URI = RD_URI + "-dsd-ip";
@@ -478,12 +495,25 @@ public class AdmissionController
 				RequestDispatcher.class.getCanonicalName(),
 				new Object[] {
 						RD_URI,							
+						RD_MANAGEMENT_IN_PORT_URI,
 						rdRequestSubmissionInPortUri.get(RD_URI),
 						rdRequestSubmissionOutPortUri.get(RD_URI),
 						rdRequestNotificationInPortUri.get(RD_URI),
 						rdRequestNotificationOutPortUri.get(RD_URI),
 						RD_DYNAMIC_STATE_DATA_IN_PORT_URI
 				});
+		// --------------------------------------------------------------------			
+		// Create a port to manage the RD component (create RequestSubmission, RequestNotification ports).		
+		final String RD_MANAGEMENT_OUT_PORT_URI = RD_URI + "-mop";
+		
+		this.rdmop.put(RD_URI, 
+				new RequestDispatcherManagementOutboundPort(RD_MANAGEMENT_OUT_PORT_URI, this));
+		this.addPort(this.rdmop.get(RD_URI));
+		this.rdmop.get(RD_URI).publishPort();						
+					
+		this.rdmop.get(RD_URI).doConnection(
+				RD_MANAGEMENT_IN_PORT_URI,
+				RequestDispatcherManagementConnector.class.getCanonicalName());
 		
 		// --------------------------------------------------------------------				
 		final String RD_DYNAMIC_STATE_DATA_OUT_PORT_URI = RD_URI + "-dsd-op";
@@ -551,8 +581,8 @@ public class AdmissionController
 		// --------------------------------------------------------------------
 		rop.doConnection(ATC_URI, ReflectionConnector.class.getCanonicalName());
 		
-		// 3 for automatic adaptation
-		AutonomicController.DEBUG_LEVEL = 2;
+		// 3 for automatic adaptation log
+		AutonomicController.DEBUG_LEVEL = 3;
 		rop.toggleLogging();
 		rop.toggleTracing();
 		
@@ -655,18 +685,17 @@ public class AdmissionController
 			this.logMessage("Admission controller adding AVM for " + appUri + "...");										
 		}
 		
-		/*// Prepare AVM deployment.	
+		// Prepare AVM deployment.	
 		final String RD_URI = "rd-" + appUri;
 		prepareAVMsDeployment(appUri, RD_URI, 1);
 		
 		// Deployment a new AVM.
 		deployNewAVM(appUri, RD_URI);
 		
-		// Allocate cores.
-		AllocatedCore[] ac = this.csop[0].allocateCores(9); // FIXME index not only 0 !/not99999						
-		this.avmOutPort.get(appUri + avmIndexPerApp.get(appUri)).allocateCores(ac);*/		
-				
-		this.logMessage("****************************** DONE.");
+		// Allocate cores.						
+		String index = appUri + avmIndexPerApp.get(appUri);
+		AllocatedCore[] mustHaveCores = this.mustHaveCoresPerApp.get(appUri);
+		this.avmOutPort.get(index).allocateCores(mustHaveCores);
 	}
 
 	
@@ -685,9 +714,13 @@ public class AdmissionController
 					    avmRequestNotificationOutPortUri.get(appUri + i)
 				});
 		
-		// TODO Add those ports to RD
-		this.rdRequestSubmissionOutPortUri.get(RD_URI);
-		this.rdRequestNotificationInPortUri.get(RD_URI);
+		// Add those ports to RD
+		this.rdmop.get(RD_URI).createRequestSubmissionAndNotificationPorts(
+				this.rdRequestSubmissionOutPortUri.get(RD_URI).get(0), 
+				this.rdRequestNotificationInPortUri.get(RD_URI).get(0));		
+		
+		//TODO accept notification from RD and remove this
+		Thread.sleep(1000L);
 		
 		// Create a mock up port to manage the AVM component (allocate cores).
 		this.avmOutPort.put(appUri + i, new ApplicationVMManagementOutboundPort(avmManagementOutPortUri.get(appUri + i), this));			
@@ -703,17 +736,17 @@ public class AdmissionController
 		this.addPort(rop);
 		rop.localPublishPort();					
 		
-		/*rop.doConnection(RD_URI, ReflectionConnector.class.getCanonicalName());		
+		rop.doConnection(RD_URI, ReflectionConnector.class.getCanonicalName());		
 		
-		rop.toggleLogging();
-		rop.toggleTracing();*/		
-						
+		/*rop.toggleLogging();
+		rop.toggleTracing();*/				
+		
 		rop.doPortConnection(
-				rdRequestSubmissionOutPortUri.get(RD_URI).get(i),
+				rdRequestSubmissionOutPortUri.get(RD_URI).get(0),
 				avmRequestSubmissionInPortUri.get(appUri + i),
 				Javassist.getRequestSubmissionConnectorClassName());					
-				
-		//rop.doDisconnection();					
+		
+		rop.doDisconnection();					
 		// --------------------------------------------------------------------				
 		rop.doConnection(AVM_URI, ReflectionConnector.class.getCanonicalName());
 
@@ -723,9 +756,9 @@ public class AdmissionController
 		
 		rop.doPortConnection(
 				avmRequestNotificationOutPortUri.get(appUri + i),
-				rdRequestNotificationInPortUri.get(RD_URI).get(i),
+				rdRequestNotificationInPortUri.get(RD_URI).get(0),
 				Javassist.getRequestNotificationConnectorClassName());
-		
+
 		rop.doDisconnection();
 	}
 	

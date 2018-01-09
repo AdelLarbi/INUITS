@@ -197,7 +197,7 @@ public class MyTest extends AbstractCVM {
 				"atc0",
 				computersURI,
 				ATC_SERVICES_OUT_PORT_URI,
-				ATC_C_STATIC_STATE_DATA_OUT_PORT_URI, 
+				ATC_C_STATIC_STATE_DATA_OUT_PORT_URI,
 				ATC_C_DYNAMIC_STATE_DATA_OUT_PORT_URI,
 				"app0",
 				"rd0", 
@@ -278,7 +278,23 @@ public class MyTest extends AbstractCVM {
 		
 		super.start();
 
-		AllocatedCore[] ac = this.csOutPort.allocateCores(4);				
+		AllocatedCore[] ac = this.csOutPort.allocateCores(4);
+		
+		// 5p, 4c
+		
+		for(AllocatedCore c : ac) {
+			System.out.println("p=" + c.processorNo);
+			System.out.println("c=" + c.coreNo);
+			System.out.println("----");
+		}
+		
+		AllocatedCore[] acPrime = this.csOutPort.allocateCores(4);
+				
+		for(AllocatedCore c : acPrime) {
+			System.out.println("p=" + c.processorNo);
+			System.out.println("c=" + c.coreNo);
+			System.out.println("----");
+		}
 		
 		for (int i = 0; i < 2; i++) {
 			this.avmOutPort[i].allocateCores(ac);					

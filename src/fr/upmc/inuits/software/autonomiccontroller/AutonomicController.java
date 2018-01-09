@@ -360,7 +360,7 @@ public class AutonomicController
 	protected final int CONTROL_RESOURCES_TIMER = ANALYSE_DATA_TIMER;
 	
 	protected final int LOWER_THRESHOLD = 500;
-	protected final int HIGHER_THRESHOLD = 1500;
+	protected  int HIGHER_THRESHOLD = 600; //1500
 	
 	protected final int VM_TO_ALLOCATE_COUNT = 1;
 	protected final int VM_TO_DEALLOCATED_COUNT = VM_TO_ALLOCATE_COUNT;
@@ -407,7 +407,8 @@ public class AutonomicController
 			// 3- Add AVMs.
 			} else {
 				addAVMs();
-				showLogMessageL3("______[[AVMs added]]");				
+				showLogMessageL3("______[[AVMs added]]");
+				HIGHER_THRESHOLD = 9999; //FIXME remove and set final (for test only !)
 			}
 			
 		// The lower threshold is crossed down.
