@@ -8,14 +8,14 @@ public class AutonomicControllerAVMsManagementConnector
 	implements AutonomicControllerAVMsManagementI {
 
 	@Override
-	public void doRequestAddAVM(String atcUri) throws Exception {
+	public void doRequestAddAVM(String appUri) throws Exception {
 		
-		((AutonomicControllerAVMsManagementI)this.offering).doRequestAddAVM(atcUri);
+		((AutonomicControllerAVMsManagementI)this.offering).doRequestAddAVM(appUri);
 	}
 
 	@Override
-	public void doRequestRemoveAVM(String atcUri) throws Exception {
+	public void doRequestRemoveAVM(String appUri) throws Exception {
 
-		((AutonomicControllerAVMsManagementI)this.offering).doRequestRemoveAVM(atcUri);
+		((AutonomicControllerAVMsManagementI)this.offering).doRequestRemoveAVM(appUri);
 	}
 }

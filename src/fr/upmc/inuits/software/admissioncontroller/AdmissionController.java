@@ -49,7 +49,9 @@ public class AdmissionController
 	implements ComputerStateDataConsumerI, ApplicationSubmissionHandlerI, AutonomicControllerAVMsManagementHandlerI {
 	
 	public static int DEBUG_LEVEL = 1;
-	public static int ANALYSE_DATA_TIMER = 1000;		
+	
+	protected final int ANALYSE_DATA_TIMER = 1000;			
+	protected final int AVMS_TO_ALLOCATE_COUNT = 2;
 	
 	protected final ArrayList<String> COMPUTERS_URI;
 	protected final ArrayList<String> COMPUTER_SERVICES_IN_BOUND_PORT_URI;
@@ -63,6 +65,8 @@ public class AdmissionController
 	protected HashMap<String,String> avmManagementOutPortUri;	
 	protected HashMap<String,String> avmRequestSubmissionInPortUri;
 	protected HashMap<String,String> avmRequestNotificationOutPortUri;
+	// Association between applications and their AVM index count.
+	protected HashMap<String, Integer> avmIndexPerApp;
 	
 	protected HashMap<String,String> rdRequestSubmissionInPortUri;
 	protected HashMap<String,ArrayList<String>> rdRequestSubmissionOutPortUri;
@@ -141,6 +145,7 @@ public class AdmissionController
 		this.avmManagementOutPortUri = new HashMap<>();	
 		this.avmRequestSubmissionInPortUri = new HashMap<>();
 		this.avmRequestNotificationOutPortUri = new HashMap<>();
+		this.avmIndexPerApp = new HashMap<>();
 						
 		this.rdRequestSubmissionInPortUri = new HashMap<>();
 		this.rdRequestSubmissionOutPortUri = new HashMap<>();
@@ -213,6 +218,9 @@ public class AdmissionController
 					new AutonomicControllerAVMsManagementInboundPort(autonomicControllerAVMsManagementInboundPortURI.get(i), this));
 			this.addPort(this.atcamip.get(appsURI.get(i)));
 			this.atcamip.get(appsURI.get(i)).publishPort();
+			
+			// Initialize each application with -1 as index for AVMs allocated.
+			this.avmIndexPerApp.put(appsURI.get(i), -1);
 			
 			// Useful for autonomic controller AVMs management (Add AVM, Remove AVM..)
 			this.atcAvmsManagementInPortUri.put(appsURI.get(i), autonomicControllerAVMsManagementInboundPortURI.get(i));
@@ -415,22 +423,21 @@ public class AdmissionController
 	public void acceptApplication(String appUri, int mustHaveCores) throws Exception {
 		
 		this.logMessage("Admission controller allow application " + appUri + " to be executed.");
+				
+		deployComponents(appUri, AVMS_TO_ALLOCATE_COUNT);		
+		this.logMessage("Admission controller deployed " + AVMS_TO_ALLOCATE_COUNT + " AVMs for " + appUri);
 		
-		// This will change when we start part 2 and 3.
-		final int AVM_TO_DEPLOY_COUNT = 2; 		
-		deployComponents(appUri, AVM_TO_DEPLOY_COUNT);		
-		this.logMessage("Admission controller deployed " + AVM_TO_DEPLOY_COUNT + " AVMs for " + appUri);
-		
-		allocateCores(appUri, mustHaveCores, AVM_TO_DEPLOY_COUNT);		
+		allocateCores(appUri, mustHaveCores);		
 		this.logMessage("Admission controller allocated " + mustHaveCores + " cores for " + appUri);						
 	}
 	
-	// This is just the first version of cores allocation before starting part 2 and 3.
-	public void allocateCores(String appUri, int coresCount, int avmToDeploy) throws Exception {
+	public void allocateCores(String appUri, int coresCount) throws Exception {
 				
-		AllocatedCore[] ac = this.csop[0].allocateCores(coresCount);		
+		this.logMessage("Admission controller allocating " + coresCount + " for " + appUri + "...");
 		
-		for (int i = 0; i < avmToDeploy; i++) {
+		AllocatedCore[] ac = this.csop[0].allocateCores(coresCount); // FIXME index not only 0 !		
+		
+		for (int i = 0; i < AVMS_TO_ALLOCATE_COUNT; i++) {
 			this.avmOutPort.get(appUri + i).allocateCores(ac);		
 		}
 	}
@@ -490,7 +497,8 @@ public class AdmissionController
 						this.COMPUTERS_URI,			
 						this.COMPUTER_SERVICES_OUT_BOUND_PORT_URI,
 						this.COMPUTER_STATIC_STATE_DATA_OUT_BOUND_PORT_URI,
-						this.COMPUTER_DYNAMIC_STATE_DATA_OUT_BOUND_PORT_URI,			
+						this.COMPUTER_DYNAMIC_STATE_DATA_OUT_BOUND_PORT_URI,
+						appUri,
 						RD_URI, 
 						RD_DYNAMIC_STATE_DATA_OUT_PORT_URI,
 						ATC_MANAGEMENT_IN_PORT_URI,
@@ -543,6 +551,7 @@ public class AdmissionController
 		// --------------------------------------------------------------------
 		rop.doConnection(ATC_URI, ReflectionConnector.class.getCanonicalName());
 		
+		// 3 for automatic adaptation
 		AutonomicController.DEBUG_LEVEL = 2;
 		rop.toggleLogging();
 		rop.toggleTracing();
@@ -576,11 +585,27 @@ public class AdmissionController
 	
 	public void prepareDeployment(String appUri, String rdUri, String atcUri, int applicationVMCount) throws Exception {
 		
+		// Application virtual machines
+		prepareAVMsDeployment(appUri, rdUri, applicationVMCount);				
+		
+		// Request dispatcher
+		prepareRDDeployment(rdUri);
+				
+		// Autonomic controller
+		prepareAtCDeployment(atcUri);
+		
+	}
+	
+	protected void prepareAVMsDeployment(String appUri, String rdUri, int applicationVMCount) throws Exception {
+		
 		ArrayList<String> localRdRequestSubmissionOutPortUri = new ArrayList<>();
 		ArrayList<String> localRdRequestNotificationInPortUri = new ArrayList<>();		
 		
-		// AVM
-		for (int i = 0; i < applicationVMCount; i++) {
+		int startIndex = avmIndexPerApp.get(appUri);
+		startIndex++;
+			
+		for (int i = startIndex; i < applicationVMCount + startIndex; i++) {
+						
 			this.portToApplicationVMJVM.put(appUri + i, new DynamicComponentCreationOutboundPort(this));
 			this.portToApplicationVMJVM.get(appUri + i).localPublishPort();
 			this.addPort(this.portToApplicationVMJVM.get(appUri + i));
@@ -593,21 +618,28 @@ public class AdmissionController
 			this.avmRequestSubmissionInPortUri.put(appUri + i, appUri + "-arsip-" + i);
 			this.avmRequestNotificationOutPortUri.put(appUri + i, appUri + "-arnop-" + i);
 			localRdRequestSubmissionOutPortUri.add(rdUri + "-rrsop-" + i);
-			localRdRequestNotificationInPortUri.add(rdUri + "-rrnip-" + i);			
+			localRdRequestNotificationInPortUri.add(rdUri + "-rrnip-" + i);		
+			
+			// Update AVMs index
+			avmIndexPerApp.put(appUri, i);
 		}
 		
 		this.rdRequestSubmissionOutPortUri.put(rdUri, localRdRequestSubmissionOutPortUri);
 		this.rdRequestNotificationInPortUri.put(rdUri, localRdRequestNotificationInPortUri);
+	}
+	
+	protected void prepareRDDeployment(String rdUri) throws Exception {
 		
-		// RD
 		this.portToRequestDispatcherJVM.put(rdUri, new DynamicComponentCreationOutboundPort(this));
 		this.portToRequestDispatcherJVM.get(rdUri).localPublishPort();
 		this.addPort(this.portToRequestDispatcherJVM.get(rdUri));
 		this.portToRequestDispatcherJVM.get(rdUri).doConnection(					
 				this.REQUEST_DISPATCHER_JVM_URI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
-				DynamicComponentCreationConnector.class.getCanonicalName());
-				
-		// ATC
+				DynamicComponentCreationConnector.class.getCanonicalName());	
+	}
+	
+	protected void prepareAtCDeployment(String atcUri) throws Exception {
+		
 		this.portToAutonomicControllerJVM.put(atcUri, new DynamicComponentCreationOutboundPort(this));
 		this.portToAutonomicControllerJVM.get(atcUri).localPublishPort();
 		this.addPort(this.portToAutonomicControllerJVM.get(atcUri));
@@ -615,24 +647,95 @@ public class AdmissionController
 				this.AUTONOMIC_CONTROLLER_JVM_URI + AbstractCVM.DCC_INBOUNDPORT_URI_SUFFIX,
 				DynamicComponentCreationConnector.class.getCanonicalName());
 	}
-
+	
 	@Override
-	public void acceptRequestAddAVM(String atcUri) throws Exception {
+	public void acceptRequestAddAVM(String appUri) throws Exception {
 		
 		if (AdmissionController.DEBUG_LEVEL == 1) {
-			this.logMessage("Admission controller adding AVM for " + atcUri + "...");
+			this.logMessage("Admission controller adding AVM for " + appUri + "...");										
 		}
 		
-		// TODO Add AVM
+		/*// Prepare AVM deployment.	
+		final String RD_URI = "rd-" + appUri;
+		prepareAVMsDeployment(appUri, RD_URI, 1);
+		
+		// Deployment a new AVM.
+		deployNewAVM(appUri, RD_URI);
+		
+		// Allocate cores.
+		AllocatedCore[] ac = this.csop[0].allocateCores(9); // FIXME index not only 0 !/not99999						
+		this.avmOutPort.get(appUri + avmIndexPerApp.get(appUri)).allocateCores(ac);*/		
+				
+		this.logMessage("****************************** DONE.");
 	}
 
+	
+	public void deployNewAVM(String appUri, String RD_URI) throws Exception {
+		
+		// Create component
+		int i = avmIndexPerApp.get(appUri);
+		final String AVM_URI = "avm-" + i + "-" + appUri;
+		
+		this.portToApplicationVMJVM.get(appUri + i).createComponent(
+				ApplicationVM.class.getCanonicalName(),
+				new Object[] {
+						AVM_URI,
+						avmManagementInPortUri.get(appUri + i),
+					    avmRequestSubmissionInPortUri.get(appUri + i),
+					    avmRequestNotificationOutPortUri.get(appUri + i)
+				});
+		
+		// TODO Add those ports to RD
+		this.rdRequestSubmissionOutPortUri.get(RD_URI);
+		this.rdRequestNotificationInPortUri.get(RD_URI);
+		
+		// Create a mock up port to manage the AVM component (allocate cores).
+		this.avmOutPort.put(appUri + i, new ApplicationVMManagementOutboundPort(avmManagementOutPortUri.get(appUri + i), this));			
+		this.addPort(this.avmOutPort.get(appUri + i));			
+		this.avmOutPort.get(appUri + i).publishPort();			
+		
+		this.avmOutPort.get(appUri + i).doConnection(
+				avmManagementInPortUri.get(appUri + i),
+				ApplicationVMManagementConnector.class.getCanonicalName());
+		
+		// Do connection
+		ReflectionOutboundPort rop = new ReflectionOutboundPort(this);
+		this.addPort(rop);
+		rop.localPublishPort();					
+		
+		/*rop.doConnection(RD_URI, ReflectionConnector.class.getCanonicalName());		
+		
+		rop.toggleLogging();
+		rop.toggleTracing();*/		
+						
+		rop.doPortConnection(
+				rdRequestSubmissionOutPortUri.get(RD_URI).get(i),
+				avmRequestSubmissionInPortUri.get(appUri + i),
+				Javassist.getRequestSubmissionConnectorClassName());					
+				
+		//rop.doDisconnection();					
+		// --------------------------------------------------------------------				
+		rop.doConnection(AVM_URI, ReflectionConnector.class.getCanonicalName());
+
+		RequestDispatcher.DEBUG_LEVEL = 1;
+		rop.toggleTracing();
+		rop.toggleLogging();
+		
+		rop.doPortConnection(
+				avmRequestNotificationOutPortUri.get(appUri + i),
+				rdRequestNotificationInPortUri.get(RD_URI).get(i),
+				Javassist.getRequestNotificationConnectorClassName());
+		
+		rop.doDisconnection();
+	}
+	
 	@Override
-	public void acceptRequestRemoveAVM(String atcUri) throws Exception {
+	public void acceptRequestRemoveAVM(String appUri) throws Exception {
 
 		if (AdmissionController.DEBUG_LEVEL == 1) {
-			this.logMessage("Admission controller removing AVM for " + atcUri + "...");
+			this.logMessage("Admission controller removing AVM for " + appUri + "...");
 		}
 		
-		// TODO Add AVM
+		// TODO Add AVM		
 	}
 }

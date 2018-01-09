@@ -193,12 +193,13 @@ public class MyTest extends AbstractCVM {
 		this.requestDispatcher.toggleTracing();
 		this.requestDispatcher.toggleLogging();						
 		// --------------------------------------------------------------------
-		this.autonomicController = new AutonomicController(
+		this.autonomicController = new AutonomicController(				
 				"atc0",
 				computersURI,
 				ATC_SERVICES_OUT_PORT_URI,
 				ATC_C_STATIC_STATE_DATA_OUT_PORT_URI, 
 				ATC_C_DYNAMIC_STATE_DATA_OUT_PORT_URI,
+				"app0",
 				"rd0", 
 				ATC_RD_DYNAMIC_STATE_DATA_OUT_PORT_URI,
 				ATC_MANAGEMENT_IN_PORT_URI,

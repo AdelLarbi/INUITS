@@ -21,22 +21,22 @@ public class AutonomicControllerAVMsManagementOutboundPort
 	}
 	
 	@Override
-	public void doRequestAddAVM(String atcUri) throws Exception {
+	public void doRequestAddAVM(String appUri) throws Exception {
 
 		if (((AutonomicControllerAVMsManagementI)this.connector) != null) {
-			((AutonomicControllerAVMsManagementI)this.connector).doRequestAddAVM(atcUri);	
+			((AutonomicControllerAVMsManagementI)this.connector).doRequestAddAVM(appUri);	
 		} else {
-			System.out.println("/!\\ No Client Connected with " + atcUri + " for AutonomicControllerAVMsManagementI /!\\");
+			System.out.println("/!\\ No Client Connected with " + appUri + " for AutonomicControllerAVMsManagementI /!\\");
 		}		
 	}
 
 	@Override
-	public void doRequestRemoveAVM(String atcUri) throws Exception {
+	public void doRequestRemoveAVM(String appUri) throws Exception {
 		
 		if (((AutonomicControllerAVMsManagementI)this.connector) != null) {
-			((AutonomicControllerAVMsManagementI)this.connector).doRequestRemoveAVM(atcUri);	
+			((AutonomicControllerAVMsManagementI)this.connector).doRequestRemoveAVM(appUri);	
 		} else {
-			System.out.println("/!\\ No Client Connected with " + atcUri + " for AutonomicControllerAVMsManagementI /!\\");
+			System.out.println("/!\\ No Client Connected with " + appUri + " for AutonomicControllerAVMsManagementI /!\\");
 		}
 	}
 }

@@ -31,8 +31,8 @@ public class RequestDispatcher
 	public static int DEBUG_LEVEL = 1;
 	
 	protected final String rdURI;
-	protected final int AVAILABLE_APPLICATION_VM;
-	protected int applicationVMCounter;
+	protected int availableApplicationVm;
+	protected int applicationVMSelector;
 	
 	protected RequestSubmissionInboundPort rsip;
 	protected HashMap<Integer,RequestSubmissionOutboundPort> rsop;
@@ -74,8 +74,8 @@ public class RequestDispatcher
 				&& requestDispatcherDynamicStateDataInboundPortURI.length() > 0;
 		
 		this.rdURI = rdURI;
-		this.AVAILABLE_APPLICATION_VM = requestSubmissionOutboundPortURI.size();
-		this.applicationVMCounter = 0;		
+		this.availableApplicationVm = requestSubmissionOutboundPortURI.size();
+		this.applicationVMSelector = 0;		
 		this.rsop = new HashMap<>();
 		this.rnip = new HashMap<>();
 				
@@ -87,7 +87,7 @@ public class RequestDispatcher
 		this.addRequiredInterface(RequestSubmissionI.class);
 		this.addOfferedInterface(RequestNotificationI.class);
 		
-		for (int i = 0; i < this.AVAILABLE_APPLICATION_VM; i++) {			
+		for (int i = 0; i < this.availableApplicationVm; i++) {			
 			this.rsop.put(i, new RequestSubmissionOutboundPort(requestSubmissionOutboundPortURI.get(i), this));
 			this.addPort(this.rsop.get(i));
 			this.rsop.get(i).publishPort();			
@@ -114,8 +114,8 @@ public class RequestDispatcher
 		this.totalRequestTerminated = 0;
 		
 		assert this.rdURI != null;
-		assert this.AVAILABLE_APPLICATION_VM == requestNotificationIntboundPortURI.size();
-		assert this.applicationVMCounter == 0;
+		assert this.availableApplicationVm == requestNotificationIntboundPortURI.size();
+		assert this.applicationVMSelector == 0;
 		assert this.rsip != null && this.rsip instanceof RequestSubmissionI;
 		assert this.rsop != null && this.rsop.get(0) instanceof RequestSubmissionI;
 		assert this.rnip != null && this.rnip.get(0) instanceof RequestNotificationI;
@@ -123,6 +123,42 @@ public class RequestDispatcher
 		assert this.rddsdip != null && this.rddsdip instanceof ControlledDataOfferedI.ControlledPullI;
 	}
 
+	void fooSN(String s, String n) throws Exception {
+		
+		assert s != null && s.length() > 0;
+		
+		int i = availableApplicationVm;
+		
+		// s
+		this.rsop.put(i, new RequestSubmissionOutboundPort(s, this));
+		this.addPort(this.rsop.get(i));
+		this.rsop.get(i).publishPort();
+		
+		// n
+		this.rnip.put(i, new RequestNotificationInboundPort(n, this));
+		this.addPort(this.rnip.get(i));
+		this.rnip.get(i).publishPort();
+		
+		this.availableApplicationVm++;
+		
+		assert this.rsop != null && this.rsop.get(i) instanceof RequestSubmissionI;
+		assert this.rnip != null && this.rnip.get(i) instanceof RequestNotificationI;
+	}
+	
+	void barSN() throws Exception {
+		
+		this.availableApplicationVm--;
+		int lastAVMIndex = availableApplicationVm;
+		
+		if (lastAVMIndex >= 0) {
+			if (this.rsop.get(lastAVMIndex).connected()) {
+				this.rsop.get(lastAVMIndex).doDisconnection();
+			}
+			
+			this.rsop.remove(lastAVMIndex);	
+		}		
+	}
+	
 	@Override
 	public void shutdown() throws ComponentShutdownException {
 		
@@ -266,7 +302,7 @@ public class RequestDispatcher
 	
 	public int getNextApplicationVM() {
 		
-		return (applicationVMCounter++ % AVAILABLE_APPLICATION_VM);		
+		return (applicationVMSelector++ % availableApplicationVm);		
 	}	
 	
 	@Override

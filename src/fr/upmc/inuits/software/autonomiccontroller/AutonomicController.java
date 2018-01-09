@@ -38,9 +38,10 @@ public class AutonomicController
 
 	public static int DEBUG_LEVEL = 1;
 	
-	public static int ANALYSE_DATA_TIMER = 1000;//500	
+	protected final int ANALYSE_DATA_TIMER = 1000;//500	
 	
 	protected final String atcURI;
+	protected final String applicationURI;
 	protected final int TOTAL_COMPUTERS_USED;
 	
 	protected ArrayList<String> computerServicesOutboundPortURI;
@@ -65,7 +66,8 @@ public class AutonomicController
 			ArrayList<String> computersURI,			
 			ArrayList<String> computerServicesOutboundPortURI,
 			ArrayList<String> computerStaticStateDataOutboundPortURI,
-			ArrayList<String> computerDynamicStateDataOutboundPortURI,			
+			ArrayList<String> computerDynamicStateDataOutboundPortURI,
+			String applicationURI,
 			String requestDispatcherURI, 
 			String requestDispatcherDynamicStateDataOutboundPortURI,
 			String autonomicControllerManagementInboundPortURI,
@@ -85,6 +87,7 @@ public class AutonomicController
 				&& autonomicControllerAVMsManagementOutboundPortURI.length() > 0;
 				
 		this.atcURI = atcURI;
+		this.applicationURI = applicationURI;
 		this.TOTAL_COMPUTERS_USED = computersURI.size();
 		
 		this.computerServicesOutboundPortURI = computerServicesOutboundPortURI;
@@ -133,6 +136,7 @@ public class AutonomicController
 		this.atcamop.publishPort();
 		
 		assert this.atcURI != null;
+		assert this.applicationURI != null;
 		assert this.computerServicesOutboundPortURI != null && this.computerServicesOutboundPortURI.size() > 0;
 		assert this.computerStaticStateDataOutboundPortURI != null && this.computerStaticStateDataOutboundPortURI.size() > 0;
 		assert this.computerDynamicStateDataOutboundPortURI != null && this.computerDynamicStateDataOutboundPortURI.size() > 0;
@@ -159,13 +163,13 @@ public class AutonomicController
 		try {
 			for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
 				if (this.csop[i].connected()) {
-					this.csop[i].doDisconnection();
+					//this.csop[i].doDisconnection(); //FIXME to handle many computers ! (add dynamic ports in computer component)
 				}
 				if (this.cssdop[i].connected()) {
-					this.cssdop[i].doDisconnection();
+					//this.cssdop[i].doDisconnection(); //FIXME
 				}
 				if (this.cdsdop[i].connected()) {
-					this.cdsdop[i].doDisconnection();
+					//this.cdsdop[i].doDisconnection(); //FIXME
 				}
 			}
 			if (this.rddsdop.connected()) {
@@ -353,7 +357,7 @@ public class AutonomicController
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------
-	public static int CONTROL_RESOURCES_TIMER = ANALYSE_DATA_TIMER;
+	protected final int CONTROL_RESOURCES_TIMER = ANALYSE_DATA_TIMER;
 	
 	protected final int LOWER_THRESHOLD = 500;
 	protected final int HIGHER_THRESHOLD = 1500;
@@ -491,7 +495,7 @@ public class AutonomicController
 		
 		showLogMessageL3("____Adding AVMs...");
 		
-		this.atcamop.doRequestAddAVM(this.atcURI);
+		this.atcamop.doRequestAddAVM(this.applicationURI);
 	}
 
 	@Override
@@ -499,7 +503,7 @@ public class AutonomicController
 		
 		showLogMessageL3("____Removing AVMs...");
 		
-		this.atcamop.doRequestRemoveAVM(this.atcURI);
+		this.atcamop.doRequestRemoveAVM(this.applicationURI);
 	}
 	
 	
