@@ -21,4 +21,11 @@ public class AutonomicControllerAVMsManagementConnector
 
 		((AutonomicControllerAVMsManagementI)this.offering).doRequestRemoveAVM(appUri, rdUri);
 	}
+
+	@Override
+	public void doRequestAddCores(String appUri, AllocatedCore[] allocatedCore, int availableAVMsCount)
+			throws Exception {
+
+		((AutonomicControllerAVMsManagementI)this.offering).doRequestAddCores(appUri, allocatedCore, availableAVMsCount);
+	}
 }

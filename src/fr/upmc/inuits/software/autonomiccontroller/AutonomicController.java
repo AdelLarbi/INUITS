@@ -1,6 +1,7 @@
 package fr.upmc.inuits.software.autonomiccontroller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import fr.upmc.components.AbstractComponent;
@@ -42,6 +43,7 @@ public class AutonomicController
 	
 	protected final String atcURI;
 	protected final String applicationURI;
+	protected final ArrayList<String> computersURI;
 	protected final int TOTAL_COMPUTERS_USED;
 	
 	protected ArrayList<String> computerServicesOutboundPortURI;
@@ -62,6 +64,8 @@ public class AutonomicController
 	protected double exponentialSmoothing;
 	protected double averageExecutionTime;
 	protected int availableAVMsCount;
+	
+	protected HashMap<String, Boolean[][]> reservedCoresPerComputer;
 		
 	public AutonomicController(
 			String atcURI,
@@ -90,6 +94,7 @@ public class AutonomicController
 				
 		this.atcURI = atcURI;
 		this.applicationURI = applicationURI;
+		this.computersURI = computersURI;
 		this.TOTAL_COMPUTERS_USED = computersURI.size();
 		
 		this.computerServicesOutboundPortURI = computerServicesOutboundPortURI;
@@ -140,6 +145,7 @@ public class AutonomicController
 		this.exponentialSmoothing = -1;
 		this.averageExecutionTime = -1;
 		this.availableAVMsCount = -1;
+		this.reservedCoresPerComputer = new HashMap<>();
 		
 		assert this.atcURI != null;
 		assert this.applicationURI != null;
@@ -302,19 +308,27 @@ public class AutonomicController
 	}
 
 	@Override
-	public void acceptComputerDynamicData(String computerURI, ComputerDynamicStateI currentDynamicState)
-			throws Exception {
-				
-		//TODO					
+	public synchronized void acceptComputerDynamicData(String computerURI, ComputerDynamicStateI currentDynamicState)
+			throws Exception {					
 		
-		if (DEBUG_LEVEL == 4) {
+		boolean[][] reservedCores = currentDynamicState.getCurrentCoreReservations();
+		Boolean[][] reservedCoresBoolean = new Boolean[reservedCores.length][reservedCores[0].length];
+		
+		for (int i = 0; i < reservedCores.length; i++) {
+			for (int j = 0; j < reservedCores[i].length; j++) {
+				reservedCoresBoolean[i][j] = reservedCores[i][j]; 
+			}		
+		}
+		
+		this.reservedCoresPerComputer.put(computerURI, reservedCoresBoolean);
+		
+		if (DEBUG_LEVEL == 3) {
 			StringBuffer sb = new StringBuffer();
 			
 			sb.append("Autonomic controller accepting dynamic data from " + computerURI + "\n");
-			sb.append("  timestamp                : " + currentDynamicState.getTimeStamp() + "\n");
-			sb.append("  timestamper id           : " + currentDynamicState.getTimeStamperId() + "\n");
-			
-			boolean[][] reservedCores = currentDynamicState.getCurrentCoreReservations();
+			//sb.append("  timestamp                : " + currentDynamicState.getTimeStamp() + "\n");
+			//sb.append("  timestamper id           : " + currentDynamicState.getTimeStamperId() + "\n");
+						
 			for (int p = 0; p < reservedCores.length; p++) {
 				if (p == 0) {
 					sb.append("  reserved cores           : ");
@@ -338,7 +352,7 @@ public class AutonomicController
 	}
 	
 	@Override
-	public void acceptRequestDispatcherDynamicData(String rdURI, RequestDispatcherDynamicStateI currentDynamicState)
+	public synchronized void acceptRequestDispatcherDynamicData(String rdURI, RequestDispatcherDynamicStateI currentDynamicState)
 			throws Exception {
 		
 		if (rdURI == this.requestDispatcherURI) {
@@ -363,14 +377,29 @@ public class AutonomicController
 				this.logMessage(sb.toString());
 			}
 		}			
+	}		
+	
+	public synchronized boolean isResourcesAvailable(String computerUri, int mustHaveCores) {		
+		
+		int availableCores = 0;
+		Boolean[][] reservedCores = reservedCoresPerComputer.get(computerUri);
+		
+		for (int p = 0; p < reservedCores.length; p++) {
+			for (int c = 0; c < reservedCores[0].length; c++) {
+				
+				if (!reservedCores[p][c]) {					
+					availableCores++;
+					
+					if (availableCores == mustHaveCores) {
+						return true;	
+					}					
+				}
+			}
+		}
+			
+		return false;
 	}
 	
-	public void foo(int nbC) throws Exception {
-
-		//TODO
-		AllocatedCore[] ac = this.csop[0].allocateCores(nbC);		
-	}
-
 	// -----------------------------------------------------------------------------------------------------------------
 	protected final int CONTROL_RESOURCES_TIMER = ANALYSE_DATA_TIMER;
 	
@@ -431,7 +460,6 @@ public class AutonomicController
 				} else {
 					addAVMs();
 					showLogMessageL3("______[[AVMs added]]");
-					//HIGHER_THRESHOLD = 9999; //FIXME remove and set final (for test only !)
 				}
 				
 			// The lower threshold is crossed down.
@@ -500,8 +528,23 @@ public class AutonomicController
 		showLogMessageL3("____Adding cores...");
 		
 		boolean canAddCores = false;
+		int computerToUseIndex = -1;				
 		
-		if (!canAddCores) {
+		for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
+			String computer = computersURI.get(i);
+			canAddCores = isResourcesAvailable(computer, CORES_TO_ADD_COUNT);
+			
+			if (canAddCores) {
+				computerToUseIndex = i;
+				break;
+			}
+		}
+		
+		if (canAddCores) {
+			AllocatedCore[] allocatedCore = this.csop[computerToUseIndex].allocateCores(CORES_TO_ADD_COUNT);
+			this.atcamop.doRequestAddCores(this.applicationURI, allocatedCore, this.availableAVMsCount);
+			
+		} else {
 			showLogMessageL3("______[[Failed]]");
 		}
 		
@@ -548,31 +591,9 @@ public class AutonomicController
 		return canRemoveAVM;
 	}
 	
-	
-	protected void showLogMessageL1(String message) {
-		
-		if (DEBUG_LEVEL == 1) {
-			this.logMessage(message);
-		}
-	}
-
-	protected void showLogMessageL2(String message) {
-	
-		if (DEBUG_LEVEL == 2) {
-			this.logMessage(message);
-		}
-	}
-	
 	protected void showLogMessageL3(String message) {
 		
 		if (DEBUG_LEVEL == 3) {
-			this.logMessage(message);
-		}
-	}
-	
-	protected void showLogMessageL4(String message) {
-		
-		if (DEBUG_LEVEL == 4) {
 			this.logMessage(message);
 		}
 	}

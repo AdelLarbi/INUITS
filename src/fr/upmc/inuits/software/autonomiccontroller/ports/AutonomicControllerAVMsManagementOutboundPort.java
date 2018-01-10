@@ -42,4 +42,15 @@ public class AutonomicControllerAVMsManagementOutboundPort
 			System.out.println("/!\\ No Client Connected with " + appUri + " for AutonomicControllerAVMsManagementI /!\\");
 		}
 	}
+
+	@Override
+	public void doRequestAddCores(String appUri, AllocatedCore[] allocatedCore, int availableAVMsCount)
+			throws Exception {
+		
+		if (((AutonomicControllerAVMsManagementI)this.connector) != null) {
+			((AutonomicControllerAVMsManagementI)this.connector).doRequestAddCores(appUri, allocatedCore, availableAVMsCount);	
+		} else {
+			System.out.println("/!\\ No Client Connected with " + appUri + " for AutonomicControllerAVMsManagementI /!\\");
+		}
+	}
 }

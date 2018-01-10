@@ -57,4 +57,20 @@ public class AutonomicControllerAVMsManagementInboundPort
 					}
 				});
 	}
+
+	@Override
+	public void doRequestAddCores(String appUri, AllocatedCore[] allocatedCore, int availableAVMsCount)
+			throws Exception {
+
+		final AutonomicControllerAVMsManagementHandlerI acAVMsManagementHandler = (AutonomicControllerAVMsManagementHandlerI) this.owner;
+
+		this.owner.handleRequestAsync(
+				new ComponentI.ComponentService<Void>() {
+					@Override
+					public Void call() throws Exception {
+						acAVMsManagementHandler.acceptRequestAddCores(appUri, allocatedCore, availableAVMsCount);
+						return null;
+					}
+				});		
+	}
 }

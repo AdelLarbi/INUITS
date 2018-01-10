@@ -786,4 +786,17 @@ public class AdmissionController
 		avmToRemoveIndex--;
 		avmIndexPerApp.put(appUri, avmToRemoveIndex);				
 	}
+	
+	@Override
+	public void acceptRequestAddCores(String appUri, AllocatedCore[] allocatedCore, int availableAVMsCount)  
+			throws Exception {
+		
+		if (AdmissionController.DEBUG_LEVEL == 1) {
+			this.logMessage("Admission controller adding cores for " + appUri + "...");
+		}
+		
+		for (int i = 0; i < availableAVMsCount; i++) {
+			this.avmOutPort.get(appUri + i).allocateCores(allocatedCore);
+		}		
+	}
 }
