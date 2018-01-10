@@ -326,6 +326,7 @@ public class AutonomicController
 			StringBuffer sb = new StringBuffer();
 			
 			sb.append("Autonomic controller accepting dynamic data from " + computerURI + "\n");
+			sb.append("  current frequency        : " + currentDynamicState.getCurrentFrequency() + "\n");
 			//sb.append("  timestamp                : " + currentDynamicState.getTimeStamp() + "\n");
 			//sb.append("  timestamper id           : " + currentDynamicState.getTimeStamperId() + "\n");
 						
@@ -504,7 +505,7 @@ public class AutonomicController
 		
 		for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
 			frequency = this.csop[i].increaseFrequency();
-			if (frequency == -1) {
+			if (frequency != -1) {
 				canIncreaseFrequency = true;
 				break;
 			}
@@ -527,7 +528,7 @@ public class AutonomicController
 		
 		for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
 			frequency = this.csop[i].decreaseFrequency();
-			if (frequency == -1) {
+			if (frequency != -1) {
 				canDecreaseFrequency = true;
 				break;
 			}

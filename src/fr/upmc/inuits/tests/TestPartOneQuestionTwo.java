@@ -101,7 +101,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				admissibleFrequencies, 
 				processingPower, 
 				9000, 
-				1500, 
+				7000, 
 				numberOfProcessors, 
 				numberOfCores, 
 				C_SERVICES_IN_PORT_URI.get(0), 

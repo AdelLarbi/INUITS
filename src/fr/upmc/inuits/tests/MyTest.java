@@ -112,7 +112,7 @@ public class MyTest extends AbstractCVM {
 				admissibleFrequencies, 
 				processingPower, 
 				6000,//1500 
-				1500, 
+				5000, 
 				numberOfProcessors, 
 				numberOfCores, 
 				C_SERVICES_IN_PORT_URI.get(0), 
