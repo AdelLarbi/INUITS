@@ -197,6 +197,20 @@ public class RequestDispatcher
 		//TODO notify AC
 	}
 	
+	@Override
+	public void destroyRequestSubmissionAndNotificationPorts() throws Exception {
+
+		assert this.availableApplicationVm >= 3;
+		
+		this.availableApplicationVm--;
+		
+		int i = availableApplicationVm;		
+		this.rsop.get(i).destroyPort();
+		this.rnip.get(i).destroyPort();
+		
+		assert this.availableApplicationVm >= 2;
+	}
+	
 	protected HashMap<String, Long> beginningTime = new HashMap<>();
 	protected HashMap<String, Long> executionTime = new HashMap<>();
 	
@@ -353,7 +367,8 @@ public class RequestDispatcher
 	
 	public RequestDispatcherDynamicStateI getDynamicState() throws Exception {
 				
-		return new RequestDispatcherDynamicState(rdURI, exponentialSmoothing, calculatedAverage, availableApplicationVm);
+		return new RequestDispatcherDynamicState(rdURI, exponentialSmoothing, calculatedAverage, availableApplicationVm,
+				totalRequestSubmitted, totalRequestTerminated);
 	}	
 
 	@Override
@@ -444,5 +459,5 @@ public class RequestDispatcher
 		if (this.pushingFuture != null && !(this.pushingFuture.isCancelled() || this.pushingFuture.isDone())) {
 			this.pushingFuture.cancel(false);
 		}		
-	}
+	}	
 }

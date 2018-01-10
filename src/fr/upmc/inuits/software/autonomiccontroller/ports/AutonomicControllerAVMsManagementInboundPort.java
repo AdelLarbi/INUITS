@@ -44,7 +44,7 @@ public class AutonomicControllerAVMsManagementInboundPort
 	}
 
 	@Override
-	public void doRequestRemoveAVM(String appUri) throws Exception {
+	public void doRequestRemoveAVM(String appUri, String rdUri) throws Exception {
 
 		final AutonomicControllerAVMsManagementHandlerI acAVMsManagementHandler = (AutonomicControllerAVMsManagementHandlerI) this.owner;
 
@@ -52,7 +52,7 @@ public class AutonomicControllerAVMsManagementInboundPort
 				new ComponentI.ComponentService<Void>() {
 					@Override
 					public Void call() throws Exception {
-						acAVMsManagementHandler.acceptRequestRemoveAVM(appUri);
+						acAVMsManagementHandler.acceptRequestRemoveAVM(appUri, rdUri);
 						return null;
 					}
 				});

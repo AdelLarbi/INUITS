@@ -29,4 +29,10 @@ public class RequestDispatcherManagementOutboundPort
 		((RequestDispatcherManagementI)this.connector).
 		createRequestSubmissionAndNotificationPorts(requestSubmissionOutboundPortUri, requestNotificationIntboundPortUri);
 	}
+
+	@Override
+	public void destroyRequestSubmissionAndNotificationPorts() throws Exception {
+		
+		((RequestDispatcherManagementI)this.connector).destroyRequestSubmissionAndNotificationPorts();
+	}
 }

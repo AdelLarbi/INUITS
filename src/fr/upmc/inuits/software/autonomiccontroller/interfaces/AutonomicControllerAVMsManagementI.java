@@ -11,5 +11,5 @@ public interface AutonomicControllerAVMsManagementI
 
 	public void doRequestAddAVM(String appUri, ArrayList<AllocatedCore[]> allocatedCores) throws Exception;
 	
-	public void doRequestRemoveAVM(String appUri) throws Exception;
+	public void doRequestRemoveAVM(String appUri, String rdUri) throws Exception;
 }

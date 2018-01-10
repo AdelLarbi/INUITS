@@ -208,7 +208,7 @@ public class MyTest extends AbstractCVM {
 		
 		this.addDeployedComponent(this.autonomicController);
 		
-		AutonomicController.DEBUG_LEVEL = 2;
+		AutonomicController.DEBUG_LEVEL = 3;
 		this.autonomicController.toggleTracing();
 		this.autonomicController.toggleLogging();
 		// --------------------------------------------------------------------		

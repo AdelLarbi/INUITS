@@ -41,4 +41,19 @@ public class RequestDispatcherManagementInboundPort
 					}
 				});
 	}
+
+	@Override
+	public void destroyRequestSubmissionAndNotificationPorts() throws Exception {
+
+		final RequestDispatcher rd = (RequestDispatcher) this.owner;
+		
+		this.owner.handleRequestAsync(
+				new ComponentI.ComponentService<Void>() {
+					@Override
+					public Void call() throws Exception {
+						rd.destroyRequestSubmissionAndNotificationPorts();
+						return null;
+					}
+				});
+	}
 }

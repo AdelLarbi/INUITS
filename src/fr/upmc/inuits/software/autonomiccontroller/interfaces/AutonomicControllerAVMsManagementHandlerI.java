@@ -8,5 +8,5 @@ public interface AutonomicControllerAVMsManagementHandlerI {
 	
 	public void	acceptRequestAddAVM(String appUri, ArrayList<AllocatedCore[]> allocatedCores) throws Exception;
 	
-	public void	acceptRequestRemoveAVM(String appUri) throws Exception;
+	public void	acceptRequestRemoveAVM(String appUri, String rdUri) throws Exception;
 }

@@ -34,10 +34,10 @@ public class AutonomicControllerAVMsManagementOutboundPort
 	}
 
 	@Override
-	public void doRequestRemoveAVM(String appUri) throws Exception {
+	public void doRequestRemoveAVM(String appUri, String rdUri) throws Exception {
 		
 		if (((AutonomicControllerAVMsManagementI)this.connector) != null) {
-			((AutonomicControllerAVMsManagementI)this.connector).doRequestRemoveAVM(appUri);	
+			((AutonomicControllerAVMsManagementI)this.connector).doRequestRemoveAVM(appUri, rdUri);	
 		} else {
 			System.out.println("/!\\ No Client Connected with " + appUri + " for AutonomicControllerAVMsManagementI /!\\");
 		}

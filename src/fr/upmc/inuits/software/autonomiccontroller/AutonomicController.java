@@ -342,17 +342,22 @@ public class AutonomicController
 			throws Exception {
 		
 		if (rdURI == this.requestDispatcherURI) {
-			this.averageExecutionTime = currentDynamicState.getCurrentAverageExecutionTime();
-			this.availableAVMsCount = currentDynamicState.getAvailableAVMsCount();
 			this.exponentialSmoothing = currentDynamicState.getCurrentExponentialSmoothing();
+			this.averageExecutionTime = currentDynamicState.getCurrentAverageExecutionTime();
+			this.availableAVMsCount = currentDynamicState.getAvailableAVMsCount();			
+			int totalRequestSubmitted = currentDynamicState.getTotalRequestSubmittedCount();
+			int totalRequestTerminated = currentDynamicState.getTotalRequestTerminatedCount();
 			
 			if (AutonomicController.DEBUG_LEVEL == 3) {
 				StringBuffer sb = new StringBuffer();
 
 				sb.append("Autonomic controller accepting dynamic data from " + rdURI + "\n");
-				sb.append("  average execution time : [" + averageExecutionTime + "]\n");
-				sb.append("  exponential smoothing  : [" + exponentialSmoothing + "]\n");				
+				sb.append("  exponential smoothing  : [" + exponentialSmoothing + "]\n");
+				sb.append("  average execution time : [" + averageExecutionTime + "]\n");								
 				sb.append("  available AVMs count   : [" + availableAVMsCount + "]\n");
+				sb.append("  terminated/submitted   : [" + + totalRequestTerminated + "/" + totalRequestSubmitted + "]\n");
+				sb.append("  the success rate       : [" + totalRequestTerminated * 100 / totalRequestSubmitted + " %]\n");
+				 
 				//sb.append("  current time millis : " + System.currentTimeMillis() + "\n");			
 				
 				this.logMessage(sb.toString());
@@ -392,7 +397,7 @@ public class AutonomicController
 					@Override
 					public void run() {
 						try {
-							applyAdaptationPolicy();
+							applyAdaptationPolicy();//TODO stop if no more request submission
 							
 						} catch (Exception e) {							
 							e.printStackTrace();
@@ -406,53 +411,59 @@ public class AutonomicController
 	
 	protected void applyAdaptationPolicy() throws Exception {
 		
-		//int averageExecutionTime = (int) this.exponentialSmoothing;
-		int averageExecutionTime = (int) this.averageExecutionTime;
-		
-		// The higher threshold is crossed upwards.	
-		if (averageExecutionTime >= HIGHER_THRESHOLD) {								
-			showLogMessageL3("__[The higher threshold is crossed upwards]");
+		//int average = (int) this.exponentialSmoothing;
+		int average = (int) this.averageExecutionTime;
+				
+		if (average > 0) {
+			// The higher threshold is crossed upwards.	
+			if (averageExecutionTime >= HIGHER_THRESHOLD) {								
+				showLogMessageL3("__[The higher threshold " + HIGHER_THRESHOLD + " is crossed upwards : " + average + "]");
 
-			// 1- Increase frequency if possible.
-			if (increaseFrequency()) {							
-				showLogMessageL3("______[[Frequency increased]]");
+				// 1- Increase frequency if possible.
+				if (increaseFrequency()) {							
+					showLogMessageL3("______[[Frequency increased]]");
+					
+				// 2- Add cores if possible.
+				} else if (addCores()) {					
+					showLogMessageL3("______[[Cores added]]");
 				
-			// 2- Add cores if possible.
-			} else if (addCores()) {					
-				showLogMessageL3("______[[Cores added]]");
-			
-			// 3- Add AVMs (always possible).
-			} else {
-				addAVMs();
-				showLogMessageL3("______[[AVMs added]]");
-				//HIGHER_THRESHOLD = 9999; //FIXME remove and set final (for test only !)
+				// 3- Add AVMs (always possible).
+				} else {
+					addAVMs();
+					showLogMessageL3("______[[AVMs added]]");
+					//HIGHER_THRESHOLD = 9999; //FIXME remove and set final (for test only !)
+				}
+				
+			// The lower threshold is crossed down.
+			} else if (averageExecutionTime <= LOWER_THRESHOLD) {						
+				showLogMessageL3("__[The lower threshold " + LOWER_THRESHOLD + " is crossed down : " + average + "]");			
+				
+				// 1- Decrease frequency if possible.
+				if (decreaseFrequency()) {
+					showLogMessageL3("______[[Frequency decreased]]");				
+					
+				// 2- Remove cores if possible.
+				} else if (removeCores()) {				
+					showLogMessageL3("______[[Cores removed]]");
+					
+				// 3- Remove AVMs if possible.
+				} else if (removeAVMs()) {				
+					showLogMessageL3("______[[AVMs removed]]");
+				
+				// 4- Nothing else to do.
+				} else {
+					showLogMessageL3("____Can't do nothing else.");
+				}
+				
+			// Normal situation.
+			} else {			
+				showLogMessageL3("__[Normal situation between " + LOWER_THRESHOLD + " & " + HIGHER_THRESHOLD + "]"); 
 			}
 			
-		// The lower threshold is crossed down.
-		} else if (averageExecutionTime <= LOWER_THRESHOLD) {						
-			showLogMessageL3("__[The lower threshold is crossed down]");			
-			
-			// 1- Decrease frequency if possible.
-			if (decreaseFrequency()) {
-				showLogMessageL3("______[[Frequency decreased]]");				
-				
-			// 2- Remove cores if possible.
-			} else if (removeCores()) {				
-				showLogMessageL3("______[[Cores removed]]");
-				
-			// 3- Remove AVMs if possible.
-			} else if (removeAVMs()) {				
-				showLogMessageL3("______[[AVMs removed]]");
-			
-			// 4- Nothing else to do.
-			} else {
-				showLogMessageL3("____Can't do nothing else.");
-			}
-			
-		// Normal situation.
-		} else {			
-			showLogMessageL3("__[Normal situation]");
-		}
+		// Ignore.
+		} else {
+			showLogMessageL3("__[Waiting for the average execution time]");
+		}		
 	}
 
 	@Override
@@ -527,7 +538,7 @@ public class AutonomicController
 		boolean canRemoveAVM = false;
 		
 		if (this.availableAVMsCount > MUST_HAVE_VM_COUNT) {
-			this.atcamop.doRequestRemoveAVM(this.applicationURI);	
+			this.atcamop.doRequestRemoveAVM(this.applicationURI, this.requestDispatcherURI);	
 			canRemoveAVM = true;
 			
 		} else {

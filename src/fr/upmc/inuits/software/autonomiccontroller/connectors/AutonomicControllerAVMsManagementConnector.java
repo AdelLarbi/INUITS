@@ -17,8 +17,8 @@ public class AutonomicControllerAVMsManagementConnector
 	}
 
 	@Override
-	public void doRequestRemoveAVM(String appUri) throws Exception {
+	public void doRequestRemoveAVM(String appUri, String rdUri) throws Exception {
 
-		((AutonomicControllerAVMsManagementI)this.offering).doRequestRemoveAVM(appUri);
+		((AutonomicControllerAVMsManagementI)this.offering).doRequestRemoveAVM(appUri, rdUri);
 	}
 }

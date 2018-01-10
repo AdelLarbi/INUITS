@@ -13,4 +13,8 @@ public interface RequestDispatcherDynamicStateI
 	public double getCurrentExponentialSmoothing();
 	
 	public int getAvailableAVMsCount();
+	
+	public int getTotalRequestSubmittedCount();
+	
+	public int getTotalRequestTerminatedCount();
 }

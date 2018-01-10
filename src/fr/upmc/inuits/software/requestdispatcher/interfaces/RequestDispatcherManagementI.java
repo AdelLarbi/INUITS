@@ -4,4 +4,6 @@ public interface RequestDispatcherManagementI {
 	
 	public void createRequestSubmissionAndNotificationPorts(String requestSubmissionOutboundPortUri, 
 			String requestNotificationIntboundPortUri) throws Exception;
+	
+	public void destroyRequestSubmissionAndNotificationPorts() throws Exception;
 }

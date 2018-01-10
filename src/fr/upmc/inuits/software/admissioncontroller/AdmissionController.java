@@ -766,13 +766,24 @@ public class AdmissionController
 	}
 	
 	@Override
-	public void acceptRequestRemoveAVM(String appUri) throws Exception {
+	public void acceptRequestRemoveAVM(String appUri, String rdUri) throws Exception {
 
 		if (AdmissionController.DEBUG_LEVEL == 1) {
 			this.logMessage("Admission controller removing AVM for " + appUri + "...");
 		}
 		
-		// TODO Remove AVM
-		//this.rdmop.get(RD_URI).destroyRequestSubmissionAndNotificationPorts();
+		// Remove a submission & a notification port from RD.
+		this.rdmop.get(rdUri).destroyRequestSubmissionAndNotificationPorts();
+				
+		// Get AVM to remove index.
+		int avmToRemoveIndex = avmIndexPerApp.get(appUri);					
+		
+		// Destroy an AVM port.
+		this.portToApplicationVMJVM.get(appUri + avmToRemoveIndex).destroyPort();
+		this.avmOutPort.get(appUri + avmToRemoveIndex).destroyPort();
+		
+		// Update AVMs index.
+		avmToRemoveIndex--;
+		avmIndexPerApp.put(appUri, avmToRemoveIndex);				
 	}
 }

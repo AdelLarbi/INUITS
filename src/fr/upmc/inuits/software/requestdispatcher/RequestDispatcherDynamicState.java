@@ -14,16 +14,22 @@ public class RequestDispatcherDynamicState
 	/** TODO.		*/
 	protected final double averageExecutionTime;
 	/** TODO.		*/
-	protected final int availableAVMsCount;
+	protected final int availableAVMsCount;	
+	/** TODO.		*/
+	protected final int totalRequestSubmitted;
+	/** TODO.		*/
+	protected final int totalRequestTerminated;
 	
 	public RequestDispatcherDynamicState(String rdURI, double exponentialSmoothing, double averageExecutionTime, 
-			int availableAVMsCount) throws Exception {
+			int availableAVMsCount, int totalRequestSubmitted, int totalRequestTerminated) throws Exception {
 		
 		super();
 		this.rdURI = rdURI;
 		this.exponentialSmoothing = exponentialSmoothing;
 		this.averageExecutionTime = averageExecutionTime;
 		this.availableAVMsCount = availableAVMsCount;
+		this.totalRequestSubmitted = totalRequestSubmitted;
+		this.totalRequestTerminated = totalRequestTerminated;
 	}
 	
 	@Override
@@ -55,6 +61,24 @@ public class RequestDispatcherDynamicState
 
 		// copy not to provide direct access to internal data structures.
 		int ret = availableAVMsCount;
+			
+		return ret;
+	}
+
+	@Override
+	public int getTotalRequestSubmittedCount() {
+		
+		// copy not to provide direct access to internal data structures.
+		int ret = totalRequestSubmitted;
+			
+		return ret;
+	}
+
+	@Override
+	public int getTotalRequestTerminatedCount() {
+		
+		// copy not to provide direct access to internal data structures.
+		int ret = totalRequestTerminated;
 			
 		return ret;
 	}
