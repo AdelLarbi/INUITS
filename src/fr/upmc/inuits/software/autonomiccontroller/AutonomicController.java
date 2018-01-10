@@ -499,7 +499,16 @@ public class AutonomicController
 		
 		showLogMessageL3("____Increasing frequency...");
 		
-		boolean canIncreaseFrequency = false;
+		boolean canIncreaseFrequency = false;		
+		int frequency;
+		
+		for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
+			frequency = this.csop[i].increaseFrequency();
+			if (frequency == -1) {
+				canIncreaseFrequency = true;
+				break;
+			}
+		}
 		
 		if (!canIncreaseFrequency) {
 			showLogMessageL3("______[[Failed]]");
@@ -514,6 +523,15 @@ public class AutonomicController
 		showLogMessageL3("____Decreasing frequency...");
 		
 		boolean canDecreaseFrequency = false;
+		int frequency;
+		
+		for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
+			frequency = this.csop[i].decreaseFrequency();
+			if (frequency == -1) {
+				canDecreaseFrequency = true;
+				break;
+			}
+		}
 		
 		if (!canDecreaseFrequency) {
 			showLogMessageL3("______[[Failed]]");
