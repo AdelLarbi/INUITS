@@ -1,6 +1,7 @@
 package fr.upmc.inuits.software.autonomiccontroller.connectors;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import fr.upmc.components.connectors.AbstractConnector;
 import fr.upmc.datacenter.hardware.computers.Computer.AllocatedCore;
@@ -11,7 +12,8 @@ public class AutonomicControllerAVMsManagementConnector
 	implements AutonomicControllerAVMsManagementI {
 
 	@Override
-	public void doRequestAddAVM(String appUri, ArrayList<AllocatedCore[]> allocatedCores) throws Exception {
+	public void doRequestAddAVM(String appUri, HashMap<Integer,ArrayList<AllocatedCore[]>> allocatedCores) 
+			throws Exception {
 		
 		((AutonomicControllerAVMsManagementI)this.offering).doRequestAddAVM(appUri, allocatedCores);
 	}

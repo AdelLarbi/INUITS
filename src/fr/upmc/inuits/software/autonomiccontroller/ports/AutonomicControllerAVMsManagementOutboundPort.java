@@ -1,6 +1,7 @@
 package fr.upmc.inuits.software.autonomiccontroller.ports;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import fr.upmc.components.ComponentI;
 import fr.upmc.components.ports.AbstractOutboundPort;
@@ -24,7 +25,8 @@ public class AutonomicControllerAVMsManagementOutboundPort
 	}
 	
 	@Override
-	public void doRequestAddAVM(String appUri, ArrayList<AllocatedCore[]> allocatedCores) throws Exception {
+	public void doRequestAddAVM(String appUri, HashMap<Integer,ArrayList<AllocatedCore[]>> allocatedCores) 
+			throws Exception {
 
 		if (((AutonomicControllerAVMsManagementI)this.connector) != null) {
 			((AutonomicControllerAVMsManagementI)this.connector).doRequestAddAVM(appUri, allocatedCores);	

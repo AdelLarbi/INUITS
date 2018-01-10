@@ -679,7 +679,8 @@ public class AdmissionController
 	}
 	
 	@Override
-	public void acceptRequestAddAVM(String appUri, ArrayList<AllocatedCore[]> allocatedCores) throws Exception {
+	public void acceptRequestAddAVM(String appUri, HashMap<Integer,ArrayList<AllocatedCore[]>> allocatedCoresMap) 
+			throws Exception {
 		
 		if (AdmissionController.DEBUG_LEVEL == 1) {
 			this.logMessage("Admission controller adding AVM for " + appUri + "...");										
@@ -696,8 +697,11 @@ public class AdmissionController
 		String index = appUri + avmIndexPerApp.get(appUri);
 		AllocatedCore[] mustHaveCores = this.mustHaveCoresPerApp.get(appUri);
 		this.avmOutPort.get(index).allocateCores(mustHaveCores);
-		for(AllocatedCore[] allocatedCore : allocatedCores) {
-			this.avmOutPort.get(index).allocateCores(allocatedCore);	
+		
+		for(ArrayList<AllocatedCore[]> allocatedCoreList : allocatedCoresMap.values()) {
+			for(AllocatedCore[] allocatedCore : allocatedCoreList) {
+				this.avmOutPort.get(index).allocateCores(allocatedCore);	
+			}				
 		}
 	}
 

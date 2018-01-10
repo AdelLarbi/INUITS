@@ -416,7 +416,7 @@ public class AutonomicController
 	protected final int MUST_HAVE_VM_COUNT = 2;
 	
 	// Store allocated cores history
-	ArrayList<AllocatedCore[]> allocatedCoresHistory = new ArrayList<>();
+	HashMap<Integer,ArrayList<AllocatedCore[]>> allocatedCoresHistory = new HashMap<>();
 	
 	public void controlResources() {
 		
@@ -544,6 +544,20 @@ public class AutonomicController
 			AllocatedCore[] allocatedCore = this.csop[computerToUseIndex].allocateCores(CORES_TO_ADD_COUNT);
 			this.atcamop.doRequestAddCores(this.applicationURI, allocatedCore, this.availableAVMsCount);
 			
+			// Update History
+			Integer computerToUseIndexInteger = computerToUseIndex;
+			ArrayList<AllocatedCore[]> allocatedCoreList = this.allocatedCoresHistory.get(computerToUseIndexInteger);
+			
+			if (allocatedCoreList != null) {
+				allocatedCoreList.add(allocatedCore);
+				this.allocatedCoresHistory.put(computerToUseIndexInteger, allocatedCoreList);
+				
+			} else {
+				ArrayList<AllocatedCore[]> allocatedCoreListTmp = new ArrayList<>();
+				allocatedCoreListTmp.add(allocatedCore);
+				this.allocatedCoresHistory.put(computerToUseIndexInteger, allocatedCoreListTmp);
+			}
+									
 		} else {
 			showLogMessageL3("______[[Failed]]");
 		}
@@ -557,6 +571,19 @@ public class AutonomicController
 		showLogMessageL3("____Removing cores...");
 		
 		boolean canRemoveCores = false;
+		
+		for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
+			ArrayList<AllocatedCore[]> allocatedCoreList = this.allocatedCoresHistory.get(i);
+			
+			if (allocatedCoreList != null && allocatedCoreList.size() > 0) {
+				AllocatedCore[] coresToRelease = allocatedCoreList.remove(allocatedCoreList.size() - 1);
+								
+				this.csop[i].releaseCores(coresToRelease);
+				
+				canRemoveCores = true;
+				break;
+			}
+		}		
 		
 		if (!canRemoveCores) {
 			showLogMessageL3("______[[Failed]]");
