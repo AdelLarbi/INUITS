@@ -247,9 +247,10 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 				this.rgManagementInboundPortURI,
 				RequestGeneratorManagementConnector.class.getCanonicalName());			
 									
-		this.rgmop.startGeneration();
-		Thread.sleep(40000L);		
-		//Thread.sleep(5000L);
+		this.rgmop.startGeneration();		
+		this.rgmop.setMeanInterArrivalTime(300);
+		
+		Thread.sleep(40000L);				
 		this.rgmop.stopGeneration();
 	}
 }

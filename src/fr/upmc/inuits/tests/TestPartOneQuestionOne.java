@@ -1,5 +1,6 @@
 package fr.upmc.inuits.tests;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -11,6 +12,7 @@ import fr.upmc.datacenter.hardware.computers.Computer;
 import fr.upmc.datacenter.hardware.computers.Computer.AllocatedCore;
 import fr.upmc.datacenter.hardware.computers.connectors.ComputerServicesConnector;
 import fr.upmc.datacenter.hardware.computers.ports.ComputerServicesOutboundPort;
+import fr.upmc.datacenter.hardware.processors.Processor;
 import fr.upmc.datacenter.software.applicationvm.ApplicationVM;
 import fr.upmc.datacenter.software.applicationvm.connectors.ApplicationVMManagementConnector;
 import fr.upmc.datacenter.software.applicationvm.ports.ApplicationVMManagementOutboundPort;
@@ -59,8 +61,7 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 	public void deploy() throws Exception {
 		
 		//AbstractComponent.configureLogging(System.getProperty("user.home"), "log", 400, '|');
-		//AbstractCVM.toggleDebugMode();
-		//Processor.DEBUG = false;
+		Processor.DEBUG = true;
 		// --------------------------------------------------------------------
 		String computerURI = "computer0";
 		int numberOfProcessors = 2;
@@ -68,17 +69,15 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>();
 		admissibleFrequencies.add(1500);
 		admissibleFrequencies.add(3000);
-		admissibleFrequencies.add(6000);
 		Map<Integer,Integer> processingPower = new HashMap<Integer,Integer>();
 		processingPower.put(1500, 1500000);
 		processingPower.put(3000, 3000000);
-		processingPower.put(6000, 6000000);
 		
 		Computer computer = new Computer(
 				computerURI, 
 				admissibleFrequencies, 
 				processingPower, 
-				1500,//1500 
+				1500, 
 				1500, 
 				numberOfProcessors, 
 				numberOfCores, 
@@ -122,7 +121,7 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 		for (int i = 0; i < 2; i++) {
 			this.requestGenerator[i] = new RequestGenerator(				
 					"rg" + i,
-					500.0,//500.0,
+					500.0,
 					6000000000L,
 					RG_MANAGEMENT_IN_PORT_URI[i],
 					RG_REQUEST_SUBMISSION_OUT_PORT_URI[i],
@@ -130,7 +129,7 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 			
 			this.addDeployedComponent(this.requestGenerator[i]);
 		
-			RequestGenerator.DEBUG_LEVEL = 0;
+			RequestGenerator.DEBUG_LEVEL = 1;
 			this.requestGenerator[i].toggleTracing();
 			this.requestGenerator[i].toggleLogging();
 			// --------------------------------------------------------------------
@@ -145,35 +144,54 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 					RequestGeneratorManagementConnector.class.getCanonicalName());			
 		}		
 		// --------------------------------------------------------------------
-		final String[] RD0_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd1rs-op", "rd2rs-op"};
-		final String[] RD0_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd1rn-ip", "rd2rn-ip"};
+		final ArrayList<String> RD0_REQUEST_SUBMISSION_OUT_PORT_URI = new ArrayList<>();
+		final ArrayList<String> RD0_REQUEST_NOTIFICATION_IN_PORT_URI = new ArrayList<>();
+		{
+			RD0_REQUEST_SUBMISSION_OUT_PORT_URI.add("rd1rs-op");
+			RD0_REQUEST_SUBMISSION_OUT_PORT_URI.add("rd2rs-op");
+			RD0_REQUEST_NOTIFICATION_IN_PORT_URI.add("rd1rn-ip");
+			RD0_REQUEST_NOTIFICATION_IN_PORT_URI.add("rd2rn-ip");
+		}
 					
 		this.requestDispatcher[0] = new RequestDispatcher(				
-				"rd" + 0,				
+				"rd" + 0,		
+				"requestDispatcherManagementIntboundPortURI" + 0, //FIXME
+				"app" + 0,
 				RD_REQUEST_SUBMISSION_IN_PORT_URI[0],
 				RD0_REQUEST_SUBMISSION_OUT_PORT_URI,
 				RD0_REQUEST_NOTIFICATION_IN_PORT_URI,
-				RD_REQUEST_NOTIFICATION_OUT_PORT_URI[0]);
+				RD_REQUEST_NOTIFICATION_OUT_PORT_URI[0],
+				"requestDispatcherDynamicStateDataInboundPortURI" + 0); //FIXME
 		
 		this.addDeployedComponent(this.requestDispatcher[0]);
 		
-		RequestDispatcher.DEBUG_LEVEL = 0;
+		RequestDispatcher.DEBUG_LEVEL = 1;
 		this.requestDispatcher[0].toggleTracing();
 		this.requestDispatcher[0].toggleLogging();
 		
-		final String[] RD1_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd3rs-op", "rd4rs-op"};
-		final String[] RD1_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd3rn-ip", "rd4rn-ip"};
+		final ArrayList<String> RD1_REQUEST_SUBMISSION_OUT_PORT_URI = new ArrayList<>();
+		final ArrayList<String> RD1_REQUEST_NOTIFICATION_IN_PORT_URI = new ArrayList<>();
+		{
+			RD0_REQUEST_SUBMISSION_OUT_PORT_URI.add("rd3rs-op");
+			RD0_REQUEST_SUBMISSION_OUT_PORT_URI.add("rd4rs-op");
+			RD0_REQUEST_NOTIFICATION_IN_PORT_URI.add("rd3rn-ip");
+			RD0_REQUEST_NOTIFICATION_IN_PORT_URI.add("rd4rn-ip");
+		}
 		
 		this.requestDispatcher[1] = new RequestDispatcher(				
 				"rd" + 1,				
+				"requestDispatcherManagementIntboundPortURI" + 1, //FIXME
+				"app" + 1,
 				RD_REQUEST_SUBMISSION_IN_PORT_URI[1],
 				RD1_REQUEST_SUBMISSION_OUT_PORT_URI,
 				RD1_REQUEST_NOTIFICATION_IN_PORT_URI,
-				RD_REQUEST_NOTIFICATION_OUT_PORT_URI[1]);
+				RD_REQUEST_NOTIFICATION_OUT_PORT_URI[1],
+				"requestDispatcherDynamicStateDataInboundPortURI" + 1); //FIXME
+
 		
 		this.addDeployedComponent(this.requestDispatcher[1]);
 		
-		RequestDispatcher.DEBUG_LEVEL = 0;
+		RequestDispatcher.DEBUG_LEVEL = 1;
 		this.requestDispatcher[1].toggleTracing();
 		this.requestDispatcher[1].toggleLogging();
 		// --------------------------------------------------------------------
@@ -182,7 +200,7 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 					AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[i],
 					RD_REQUEST_NOTIFICATION_IN_PORT_URI[i],
 					RequestNotificationConnector.class.getCanonicalName());
-		}	
+		}
 		// --------------------------------------------------------------------
 		for (int i = 0; i < 2; i++) {
 			this.requestGenerator[i].doPortConnection(
@@ -225,7 +243,8 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 	}
 	
 	@Override
-	public void shutdown() throws Exception {		
+	public void shutdown() throws Exception {
+		
 		this.csOutPort.doDisconnection();
 		
 		for (int i = 0; i < 4; i++) {
@@ -294,9 +313,9 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 				@Override
 				public void run() {
 					try {
-						test.scenarioUniqueApplicationAndTwoAVMs();
+						//test.scenarioUniqueApplicationAndTwoAVMs();
 						//test.scenarioOneApplicationThenAnotherTwoAVMsEach();
-						//test.scenarioTwoApplicationsSimultaneouslyTwoAVMsEach();
+						test.scenarioTwoApplicationsSimultaneouslyTwoAVMsEach();
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}

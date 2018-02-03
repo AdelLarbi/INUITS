@@ -90,18 +90,18 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		Set<Integer> admissibleFrequencies = new HashSet<Integer>();
 		admissibleFrequencies.add(1500);
 		admissibleFrequencies.add(3000);
-		admissibleFrequencies.add(9000);
+		admissibleFrequencies.add(5000);
 		Map<Integer,Integer> processingPower = new HashMap<Integer,Integer>();
 		processingPower.put(1500, 1500000);
 		processingPower.put(3000, 3000000);
-		processingPower.put(9000, 9000000);
+		processingPower.put(5000, 5000000);
 		
 		Computer computer = new Computer(
 				computersURI.get(0),
 				admissibleFrequencies, 
 				processingPower, 
-				9000, 
-				7000, 
+				3000, 
+				2000, 
 				numberOfProcessors, 
 				numberOfCores, 
 				C_SERVICES_IN_PORT_URI.get(0), 

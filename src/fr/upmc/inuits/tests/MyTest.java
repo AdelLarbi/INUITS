@@ -151,7 +151,7 @@ public class MyTest extends AbstractCVM {
 			
 			this.avmOutPort[i].doConnection(
 							AVM_MANAGEMENT_IN_PORT_URI[i],
-							ApplicationVMManagementConnector.class.getCanonicalName());					
+							ApplicationVMManagementConnector.class.getCanonicalName());				
 		}
 		// --------------------------------------------------------------------
 		
@@ -182,6 +182,7 @@ public class MyTest extends AbstractCVM {
 		this.requestDispatcher = new RequestDispatcher(				
 				"rd0",				
 				"RD_MANAGMEMENT_IN_PORT_URI",
+				"app0",
 				RD_REQUEST_SUBMISSION_IN_PORT_URI,
 				RD_REQUEST_SUBMISSION_OUT_PORT_URI,
 				RD_REQUEST_NOTIFICATION_IN_PORT_URI,

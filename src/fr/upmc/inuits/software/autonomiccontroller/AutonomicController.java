@@ -402,7 +402,7 @@ public class AutonomicController
 	}
 	
 	// -----------------------------------------------------------------------------------------------------------------
-	protected final int CONTROL_RESOURCES_TIMER = ANALYSE_DATA_TIMER;
+	protected final int CONTROL_RESOURCES_TIMER = ANALYSE_DATA_TIMER * 5;
 	
 	protected final int LOWER_THRESHOLD = 400;
 	protected  int HIGHER_THRESHOLD = 600; //1500
@@ -411,10 +411,11 @@ public class AutonomicController
 	protected final int VM_TO_DEALLOCATED_COUNT = VM_TO_ALLOCATE_COUNT;
 	
 	protected final int CORES_TO_ADD_COUNT = 4;
-	protected final int CORES_TO_REMOVE_COUNT = CORES_TO_ADD_COUNT;
-	
+	protected final int CORES_TO_REMOVE_COUNT = CORES_TO_ADD_COUNT;	
 	// Do not remove AVM when only 2 AVMs left
 	protected final int MUST_HAVE_VM_COUNT = 2;
+	// Do not add more AVMs if already 5 are deployed 
+	protected final int MAXIMUM_ALLOWED_VM_COUNT = 5;
 	
 	// Store allocated cores history
 	HashMap<Integer,ArrayList<AllocatedCore[]>> allocatedCoresHistory = new HashMap<>();
@@ -458,9 +459,12 @@ public class AutonomicController
 					showLogMessageL3("______[[Cores added]]");
 				
 				// 3- Add AVMs (always possible).
-				} else {
-					addAVMs();
+				} else if (addAVMs()) {					
 					showLogMessageL3("______[[AVMs added]]");
+					
+				// 4- Nothing else to do.
+				} else {
+					showLogMessageL3("____Can't do nothing else. " + MAXIMUM_ALLOWED_VM_COUNT + " are the maximum AVMs allowed.");
 				}
 				
 			// The lower threshold is crossed down.
@@ -481,7 +485,7 @@ public class AutonomicController
 				
 				// 4- Nothing else to do.
 				} else {
-					showLogMessageL3("____Can't do nothing else.");
+					showLogMessageL3("____Can't do nothing else. " + MUST_HAVE_VM_COUNT + " are the minimum AVMs required.");
 				}
 				
 			// Normal situation.
@@ -612,11 +616,21 @@ public class AutonomicController
 	}
 
 	@Override
-	public void addAVMs() throws Exception {
+	public boolean addAVMs() throws Exception {
 		
 		showLogMessageL3("____Adding AVMs...");
 				
-		this.atcamop.doRequestAddAVM(this.applicationURI, this.allocatedCoresHistory);
+		boolean canAddAVM = false;
+		
+		if (this.availableAVMsCount < MAXIMUM_ALLOWED_VM_COUNT) {
+			this.atcamop.doRequestAddAVM(this.applicationURI, this.allocatedCoresHistory);
+			canAddAVM = true;
+			
+		} else {
+			showLogMessageL3("______[[Failed]]");	
+		}
+		
+		return canAddAVM;
 	}
 
 	@Override

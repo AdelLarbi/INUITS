@@ -14,7 +14,7 @@ public interface AutonomicControllerServicesI
 	
 	public boolean removeCores() throws Exception;
 	
-	public void addAVMs() throws Exception;
+	public boolean addAVMs() throws Exception;
 	
 	public boolean removeAVMs() throws Exception;	
 }

@@ -1,5 +1,6 @@
 package fr.upmc.inuits.tests;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -39,9 +40,20 @@ public class TestPartOneQuestionOneDCVM
 	public static final String[] AVM_REQUEST_NOTIFICATION_OUT_PORT_URI = {"a1rn-op", "a2rn-op", "a3rn-op", "a4rn-op"};
 	
 	public static final String[] RD_REQUEST_SUBMISSION_IN_PORT_URI = {"rd1rs-ip", "rd2rs-ip"};
-	public static final String[] RD_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd1rs-op", "rd2rs-op", "rd3rs-op", "rd4rs-op"};
-	public static final String[] RD_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd1rn-ip", "rd2rn-ip", "rd3rn-ip", "rd4rn-ip"};
+	public static final ArrayList<String> RD_REQUEST_SUBMISSION_OUT_PORT_URI = new ArrayList<>();
+	public static final ArrayList<String> RD_REQUEST_NOTIFICATION_IN_PORT_URI = new ArrayList<>();
 	public static final String[] RD_REQUEST_NOTIFICATION_OUT_PORT_URI = {"rd1rn-op", "rd2rn-op"};
+	{
+		RD_REQUEST_SUBMISSION_OUT_PORT_URI.add("rd1rs-op");
+		RD_REQUEST_SUBMISSION_OUT_PORT_URI.add("rd2rs-op");
+		RD_REQUEST_SUBMISSION_OUT_PORT_URI.add("rd3rs-op");
+		RD_REQUEST_SUBMISSION_OUT_PORT_URI.add("rd4rs-op");
+		
+		RD_REQUEST_NOTIFICATION_IN_PORT_URI.add("rd1rn-ip");
+		RD_REQUEST_NOTIFICATION_IN_PORT_URI.add("rd2rn-ip");
+		RD_REQUEST_NOTIFICATION_IN_PORT_URI.add("rd3rn-ip");
+		RD_REQUEST_NOTIFICATION_IN_PORT_URI.add("rd4rn-ip");
+	}
 	
 	public static final String[] RG_MANAGEMENT_IN_PORT_URI = {"rg1m-ip", "rg2m-ip"};
 	public static final String[] RG_MANAGEMENT_OUT_PORT_URI = {"rg1m-op", "rg2m-op"};
@@ -167,15 +179,23 @@ public class TestPartOneQuestionOneDCVM
 				this.rgmOutPort[i].publishPort();						
 			}		
 			// --------------------------------------------------------------------
-			final String[] RD0_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd1rs-op", "rd2rs-op"};
-			final String[] RD0_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd1rn-ip", "rd2rn-ip"};
+			final ArrayList<String> RD0_REQUEST_SUBMISSION_OUT_PORT_URI = new ArrayList<>();
+			final ArrayList<String> RD0_REQUEST_NOTIFICATION_IN_PORT_URI = new ArrayList<>();
+			{
+				RD0_REQUEST_SUBMISSION_OUT_PORT_URI.add("rd1rs-op");
+				RD0_REQUEST_SUBMISSION_OUT_PORT_URI.add("rd2rs-op");
+				RD0_REQUEST_NOTIFICATION_IN_PORT_URI.add("rd1rn-ip");
+				RD0_REQUEST_NOTIFICATION_IN_PORT_URI.add("rd2rn-ip");
+			}
 						
 			this.requestDispatcher[0] = new RequestDispatcher(				
-					"rd" + 0,				
+					"rd" + 0,		
+					"requestDispatcherManagementIntboundPortURI" + 0, //FIXME
 					RD_REQUEST_SUBMISSION_IN_PORT_URI[0],
 					RD0_REQUEST_SUBMISSION_OUT_PORT_URI,
 					RD0_REQUEST_NOTIFICATION_IN_PORT_URI,
-					RD_REQUEST_NOTIFICATION_OUT_PORT_URI[0]);
+					RD_REQUEST_NOTIFICATION_OUT_PORT_URI[0],
+					"requestDispatcherDynamicStateDataInboundPortURI" + 0); //FIXME
 			
 			this.addDeployedComponent(this.requestDispatcher[0]);
 			
@@ -183,15 +203,23 @@ public class TestPartOneQuestionOneDCVM
 			this.requestDispatcher[0].toggleTracing();
 			this.requestDispatcher[0].toggleLogging();
 			
-			final String[] RD1_REQUEST_SUBMISSION_OUT_PORT_URI = {"rd3rs-op", "rd4rs-op"};
-			final String[] RD1_REQUEST_NOTIFICATION_IN_PORT_URI = {"rd3rn-ip", "rd4rn-ip"};
+			final ArrayList<String> RD1_REQUEST_SUBMISSION_OUT_PORT_URI = new ArrayList<>();
+			final ArrayList<String> RD1_REQUEST_NOTIFICATION_IN_PORT_URI = new ArrayList<>();
+			{
+				RD0_REQUEST_SUBMISSION_OUT_PORT_URI.add("rd3rs-op");
+				RD0_REQUEST_SUBMISSION_OUT_PORT_URI.add("rd4rs-op");
+				RD0_REQUEST_NOTIFICATION_IN_PORT_URI.add("rd3rn-ip");
+				RD0_REQUEST_NOTIFICATION_IN_PORT_URI.add("rd4rn-ip");
+			}
 			
 			this.requestDispatcher[1] = new RequestDispatcher(				
 					"rd" + 1,				
+					"requestDispatcherManagementIntboundPortURI" + 1, //FIXME
 					RD_REQUEST_SUBMISSION_IN_PORT_URI[1],
 					RD1_REQUEST_SUBMISSION_OUT_PORT_URI,
 					RD1_REQUEST_NOTIFICATION_IN_PORT_URI,
-					RD_REQUEST_NOTIFICATION_OUT_PORT_URI[1]);
+					RD_REQUEST_NOTIFICATION_OUT_PORT_URI[1],
+					"requestDispatcherDynamicStateDataInboundPortURI" + 1); //FIXME
 			
 			this.addDeployedComponent(this.requestDispatcher[1]);
 			
@@ -226,7 +254,7 @@ public class TestPartOneQuestionOneDCVM
 			for (int i = 0; i < 4; i++) {
 				this.applicationVM[i].doPortConnection(
 						AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[i],
-						RD_REQUEST_NOTIFICATION_IN_PORT_URI[i],
+						RD_REQUEST_NOTIFICATION_IN_PORT_URI.get(i),
 						RequestNotificationConnector.class.getCanonicalName());				
 				
 				this.avmOutPort[i].doConnection(
@@ -259,13 +287,13 @@ public class TestPartOneQuestionOneDCVM
 						RequestGeneratorManagementConnector.class.getCanonicalName());							
 				
 				this.requestDispatcher[0].doPortConnection(
-						RD_REQUEST_SUBMISSION_OUT_PORT_URI[i],
+						RD_REQUEST_SUBMISSION_OUT_PORT_URI.get(i),
 						AVM_REQUEST_SUBMISSION_IN_PORT_URI[i],
 						RequestSubmissionConnector.class.getCanonicalName());
 			}																						
 			for (int i = 2; i < 4; i++) {
 				this.requestDispatcher[1].doPortConnection(
-						RD_REQUEST_SUBMISSION_OUT_PORT_URI[i],
+						RD_REQUEST_SUBMISSION_OUT_PORT_URI.get(i),
 						AVM_REQUEST_SUBMISSION_IN_PORT_URI[i],
 						RequestSubmissionConnector.class.getCanonicalName());
 			}								
@@ -273,7 +301,7 @@ public class TestPartOneQuestionOneDCVM
 			assert this.requestGenerator[0].isPortConnected(RG_REQUEST_SUBMISSION_OUT_PORT_URI[0]);
 			assert this.rgmOutPort[0].connected();
 			assert this.requestDispatcher[0].isPortConnected(RD_REQUEST_NOTIFICATION_OUT_PORT_URI[0]);
-			assert this.requestDispatcher[0].isPortConnected(RD_REQUEST_SUBMISSION_OUT_PORT_URI[0]);			
+			assert this.requestDispatcher[0].isPortConnected(RD_REQUEST_SUBMISSION_OUT_PORT_URI.get(0));			
 
 		} else {
 			System.out.println("Unknown JVM URI... " + thisJVMURI);
@@ -304,11 +332,11 @@ public class TestPartOneQuestionOneDCVM
 			for (int i = 0; i < 2; i++) {
 				this.requestGenerator[i].doPortDisconnection(RG_REQUEST_SUBMISSION_OUT_PORT_URI[i]);
 				this.requestDispatcher[i].doPortDisconnection(RD_REQUEST_NOTIFICATION_OUT_PORT_URI[i]);
-				this.requestDispatcher[0].doPortDisconnection(RD_REQUEST_SUBMISSION_OUT_PORT_URI[i]);
+				this.requestDispatcher[0].doPortDisconnection(RD_REQUEST_SUBMISSION_OUT_PORT_URI.get(i));
 				this.rgmOutPort[i].doDisconnection();
 			}
 			for (int i = 2; i < 4; i++) {		
-				this.requestDispatcher[1].doPortDisconnection(RD_REQUEST_SUBMISSION_OUT_PORT_URI[i]);
+				this.requestDispatcher[1].doPortDisconnection(RD_REQUEST_SUBMISSION_OUT_PORT_URI.get(i));
 			}					
 		} else {
 			System.out.println("Unknown JVM URI... " + thisJVMURI);
