@@ -25,17 +25,22 @@ import fr.upmc.datacenter.interfaces.ControlledDataRequiredI;
 import fr.upmc.inuits.software.autonomiccontroller.connectors.AutonomicControllerAVMsManagementConnector;
 import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerAVMsManagementI;
 import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerManagementI;
+import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerReceiverHandlerI;
+import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerReceiverI;
+import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerSenderI;
 import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerServicesI;
 import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerAVMsManagementOutboundPort;
 import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerManagementInboundPort;
+import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerReceiverInboundPort;
+import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerSenderOutboundPort;
 import fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherDynamicStateI;
 import fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherStateDataConsumerI;
 import fr.upmc.inuits.software.requestdispatcher.ports.RequestDispatcherDynamicStateDataOutboundPort;
 
 public class AutonomicController 
 	extends AbstractComponent 
-	implements AutonomicControllerManagementI, AutonomicControllerServicesI, ComputerStateDataConsumerI, 
-	           RequestDispatcherStateDataConsumerI {
+	implements AutonomicControllerManagementI, AutonomicControllerServicesI, AutonomicControllerReceiverHandlerI, 
+		ComputerStateDataConsumerI, RequestDispatcherStateDataConsumerI {
 
 	public static int DEBUG_LEVEL = 1;
 	
@@ -60,6 +65,8 @@ public class AutonomicController
 	protected RequestDispatcherDynamicStateDataOutboundPort rddsdop;
 	protected AutonomicControllerManagementInboundPort atcmip;
 	protected AutonomicControllerAVMsManagementOutboundPort atcamop;	
+	protected AutonomicControllerSenderOutboundPort atsop;
+	protected AutonomicControllerReceiverInboundPort atrip;
 	
 	protected double exponentialSmoothing;
 	protected double averageExecutionTime;
@@ -77,7 +84,9 @@ public class AutonomicController
 			String requestDispatcherURI, 
 			String requestDispatcherDynamicStateDataOutboundPortURI,
 			String autonomicControllerManagementInboundPortURI,
-			String autonomicControllerAVMsManagementOutboundPortURI) throws Exception {
+			String autonomicControllerAVMsManagementOutboundPortURI,
+			String autonomicControllerSenderOutboundPortURI,
+			String autonomicControllerReceiverInboundPortURI) throws Exception {
 	
 		super(atcURI, 1, 1);
 		
@@ -90,7 +99,11 @@ public class AutonomicController
 				&& requestDispatcherDynamicStateDataOutboundPortURI.length() > 0;
 		assert autonomicControllerManagementInboundPortURI != null;
 		assert autonomicControllerAVMsManagementOutboundPortURI != null 
-				&& autonomicControllerAVMsManagementOutboundPortURI.length() > 0;
+				&& autonomicControllerAVMsManagementOutboundPortURI.length() > 0;				
+		assert autonomicControllerSenderOutboundPortURI != null 
+				&& autonomicControllerSenderOutboundPortURI.length() > 0;						
+		assert autonomicControllerReceiverInboundPortURI != null 
+				&& autonomicControllerReceiverInboundPortURI.length() > 0;
 				
 		this.atcURI = atcURI;
 		this.applicationURI = applicationURI;
@@ -142,6 +155,16 @@ public class AutonomicController
 		this.addPort(this.atcamop);
 		this.atcamop.publishPort();
 		
+		this.addRequiredInterface(AutonomicControllerSenderI.class);
+		this.atsop = new AutonomicControllerSenderOutboundPort(autonomicControllerSenderOutboundPortURI, this);
+		this.addPort(this.atsop);
+		this.atsop.publishPort();
+		
+		this.addOfferedInterface(AutonomicControllerReceiverI.class);
+		this.atrip = new AutonomicControllerReceiverInboundPort(autonomicControllerReceiverInboundPortURI, this);
+		this.addPort(this.atrip);
+		this.atrip.publishPort();
+		
 		this.exponentialSmoothing = -1;
 		this.averageExecutionTime = -1;
 		this.availableAVMsCount = -1;
@@ -158,7 +181,9 @@ public class AutonomicController
 		assert this.cdsdop != null && this.cdsdop[0] instanceof ControlledDataRequiredI.ControlledPullI;
 		assert this.rddsdop != null && this.rddsdop instanceof ControlledDataRequiredI.ControlledPullI;
 		assert this.atcmip != null && this.atcmip instanceof AutonomicControllerManagementI;
-		assert this.atcamop != null && this.atcamop instanceof AutonomicControllerAVMsManagementI;		
+		assert this.atcamop != null && this.atcamop instanceof AutonomicControllerAVMsManagementI;
+		assert this.atsop != null && this.atsop instanceof AutonomicControllerSenderI;
+		assert this.atrip != null && this.atrip instanceof AutonomicControllerReceiverI;
 	}
 
 	@Override
@@ -190,6 +215,9 @@ public class AutonomicController
 			if (this.atcamop.connected()) {
 				this.atcamop.doDisconnection();
 			}
+			if (this.atsop.connected()) {
+				this.atsop.doDisconnection();
+			}			
 		} catch (Exception e) {
 			throw new ComponentShutdownException("Port disconnection error", e);
 		}
@@ -401,6 +429,15 @@ public class AutonomicController
 		return false;
 	}
 	
+	@Override
+	public void acceptReceivedDataNotification(String atcUri, ArrayList<String> availableAVMs) throws Exception {
+
+		if (atcUri != this.atcURI) {
+			// TODO Auto-generated method stub
+			this.atsop.sendDataAndNotify(atcUri, availableAVMs);	
+		}
+	}
+	
 	// -----------------------------------------------------------------------------------------------------------------
 	protected final int CONTROL_RESOURCES_TIMER = ANALYSE_DATA_TIMER * 5;
 	
@@ -417,7 +454,7 @@ public class AutonomicController
 	// Do not add more AVMs if already 5 are deployed 
 	protected final int MAXIMUM_ALLOWED_VM_COUNT = 5;
 	
-	// Store allocated cores history
+	// Archive allocated cores history
 	HashMap<Integer,ArrayList<AllocatedCore[]>> allocatedCoresHistory = new HashMap<>();
 	
 	public void controlResources() {

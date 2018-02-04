@@ -718,11 +718,12 @@ public class AdmissionController
 		// Deployment a new AVM.
 		deployNewAVM(appUri, RD_URI);
 		
-		// Allocate cores.						
+		// Allocate initial cores.						
 		String index = appUri + avmIndexPerApp.get(appUri);
 		AllocatedCore[] mustHaveCores = this.mustHaveCoresPerApp.get(appUri);
 		this.avmOutPort.get(index).allocateCores(mustHaveCores);
 		
+		// Allocate historical cores.
 		for(ArrayList<AllocatedCore[]> allocatedCoreList : allocatedCoresMap.values()) {
 			for(AllocatedCore[] allocatedCore : allocatedCoreList) {
 				this.avmOutPort.get(index).allocateCores(allocatedCore);	
