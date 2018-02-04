@@ -1,5 +1,9 @@
 package fr.upmc.inuits.software.requestdispatcher.interfaces;
 
+/**
+ * L' interface <code>RequestDispatcherManagementI</code> permet la gestion des port entre dispatcher et l'AVM. 
+ *
+ */
 public interface RequestDispatcherManagementI {
 	/**
 	 * 

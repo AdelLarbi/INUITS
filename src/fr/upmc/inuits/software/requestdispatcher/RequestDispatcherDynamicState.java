@@ -3,8 +3,7 @@ package fr.upmc.inuits.software.requestdispatcher;
 import fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherDynamicStateI;
 
 /**
- * classe representant les données dynamiques liées au dispatcher
- * @author evergreen
+ * La classe <code>RequestDispatcherDynamicState</code> representant les données dynamiques liées au dispatcher
  *
  */
 public class RequestDispatcherDynamicState 

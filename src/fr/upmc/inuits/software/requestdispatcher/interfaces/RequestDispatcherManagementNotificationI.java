@@ -6,5 +6,6 @@ import fr.upmc.components.interfaces.RequiredI;
 public interface RequestDispatcherManagementNotificationI
 	extends OfferedI, RequiredI {
 	
+
 	public void notifyCreateRequestSubmissionAndNotificationPorts(String appUri, String rdUri) throws Exception;
 }
