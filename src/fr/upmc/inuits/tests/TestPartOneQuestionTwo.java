@@ -297,10 +297,10 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				@Override
 				public void run() {
 					try {
-						test.scenarioUniqueApplicationAndThreeAVMs_accept();
+						//test.scenarioUniqueApplicationAndThreeAVMs_accept();
 						//test.scenarioUniqueApplicationAndThreeAVMs_refuse();
 						
-						//test.scenarioTwoApplicationsSimultaneouslyAndThreeAVMsEach_accept();
+						test.scenarioTwoApplicationsSimultaneouslyAndThreeAVMsEach_accept();
 						//test.scenarioTwoApplicationsSimultaneouslyAndThreeAVMsEach_refuse();
 						
 						//test.scenarioOneApplicationThenAnotherAndThreeAVMsEach_accept();

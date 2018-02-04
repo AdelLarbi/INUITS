@@ -434,14 +434,21 @@ public class AutonomicController
 	public void acceptSentDataAndNotify(String originSenderUri, String thisSenderUri, ArrayList<String> availableAVMs)
 			throws Exception {
 
+		this.logMessage("~~~~~~~ " + this.atcURI + " accepting data from " + thisSenderUri);
+		
+		
+		/*System.out.println("****************this.atcURI = " + this.atcURI);
+		System.out.println("****************originSenderUri = " + originSenderUri);
+		System.out.println("****************thisSenderUri = " + thisSenderUri);*/
+		
 		if (this.atcURI != originSenderUri) {
 			// TODO Auto-generated method stub
 			this.atccop.sendDataAndNotify(originSenderUri, this.atcURI, availableAVMs);
 			
 		} else {
-			System.out.println("_______________________________________________");
+			/*System.out.println("_______________________________________________");
 			System.out.println("ATC:" + availableAVMs.size());
-			System.out.println("_______________________________________________");	
+			System.out.println("_______________________________________________");*/	
 		}		
 	}
 	
@@ -495,6 +502,7 @@ public class AutonomicController
 				showLogMessageL3("__[The higher threshold " + HIGHER_THRESHOLD + " is crossed upwards : " + average + "]");
 				
 				
+				this.logMessage("~~~~~~~ " + this.atcURI + " asked for coordination.");
 				
 				ArrayList<String> data = new ArrayList<>();
 				data.add("Hello");

@@ -122,7 +122,7 @@ public class AdmissionController
 	
 	protected final int TOTAL_COMPUTERS_USED;
 	protected final int TOTAL_APPLICATION_EXECUTION_REQUESTED;	
-	protected int TOTAL_APPLICATION_ACCEPTED;
+	protected int totalApplicationAccepted;
 	
 	protected int numberOfProcessors;
 	protected int numberOfCoresPerProcessor;	
@@ -177,7 +177,8 @@ public class AdmissionController
 		
 		this.TOTAL_COMPUTERS_USED = computersURI.size();
 		this.TOTAL_APPLICATION_EXECUTION_REQUESTED = appsURI.size();			
-	
+		this.totalApplicationAccepted = 0;
+		
 		this.avmManagementInPortUri = new HashMap<>();
 		this.avmManagementOutPortUri = new HashMap<>();	
 		this.avmRequestSubmissionInPortUri = new HashMap<>();
@@ -453,6 +454,7 @@ public class AdmissionController
 		synchronized (this) {			
 			if (isResourcesAvailable(mustHaveCores)) {
 				acceptApplication(appUri, mustHaveCores);
+				totalApplicationAccepted++;
 				this.anop.get(appUri).notifyApplicationAdmission(true);
 				
 			} else {
@@ -512,6 +514,8 @@ public class AdmissionController
 		
 		this.logMessage("Admission controller can't accept application " + appUri + " because of lack of resources.");		
 	}		
+	
+	String saved_AUTONOMIC_CONTROLLER_COORDINATION_IN_PORT_URI;
 	
 	public void deployComponents(String appUri, int applicationVMCount) throws Exception {						 			
 				
@@ -661,15 +665,29 @@ public class AdmissionController
 		this.atcmOutPort.get(ATC_URI).doConnectionWithRequestDispatcherForDynamicState(RD_DYNAMIC_STATE_DATA_IN_PORT_URI, true);
 		this.atcmOutPort.get(ATC_URI).doConnectionWithAdmissionControllerForAVMsManagement(atcAvmsManagementInPortUri.get(appUri));
 		
-		rop.doPortConnection(
-				AUTONOMIC_CONTROLLER_COORDINATION_OUT_PORT_URI,
-				ADMISSION_CONTROLLER_COORDINATION_IN_BOUND_PORT_URI,
-				AutonomicControllerCoordinationConnector.class.getCanonicalName());
-				
+		//FIXME
+		if (totalApplicationAccepted > 0) {
+
+			this.doPortDisconnection(ADMISSION_CONTROLLER_COORDINATION_OUT_BOUND_PORT_URI);
+			
+			rop.doPortConnection(
+					AUTONOMIC_CONTROLLER_COORDINATION_OUT_PORT_URI,
+					saved_AUTONOMIC_CONTROLLER_COORDINATION_IN_PORT_URI,
+					AutonomicControllerCoordinationConnector.class.getCanonicalName());					
+			
+		} else {
+			rop.doPortConnection(
+					AUTONOMIC_CONTROLLER_COORDINATION_OUT_PORT_URI,
+					ADMISSION_CONTROLLER_COORDINATION_IN_BOUND_PORT_URI,
+					AutonomicControllerCoordinationConnector.class.getCanonicalName());
+		}
+		
 		this.doPortConnection(
 				ADMISSION_CONTROLLER_COORDINATION_OUT_BOUND_PORT_URI,
 				AUTONOMIC_CONTROLLER_COORDINATION_IN_PORT_URI,
 				AutonomicControllerCoordinationConnector.class.getCanonicalName());
+		
+		this.saved_AUTONOMIC_CONTROLLER_COORDINATION_IN_PORT_URI = AUTONOMIC_CONTROLLER_COORDINATION_IN_PORT_URI;
 		
 		rop.doDisconnection();
 		
@@ -894,12 +912,16 @@ public class AdmissionController
 	public void acceptSentDataAndNotify(String originSenderUri, String thisSenderUri, ArrayList<String> availableAVMs)
 			throws Exception {
 		
-		// TODO Auto-generated method stub
+		this.logMessage("~~~~~~~ " + this.AC_URI + " accepting data from " + thisSenderUri);
+		
+		/*System.out.println("****************this.atcURI = " + this.AC_URI);
+		System.out.println("****************originSenderUri = " + originSenderUri);
+		System.out.println("****************thisSenderUri = " + thisSenderUri);*/
 		
 		if (this.AC_URI != originSenderUri) {
-			System.out.println("_______________________________________________");
+			/*System.out.println("_______________________________________________");
 			System.out.println("AC:" + availableAVMs.size());
-			System.out.println("_______________________________________________");
+			System.out.println("_______________________________________________");*/
 						
 			availableAVMs.add("World");
 			this.atccop.sendDataAndNotify(originSenderUri, this.AC_URI, availableAVMs);	
