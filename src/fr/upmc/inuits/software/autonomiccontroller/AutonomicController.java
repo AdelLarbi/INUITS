@@ -29,6 +29,7 @@ import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControlle
 import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerManagementI;
 import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerServicesI;
 import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerAVMsManagementOutboundPort;
+import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerCoordinationInboundPort;
 import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerCoordinationOutboundPort;
 import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerManagementInboundPort;
 import fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherDynamicStateI;
@@ -64,7 +65,7 @@ public class AutonomicController
 	protected AutonomicControllerManagementInboundPort atcmip;
 	protected AutonomicControllerAVMsManagementOutboundPort atcamop;	
 	protected AutonomicControllerCoordinationOutboundPort atccop;
-	//protected AutonomicControllerReceiverInboundPort atrip;
+	protected AutonomicControllerCoordinationInboundPort atccip;
 	
 	protected double exponentialSmoothing;
 	protected double averageExecutionTime;
@@ -83,8 +84,8 @@ public class AutonomicController
 			String requestDispatcherDynamicStateDataOutboundPortURI,
 			String autonomicControllerManagementInboundPortURI,
 			String autonomicControllerAVMsManagementOutboundPortURI,
-			String autonomicControllerCoordinationOutboundPortURI/*,
-			String autonomicControllerReceiverInboundPortURI*/) throws Exception {
+			String autonomicControllerCoordinationOutboundPortURI,
+			String autonomicControllerCoordinationInboundPortURI) throws Exception {
 	
 		super(atcURI, 1, 1);
 		
@@ -100,8 +101,8 @@ public class AutonomicController
 				&& autonomicControllerAVMsManagementOutboundPortURI.length() > 0;				
 		assert autonomicControllerCoordinationOutboundPortURI != null 
 				&& autonomicControllerCoordinationOutboundPortURI.length() > 0;						
-		/*assert autonomicControllerReceiverInboundPortURI != null 
-				&& autonomicControllerReceiverInboundPortURI.length() > 0;*/
+		assert autonomicControllerCoordinationInboundPortURI != null 
+				&& autonomicControllerCoordinationInboundPortURI.length() > 0;
 				
 		this.atcURI = atcURI;
 		this.applicationURI = applicationURI;
@@ -153,15 +154,17 @@ public class AutonomicController
 		this.addPort(this.atcamop);
 		this.atcamop.publishPort();
 		
+		// To send coordination data 
 		this.addRequiredInterface(AutonomicControllerCoordinationI.class);
 		this.atccop = new AutonomicControllerCoordinationOutboundPort(autonomicControllerCoordinationOutboundPortURI, this);
 		this.addPort(this.atccop);
 		this.atccop.publishPort();
 		
-		/*this.addOfferedInterface(AutonomicControllerReceiverI.class);
-		this.atrip = new AutonomicControllerReceiverInboundPort(autonomicControllerReceiverInboundPortURI, this);
-		this.addPort(this.atrip);
-		this.atrip.publishPort();*/
+		// To receive coordination data
+		//this.addOfferedInterface(AutonomicControllerReceiverI.class);
+		this.atccip = new AutonomicControllerCoordinationInboundPort(autonomicControllerCoordinationInboundPortURI, this);
+		this.addPort(this.atccip);
+		this.atccip.publishPort();
 		
 		this.exponentialSmoothing = -1;
 		this.averageExecutionTime = -1;
@@ -181,7 +184,7 @@ public class AutonomicController
 		assert this.atcmip != null && this.atcmip instanceof AutonomicControllerManagementI;
 		assert this.atcamop != null && this.atcamop instanceof AutonomicControllerAVMsManagementI;
 		assert this.atccop != null && this.atccop instanceof AutonomicControllerCoordinationI;
-		//assert this.atrip != null && this.atrip instanceof AutonomicControllerReceiverI;
+		assert this.atccip != null && this.atccip instanceof AutonomicControllerCoordinationI;
 	}
 
 	@Override
@@ -433,8 +436,13 @@ public class AutonomicController
 
 		if (this.atcURI != originSenderUri) {
 			// TODO Auto-generated method stub
-			//this.atccop.sendDataAndNotify(originSenderUri, thisSenderUri, availableAVMs);	
-		}
+			this.atccop.sendDataAndNotify(originSenderUri, this.atcURI, availableAVMs);
+			
+		} else {
+			System.out.println("_______________________________________________");
+			System.out.println("ATC:" + availableAVMs.size());
+			System.out.println("_______________________________________________");	
+		}		
 	}
 	
 	// -----------------------------------------------------------------------------------------------------------------
@@ -485,6 +493,14 @@ public class AutonomicController
 			// The higher threshold is crossed upwards.	
 			if (averageExecutionTime >= HIGHER_THRESHOLD) {								
 				showLogMessageL3("__[The higher threshold " + HIGHER_THRESHOLD + " is crossed upwards : " + average + "]");
+				
+				
+				
+				ArrayList<String> data = new ArrayList<>();
+				data.add("Hello");
+				this.atccop.sendDataAndNotify(this.atcURI, this.atcURI, data);
+				
+				
 				
 				// 1- Increase frequency if possible.
 				if (increaseFrequency()) {							

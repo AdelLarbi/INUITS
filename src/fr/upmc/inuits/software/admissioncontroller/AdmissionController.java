@@ -44,6 +44,7 @@ import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControlle
 import fr.upmc.inuits.software.autonomiccontroller.interfaces.AutonomicControllerManagementI;
 import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerAVMsManagementInboundPort;
 import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerCoordinationInboundPort;
+import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerCoordinationOutboundPort;
 import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerManagementOutboundPort;
 import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 import fr.upmc.inuits.software.requestdispatcher.connector.RequestDispatcherManagementConnector;
@@ -65,6 +66,8 @@ public class AdmissionController
 	
 	protected final int ANALYSE_DATA_TIMER = 1000; //1000			
 	protected final int AVMS_TO_ALLOCATE_COUNT = 2;
+		
+	protected final String AC_URI;
 	
 	protected final ArrayList<String> COMPUTERS_URI;
 	protected final ArrayList<String> COMPUTER_SERVICES_IN_BOUND_PORT_URI;
@@ -74,7 +77,9 @@ public class AdmissionController
 	protected final ArrayList<String> COMPUTER_DYNAMIC_STATE_DATA_IN_BOUND_PORT_URI;
 	protected final ArrayList<String> COMPUTER_DYNAMIC_STATE_DATA_OUT_BOUND_PORT_URI;
 	
-	protected final String AUTONOMIC_CONTROLLER_COORDINATION_IN_BOUND_PORT_URI;
+	// Data coordination : Send & Receive
+	protected final String ADMISSION_CONTROLLER_COORDINATION_IN_BOUND_PORT_URI;
+	protected final String ADMISSION_CONTROLLER_COORDINATION_OUT_BOUND_PORT_URI;	
 		
 	protected HashMap<String,String> avmManagementInPortUri;
 	protected HashMap<String,String> avmManagementOutPortUri;	
@@ -104,7 +109,7 @@ public class AdmissionController
 	protected HashMap<String,ApplicationNotificationOutboundPort> anop;
 	protected HashMap<String,AutonomicControllerAVMsManagementInboundPort> atcamip;
 	protected HashMap<String,RequestDispatcherManagementOutboundPort> rdmop;
-	protected HashMap<String,RequestDispatcherManagementNotificationInboundPort> rdmnip;
+	protected HashMap<String,RequestDispatcherManagementNotificationInboundPort> rdmnip;	
 	
 	protected HashMap<String,DynamicComponentCreationOutboundPort> portToApplicationVMJVM;	
 	protected HashMap<String,DynamicComponentCreationOutboundPort> portToRequestDispatcherJVM;
@@ -113,6 +118,7 @@ public class AdmissionController
 	protected HashMap<String,ApplicationVMManagementOutboundPort> avmOutPort;
 	
 	protected AutonomicControllerCoordinationInboundPort atccip;
+	protected AutonomicControllerCoordinationOutboundPort atccop;
 	
 	protected final int TOTAL_COMPUTERS_USED;
 	protected final int TOTAL_APPLICATION_EXECUTION_REQUESTED;	
@@ -122,6 +128,7 @@ public class AdmissionController
 	protected boolean[][] reservedCores;
 		
 	public AdmissionController(
+			String acURI,	
 			ArrayList<String> computersURI,			
 			ArrayList<String> computerServicesInboundPortURI,
 			ArrayList<String> computerServicesOutboundPortURI,
@@ -134,10 +141,12 @@ public class AdmissionController
 			ArrayList<String> applicationSubmissionInboundPortURI,
 			ArrayList<String> applicationNotificationOutboundPortURI,
 			ArrayList<String> autonomicControllerAVMsManagementInboundPortURI,
-			String autonomicControllerCoordinationInboundPortURI) throws Exception {
+			String autonomicControllerCoordinationInboundPortURI,
+			String autonomicControllerCoordinationOutboundPortURI) throws Exception {
 		
 		super(1, 1);
 		
+		assert acURI != null;
 		assert computersURI != null && computersURI.size() > 0;
 		assert appsURI != null;
 		assert computerServicesInboundPortURI != null && computerServicesInboundPortURI.size() > 0;
@@ -152,7 +161,9 @@ public class AdmissionController
 		assert autonomicControllerAVMsManagementInboundPortURI != null 
 				&& autonomicControllerAVMsManagementInboundPortURI.size() > 0;
 		assert autonomicControllerCoordinationInboundPortURI != null;
-								
+		assert autonomicControllerCoordinationOutboundPortURI != null;
+					
+		this.AC_URI = acURI;
 		this.COMPUTERS_URI = computersURI;
 		this.COMPUTER_SERVICES_IN_BOUND_PORT_URI = computerServicesInboundPortURI;
 		this.COMPUTER_SERVICES_OUT_BOUND_PORT_URI = computerServicesOutboundPortURI;
@@ -160,7 +171,8 @@ public class AdmissionController
 		this.COMPUTER_STATIC_STATE_DATA_OUT_BOUND_PORT_URI = computerStaticStateDataOutboundPortURI;
 		this.COMPUTER_DYNAMIC_STATE_DATA_IN_BOUND_PORT_URI = computerDynamicStateDataInboundPortURI;
 		this.COMPUTER_DYNAMIC_STATE_DATA_OUT_BOUND_PORT_URI = computerDynamicStateDataOutboundPortURI;
-		this.AUTONOMIC_CONTROLLER_COORDINATION_IN_BOUND_PORT_URI = autonomicControllerCoordinationInboundPortURI;
+		this.ADMISSION_CONTROLLER_COORDINATION_IN_BOUND_PORT_URI = autonomicControllerCoordinationInboundPortURI;
+		this.ADMISSION_CONTROLLER_COORDINATION_OUT_BOUND_PORT_URI = autonomicControllerCoordinationOutboundPortURI;		
 		
 		this.TOTAL_COMPUTERS_USED = computersURI.size();
 		this.TOTAL_APPLICATION_EXECUTION_REQUESTED = appsURI.size();			
@@ -264,11 +276,16 @@ public class AdmissionController
 		
 		this.addRequiredInterface(DynamicComponentCreationI.class);									
 		
-		// Coordination in-bound port
+		// To receive coordination data
 		this.addOfferedInterface(AutonomicControllerCoordinationI.class);
 		this.atccip = new AutonomicControllerCoordinationInboundPort(autonomicControllerCoordinationInboundPortURI, this);
 		this.addPort(this.atccip);
 		this.atccip.publishPort();
+		
+		// To send coordination data 
+		this.atccop = new AutonomicControllerCoordinationOutboundPort(autonomicControllerCoordinationOutboundPortURI, this);
+		this.addPort(this.atccop);
+		this.atccop.publishPort();
 		
 		assert this.cssdop != null && this.cssdop[0] instanceof DataRequiredI.PullI; // or : ComputerStaticStateDataI
 		assert this.cdsdop != null && this.cdsdop[0] instanceof ControlledDataRequiredI.ControlledPullI;
@@ -276,6 +293,8 @@ public class AdmissionController
 		assert this.asip != null && this.asip.get(appsURI.get(0)) instanceof ApplicationSubmissionI;
 		assert this.anop != null && this.anop.get(appsURI.get(0)) instanceof ApplicationNotificationI;
 		assert this.atcamip != null && this.atcamip.get(appsURI.get(0)) instanceof AutonomicControllerAVMsManagementI;
+		assert this.atccop != null && this.atccop instanceof AutonomicControllerCoordinationI;
+		assert this.atccip != null && this.atccip instanceof AutonomicControllerCoordinationI;
 	}
 	
 	@Override
@@ -344,7 +363,9 @@ public class AdmissionController
 					thisPortToAutonomicControllerJVM.doDisconnection();
 				}
 			}			
-			
+			if (this.atccop.connected()) {
+				this.atccop.doDisconnection();
+			}	
 		} catch (Exception e) {
 			throw new ComponentShutdownException("Port disconnection error", e);
 		}
@@ -558,6 +579,7 @@ public class AdmissionController
 		final String ATC_MANAGEMENT_IN_PORT_URI = ATC_URI + "-m-ip";
 		final String ATC_AVMS_MANAGEMENT_OUT_PORT_URI = ATC_URI + "-am-op";
 		final String AUTONOMIC_CONTROLLER_COORDINATION_OUT_PORT_URI = ATC_URI + "-c-op";
+		final String AUTONOMIC_CONTROLLER_COORDINATION_IN_PORT_URI = ATC_URI + "-c-ip";		
 		
 		this.portToAutonomicControllerJVM.get(ATC_URI).createComponent(
 				AutonomicController.class.getCanonicalName(),
@@ -572,7 +594,8 @@ public class AdmissionController
 						RD_DYNAMIC_STATE_DATA_OUT_PORT_URI,
 						ATC_MANAGEMENT_IN_PORT_URI,
 						ATC_AVMS_MANAGEMENT_OUT_PORT_URI,
-						AUTONOMIC_CONTROLLER_COORDINATION_OUT_PORT_URI
+						AUTONOMIC_CONTROLLER_COORDINATION_OUT_PORT_URI,
+						AUTONOMIC_CONTROLLER_COORDINATION_IN_PORT_URI
 				});
 				
 		// --------------------------------------------------------------------
@@ -639,7 +662,12 @@ public class AdmissionController
 		
 		rop.doPortConnection(
 				AUTONOMIC_CONTROLLER_COORDINATION_OUT_PORT_URI,
-				AUTONOMIC_CONTROLLER_COORDINATION_IN_BOUND_PORT_URI,
+				ADMISSION_CONTROLLER_COORDINATION_IN_BOUND_PORT_URI,
+				AutonomicControllerCoordinationConnector.class.getCanonicalName());
+				
+		this.doPortConnection(
+				ADMISSION_CONTROLLER_COORDINATION_OUT_BOUND_PORT_URI,
+				AUTONOMIC_CONTROLLER_COORDINATION_IN_PORT_URI,
 				AutonomicControllerCoordinationConnector.class.getCanonicalName());
 		
 		rop.doDisconnection();
@@ -866,8 +894,14 @@ public class AdmissionController
 			throws Exception {
 		
 		// TODO Auto-generated method stub
-		System.out.println("_______________________________________________");
-		System.out.println("originSenderUri" + originSenderUri);
-		System.out.println("_______________________________________________");
+		
+		if (this.AC_URI != originSenderUri) {
+			System.out.println("_______________________________________________");
+			System.out.println("AC:" + availableAVMs.size());
+			System.out.println("_______________________________________________");
+						
+			availableAVMs.add("World");
+			this.atccop.sendDataAndNotify(originSenderUri, this.AC_URI, availableAVMs);	
+		}		
 	}
 }

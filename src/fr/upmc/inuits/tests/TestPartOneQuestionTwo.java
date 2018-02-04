@@ -40,6 +40,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	public static final ArrayList<String> AC_APPLICATION_NOTIFICATION_OUT_PORT_URI = new ArrayList<>();
 	public static final ArrayList<String> AC_AVMS_MANAGEMENT_IN_PORT_URI = new ArrayList<>();
 	public static final String AC_COORDINATION_IN_PORT_URI = "acc-ip";
+	public static final String AC_COORDINATION_OUT_PORT_URI = "acc-op";
 	{
 		AC_SERVICES_OUT_PORT_URI.add("acs-op");
 		AC_STATIC_STATE_DATA_OUT_PORT_URI.add("acssd-op");
@@ -115,7 +116,8 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 		appsURI.add("app0");
 		appsURI.add("app1");
 		
-		this.admissionController = new AdmissionController(								
+		this.admissionController = new AdmissionController(
+				"admissionController",
 				computersURI,
 				C_SERVICES_IN_PORT_URI,
 				AC_SERVICES_OUT_PORT_URI,
@@ -128,7 +130,8 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				AC_APPLICATION_SUBMISSION_IN_PORT_URI,
 				AC_APPLICATION_NOTIFICATION_OUT_PORT_URI,
 				AC_AVMS_MANAGEMENT_IN_PORT_URI,
-				AC_COORDINATION_IN_PORT_URI);
+				AC_COORDINATION_IN_PORT_URI,
+				AC_COORDINATION_OUT_PORT_URI);
 		
 		this.addDeployedComponent(this.admissionController);
 		
