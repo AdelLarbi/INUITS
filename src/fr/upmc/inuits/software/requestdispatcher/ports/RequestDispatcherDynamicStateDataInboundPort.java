@@ -6,7 +6,8 @@ import fr.upmc.components.interfaces.DataOfferedI.DataI;
 import fr.upmc.datacenter.ports.AbstractControlledDataInboundPort;
 import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 /**
- * Classe representant le port d'entree permettant d'acceder au composant RequestDispatcherDynamicStateDataInboundPort.
+ * La classe <code> ApplicationNotificationInboundPort </code> implémente le
+ * port entrant via lequel on peut acceder au composant RequestDispatcherDynamicState.
  */
 public class RequestDispatcherDynamicStateDataInboundPort 
 	extends AbstractControlledDataInboundPort {
@@ -15,7 +16,11 @@ public class RequestDispatcherDynamicStateDataInboundPort
 
 	/**
 	 * Contructeur creant le port de type RequestDispatcherDynamicStateDataInboundPort
+	 * @param owner composant auquel on veut accéder.
 	 * @throws Exception
+	 * 
+	 * pre aucune preCondition
+	 * post owner instanceof RequestDispatcher
 	 */
 	public RequestDispatcherDynamicStateDataInboundPort(ComponentI owner) throws Exception {
 		
@@ -28,8 +33,12 @@ public class RequestDispatcherDynamicStateDataInboundPort
 	/**
 	 * Contructeur creant le port de type RequestDispatcherDynamicStateDataInboundPort avec sont l'URI.
 	 * @param uri du port
-	 * @param owner composant 
+	 * @param owner composant auquel on veut accéder.
 	 * @throws Exception
+	 * 
+	 * 
+	 * pre aucune preCondition
+	 * post owner instanceof RequestDispatcher
 	 */
 	public RequestDispatcherDynamicStateDataInboundPort(String uri, ComponentI owner) throws Exception {
 		

@@ -29,7 +29,7 @@ import fr.upmc.inuits.software.requestdispatcher.ports.RequestDispatcherManageme
 import fr.upmc.inuits.software.requestdispatcher.ports.RequestDispatcherManagementNotificationOutboundPort;
 
 /** 
- * Class qui permet de répartir les requêtes des applications aux differentes AVM(s) associées aux applications.  
+ * La class <code>RequestDispatcher</code> permet de répartir les requêtes des applications aux differentes AVM(s) associées aux applications.  
  */
 public class RequestDispatcher 
 	extends AbstractComponent 

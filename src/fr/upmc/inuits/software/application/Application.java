@@ -26,8 +26,7 @@ import fr.upmc.inuits.software.application.ports.ApplicationServicesInboundPort;
 import fr.upmc.inuits.software.application.ports.ApplicationSubmissionOutboundPort;
 import fr.upmc.inuits.utils.Javassist;
 /**
- * Class representant une application qui veut soumettre ses requetes aux Centre de calcul.
- * TEST
+ * La class <code>Application</code> represente un composant application qui veut soumettre ses requetes aux Centre de calcul.
  */
 public class Application 
 extends AbstractComponent
@@ -56,6 +55,31 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 	protected final String rgRequestSubmissionOutboundPortURI;
 	protected final String rgRequestNotificationInboundPortURI;
 	
+	/**
+	 * Permet de cree le composant Application.
+	 * @param appURI Uri de l'application
+	 * @param meanInterArrivalTime Temps entre 2 envoie de requetes
+	 * @param meanNumberOfInstructions nombre d'instructions des requête a éxecuter en ms
+	 * @param applicationManagementInboundPortURI
+	 * @param applicationServicesInboundPortURI Uri de 
+	 * @param applicationSubmissionOutboundPortURI
+	 * @param applicationNotificationInboundPortURI 
+	 * @throws Exception
+	 * 
+	 * pre meanInterArrivalTime > 0.0
+	 * pre meanNumberOfInstructions > 0
+	 * pre applicationManagementInboundPortURI != null
+	 * pre applicationServicesInboundPortURI != null
+	 * pre applicationSubmissionOutboundPortURI != null
+	 * pre applicationNotificationInboundPortURI != null
+	 * 
+	 * post this.appURI != null && this.appURI.length() > 0
+	 * post this.amip != null && this.amip instanceof ApplicationManagementI
+	 * post this.asip != null && this.asip instanceof ApplicationServicesI
+	 * post this.asop != null && this.asop instanceof ApplicationSubmissionI
+	 * post this.anip != null && this.anip instanceof ApplicationNotificationI	
+	 * post this.rgmop != null && this.rgmop instanceof RequestGeneratorManagementI
+	 */
 	public Application(
 			String appURI,
 			Double meanInterArrivalTime,
@@ -119,6 +143,10 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		assert this.rgmop != null && this.rgmop instanceof RequestGeneratorManagementI;		
 	}
 	
+	/**
+	 * Permet la preparation du composant RequestGenerator
+	 * 
+	 */
 	@Override
 	public void start() throws ComponentStartException {
 		
@@ -137,6 +165,20 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		super.start();
 	}
 	
+	/**
+	 * Methode permettant l'arrêt du composant Application, en déconnectant les différents ports.
+	 * 
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	true				// pas plus de  preconditions.
+	 * post	true				// pas plus de postconditions.
+	 * </pre>
+	 * 
+	 * @see fr.upmc.components.AbstractComponent#shutdown()
+	 * @throws ComponentShutdownException capture toute erreurs liée à la déconnexion
+	 */
 	@Override
 	public void shutdown() throws ComponentShutdownException {	
 
@@ -157,6 +199,10 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		super.shutdown();
 	}	
 	
+	/**
+	 * Permet la creation dynamique du RequestGenerator
+	 * @throws Exception
+	 */
 	public void dynamicRequestGeneratorDeploy() throws Exception {
 							 								
 		this.portToRequestGeneratorJVM.createComponent(
@@ -181,6 +227,9 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		rop.toggleTracing();
 	}
 	
+	/**
+	 * @see fr.upmc.inuits.software.application.interfaces.ApplicationManagementI#doConnectionWithDispatcherForSubmission(String)
+	 */
 	@Override
 	public void doConnectionWithDispatcherForSubmission(String dispatcherRequestSubmissionInboundPortUri) throws Exception {		
 		
@@ -190,6 +239,9 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 				RequestSubmissionConnector.class.getCanonicalName());				
 	}
 	
+	/**
+	 * @see fr.upmc.inuits.software.application.interfaces.ApplicationManagementI#doDynamicConnectionWithDispatcherForSubmission(String)
+	 */
 	@Override
 	public void doDynamicConnectionWithDispatcherForSubmission(String dispatcherRequestSubmissionInboundPortUri) throws Exception {					
 				
@@ -199,6 +251,9 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 				Javassist.getRequestSubmissionConnectorClassName());		
 	}	
 	
+	/**
+	 * @see fr.upmc.inuits.software.application.interfaces.ApplicationManagementI#doConnectionWithDispatcherForNotification(ReflectionOutboundPort, String)
+	 */
 	@Override
 	public void doConnectionWithDispatcherForNotification(ReflectionOutboundPort ropForRequestDispatcher,
 			String dispatcherRequestNotificationOutboundPortUri) throws Exception {			
@@ -209,6 +264,9 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 				RequestNotificationConnector.class.getCanonicalName());
 	}
 	
+	/** 
+	 * @see fr.upmc.inuits.software.application.interfaces.ApplicationManagementI#doDynamicConnectionWithDispatcherForNotification(ReflectionOutboundPort, String)
+	 */
 	@Override
 	public void doDynamicConnectionWithDispatcherForNotification(ReflectionOutboundPort ropForRequestDispatcher,
 			String dispatcherRequestNotificationOutboundPortUri) throws Exception {			
@@ -219,6 +277,9 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 				Javassist.getRequestNotificationConnectorClassName());
 	}
 	
+	/**
+	* @see fr.upmc.inuits.software.application.interfaces.ApplicationServicesI#sendRequestForApplicationExecution(int)
+	*/
 	@Override
 	public void	sendRequestForApplicationExecution(int coresToReserve) throws Exception {
 						
@@ -230,7 +291,9 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 		
 		this.asop.submitApplicationAndNotify(this.appURI, coresToReserve);
 	}
-	
+	/**
+	 * @see fr.upmc.inuits.software.application.interfaces.ApplicationNotificationHandlerI#acceptApplicationAdmissionNotification(boolean) 
+	 */
 	@Override
 	public void acceptApplicationAdmissionNotification(boolean isAccepted) throws Exception {
 		
@@ -244,7 +307,10 @@ implements ApplicationManagementI, ApplicationServicesI, ApplicationNotification
 			launch();					
 		}
 	}
-	
+	/**
+	 * Méthode qui lance la generation de requêtes et qui la stop.
+	 * @throws Exception
+	 */
 	public void	launch() throws Exception {						
 		this.rgmop.doConnection(
 				this.rgManagementInboundPortURI,

@@ -3,6 +3,10 @@ package fr.upmc.inuits.software.requestdispatcher.interfaces;
 import fr.upmc.components.interfaces.DataOfferedI;
 import fr.upmc.components.interfaces.DataRequiredI;
 
+/**
+ * L' interface <code>RequestDispatcherDynamicStateI</code> permet la gestion des données dynamique associées au dispatcher. 
+ *
+ */
 public interface RequestDispatcherDynamicStateI 
 	extends DataOfferedI.DataI, DataRequiredI.DataI {
 
