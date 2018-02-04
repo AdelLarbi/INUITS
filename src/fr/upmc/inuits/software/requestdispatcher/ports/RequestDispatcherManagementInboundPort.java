@@ -11,6 +11,14 @@ public class RequestDispatcherManagementInboundPort
 
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * Permet de cree le port RequestDispatcherManagementInboundPort.
+	 * @param owner composant auquel on veut accéder.
+	 * @throws Exception
+	 * 
+	 * pre aucune preCondition
+	 * post owner != null && owner instanceof RequestDispatcher
+	 */
 	public RequestDispatcherManagementInboundPort(ComponentI owner) throws Exception {
 		
 		super(RequestDispatcherManagementI.class, owner);
@@ -18,6 +26,15 @@ public class RequestDispatcherManagementInboundPort
 		assert owner != null && owner instanceof RequestDispatcher;
 	}
 
+	/**
+	 * Permet de cree le port RequestDispatcherManagementInboundPort.
+	 * @param uri uri du port
+	 * @param owner composant auquel on veut accéder.
+	 * @throws Exception
+	 * 
+	 * pre aucune preCondition
+	 * post owner != null && owner instanceof RequestDispatcher
+	 */
 	public RequestDispatcherManagementInboundPort(String uri, ComponentI owner) throws Exception {
 		
 		super(uri, RequestDispatcherManagementI.class, owner);
@@ -25,6 +42,9 @@ public class RequestDispatcherManagementInboundPort
 		assert	owner != null && owner instanceof RequestDispatcher;
 	}
 	
+	/**
+	 * @see fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherManagementI#createRequestSubmissionAndNotificationPorts(String, String) 
+	 */
 	@Override
 	public void createRequestSubmissionAndNotificationPorts(String requestSubmissionOutboundPortUri,
 			String requestNotificationIntboundPortUri) throws Exception {
@@ -42,6 +62,9 @@ public class RequestDispatcherManagementInboundPort
 				});
 	}
 
+	/**
+	 * @see fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherManagementI#destroyRequestSubmissionAndNotificationPorts()
+	 */
 	@Override
 	public void destroyRequestSubmissionAndNotificationPorts() throws Exception {
 
