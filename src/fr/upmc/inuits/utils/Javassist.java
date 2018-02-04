@@ -14,21 +14,29 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 
+/** 
+ * Classe qui permet de générer dynamiquement une classe de connexion entre ports avec Javassit  
+ */
 public abstract class Javassist {
 	
 	protected final static Class<?> CONNECTOR_SUPERCLASS = AbstractConnector.class;
 	protected final static String PACKAGE_NAME = "fr.upmc.inuits.utils.";	
 	
+	/** Les classes qu'on peut générer */
 	private static Class<?> applicationManagementConnector;	
 	private static Class<?> applicationNotificationConnector;
 	private static Class<?> applicationServicesConnector;
 	private static Class<?> applicationSubmissionConnector;
-	
 	private static Class<?> requestNotificationConnector;
 	private static Class<?> requestSubmissionConnector;
-	
 	private static Class<?> autonomicControllerManagementConnector;
 
+
+	/**
+	 * Getters : Créer une nouvelle classe si c'est la premiére demande, sinon renvoie une classe existante
+	 * @return Le nom de la nouvelle classe : ApplicationManagementConnector
+	 * @throws Exception si le nom existe déja
+	 */
 	public synchronized static String getApplicationManagementConnectorClassName() throws Exception {
 		
 		if (applicationManagementConnector == null) {			
@@ -38,6 +46,11 @@ public abstract class Javassist {
 		return applicationManagementConnector.getCanonicalName();		
 	}
 	
+	/**
+	 * Getters : Créer une nouvelle classe si c'est la premiére demande, sinon renvoie une classe existante
+	 * @return Le nom de la nouvelle classe : ApplicationNotificationConnector
+	 * @throws Exception si le nom existe déja
+	 */
 	public synchronized static String getApplicationNotificationConnectorClassName() throws Exception {
 		
 		if (applicationNotificationConnector == null) {			
@@ -47,6 +60,11 @@ public abstract class Javassist {
 		return applicationNotificationConnector.getCanonicalName();		
 	}
 	
+	/**
+	 * Getters : Créer une nouvelle classe si c'est la premiére demande, sinon renvoie une classe existante
+	 * @return Le nom de la nouvelle classe : ApplicationServicesConnector
+	 * @throws Exception si le nom existe déja
+	 */
 	public synchronized static String getApplicationServicesConnectorClassName() throws Exception {
 		
 		if (applicationServicesConnector == null) {			
@@ -56,6 +74,11 @@ public abstract class Javassist {
 		return applicationServicesConnector.getCanonicalName();		
 	}
 	
+	/**
+	 * Getters : Créer une nouvelle classe si c'est la premiére demande, sinon renvoie une classe existante
+	 * @return Le nom de la nouvelle classe : ApplicationSubmissionConnector
+	 * @throws Exception si le nom existe déja
+	 */
 	public synchronized static String getApplicationSubmissionConnectorClassName() throws Exception {
 		
 		if (applicationSubmissionConnector == null) {			
@@ -65,6 +88,11 @@ public abstract class Javassist {
 		return applicationSubmissionConnector.getCanonicalName();
 	}
 
+	/**
+	 * Getters : Créer une nouvelle classe si c'est la premiére demande, sinon renvoie une classe existante
+	 * @return Le nom de la nouvelle classe : RequestNotificationConnector
+	 * @throws Exception si le nom existe déja
+	 */
 	public synchronized static String getRequestNotificationConnectorClassName() throws Exception {
 		
 		if (requestNotificationConnector == null) {			
@@ -74,6 +102,11 @@ public abstract class Javassist {
 		return requestNotificationConnector.getCanonicalName();			
 	}
 
+	/**
+	 * Getters : Créer une nouvelle classe si c'est la premiére demande, sinon renvoie une classe existante
+	 * @return Le nom de la nouvelle classe : requestSubmissionConnector
+	 * @throws Exception si le nom existe déja
+	 */
 	public synchronized static String getRequestSubmissionConnectorClassName() throws Exception {
 	
 		if (requestSubmissionConnector == null) {			
@@ -83,6 +116,11 @@ public abstract class Javassist {
 		return requestSubmissionConnector.getCanonicalName();					
 	}	
 	
+	/**
+	 * Getters : Créer une nouvelle classe si c'est la premiére demande, sinon renvoie une classe existante
+	 * @return Le nom de la nouvelle classe : AutonomicControllerManagementConnector
+	 * @throws Exception si le nom existe déja
+	 */
 	public synchronized static String getAutonomicControllerManagementConnectorClassName() throws Exception {
 		
 		if (autonomicControllerManagementConnector == null) {			
@@ -92,6 +130,13 @@ public abstract class Javassist {
 		return autonomicControllerManagementConnector.getCanonicalName();		
 	}
 
+	/**
+	 * Générer dynamiquement une classe de connexion entre ports avec Javassit
+	 * @param className
+	 * @param connectorImplementedInterface
+	 * @return the created class
+	 * @throws Exception
+	 */
 	private static Class<?> makeConnectorClass(
 			String className,
 			Class<?> connectorImplementedInterface) throws Exception {
