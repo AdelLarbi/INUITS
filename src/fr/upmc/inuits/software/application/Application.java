@@ -25,7 +25,10 @@ import fr.upmc.inuits.software.application.ports.ApplicationNotificationInboundP
 import fr.upmc.inuits.software.application.ports.ApplicationServicesInboundPort;
 import fr.upmc.inuits.software.application.ports.ApplicationSubmissionOutboundPort;
 import fr.upmc.inuits.utils.Javassist;
-
+/**
+ * Class representant une application qui veut soumettre ses requetes aux Centre de calcul.
+ *
+ */
 public class Application 
 extends AbstractComponent
 implements ApplicationManagementI, ApplicationServicesI, ApplicationNotificationHandlerI {

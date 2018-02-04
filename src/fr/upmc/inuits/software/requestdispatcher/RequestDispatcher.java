@@ -28,6 +28,9 @@ import fr.upmc.inuits.software.requestdispatcher.ports.RequestDispatcherDynamicS
 import fr.upmc.inuits.software.requestdispatcher.ports.RequestDispatcherManagementInboundPort;
 import fr.upmc.inuits.software.requestdispatcher.ports.RequestDispatcherManagementNotificationOutboundPort;
 
+/** 
+ * Class qui permet de répartir les requêtes des applications aux differentes AVM(s) associées aux applications.  
+ */
 public class RequestDispatcher 
 	extends AbstractComponent 
 	implements RequestDispatcherManagementI, RequestSubmissionHandlerI, RequestNotificationHandlerI, PushModeControllingI {
@@ -48,19 +51,62 @@ public class RequestDispatcher
 	
 	protected RequestDispatcherDynamicStateDataInboundPort rddsdip;
 	
-	/** future of the task scheduled to push dynamic data. */
+	/** future of the task scheduled to push dynamic data. TODO */
 	protected ScheduledFuture<?> pushingFuture;
 	
-	/** TODO */
+	/** Variables et objets utilisé dans le calcule du temps moyens de l'execution des requêtes */
 	protected Smoothing smoothing; 
 	protected double exponentialSmoothing;
 	protected Average average;
 	protected double calculatedAverage;
 	
-	/** TODO */
+	/** Variables representants le nombre de tâches soumises et nombre de tâches terminées   */
 	protected int totalRequestSubmitted; 
 	protected int totalRequestTerminated;
 	
+	/**
+	 * Contructeur qui initialise le RequestDispatcher.
+	 * Il permet d'initialiser les ports et de les publiers, les variables du calcul du temps moyens.
+	 * 
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre rdURI != null
+	 * pre requestDispatcherManagementIntboundPortURI != null && requestDispatcherManagementIntboundPortURI.length() > 0
+	 * pre requestDispatcherManagementNotificationOutboundPortURI != null && requestDispatcherManagementNotificationOutboundPortURI.length() > 0		
+	 * pre appURI != null;
+	 * pre requestSubmissionIntboundPortURI != null && requestSubmissionIntboundPortURI.length() > 0
+	 * pre requestSubmissionOutboundPortURI != null && requestSubmissionOutboundPortURI.size() > 0
+	 * pre requestNotificationIntboundPortURI != null && requestNotificationIntboundPortURI.size() > 0
+	 * pre requestSubmissionOutboundPortURI.size() == requestNotificationIntboundPortURI.size()
+	 * pre requestNotificationOutboundPortURI != null && requestNotificationOutboundPortURI.length() > 0
+	 * pre requestDispatcherDynamicStateDataInboundPortURI != null && requestDispatcherDynamicStateDataInboundPortURI.length() > 0
+	 * 
+	 * post this.rdURI != null
+	 * post this.availableApplicationVm == requestNotificationIntboundPortURI.size()
+	 * post this.appURI != null
+	 * post this.applicationVMSelector == 0
+	 * post this.rdmip != null && this.rdmip instanceof RequestDispatcherManagementI
+	 * post this.rdmnop != null && this.rdmnop instanceof RequestDispatcherManagementNotificationI
+	 * post this.rsip != null && this.rsip instanceof RequestSubmissionI
+	 * post this.rsop != null && this.rsop.get(0) instanceof RequestSubmissionI
+	 * post this.rnip != null && this.rnip.get(0) instanceof RequestNotificationI
+	 * post this.rnop != null && this.rnop instanceof RequestNotificationI
+	 * post this.rddsdip != null && this.rddsdip instanceof ControlledDataOfferedI.ControlledPullI
+	 * </pre>
+	 * 
+	 * @param rdURI uri du request dispatcher
+	 * @param requestDispatcherManagementIntboundPortURI Uri du port entrant permettant la creation des ports qui lieront le request generateur et le répartiteur de requêtes, permettant aux requetes de circuler.
+	 * @param requestDispatcherManagementNotificationOutboundPortURI Uri du port sortant permettant l'acces a la creation des ports qui lieront le request generateur et le répartiteur de requêtes, permettant aux requetes de circuler.
+	 * @param appURI uri de l'application associée
+	 * @param requestSubmissionIntboundPortURI Uri du port entrant permettant aux dispatcher de recevoir la requete a répartir.
+	 * @param requestSubmissionOutboundPortURI Uri du port sortant permettant d'envoyer la requete à une AVM.
+	 * @param requestNotificationIntboundPortURI Uri du port entrant permettant de recevoir la notification de l'execution de la requête.
+	 * @param requestNotificationOutboundPortURI Uri du port sortant permettant de renvoyer la notification de l'execution de la requête au requestGenerateur source de cette derniere.
+	 * @param requestDispatcherDynamicStateDataInboundPortURI Port entrant permetant l'accés aux données dynamiques du repartiteur de requêtes (pour le temps moyens d'execution des requetes d'une application)
+	 * @throws Exception
+	 */
 	public RequestDispatcher(
 			String rdURI,
 			String requestDispatcherManagementIntboundPortURI,
@@ -152,6 +198,20 @@ public class RequestDispatcher
 		assert this.rddsdip != null && this.rddsdip instanceof ControlledDataOfferedI.ControlledPullI;
 	}
 	
+	/**
+	 * Methode permettant l'arrêt du composant RequestDispatcher, en déconnectant les différents ports.
+	 * 
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	true				// pas plus de  preconditions.
+	 * post	true				// pas plus de postconditions.
+	 * </pre>
+	 * 
+	 * @see fr.upmc.components.AbstractComponent#shutdown()
+	 * @throws ComponentShutdownException capture toute erreurs liée à la déconnexion
+	 */
 	@Override
 	public void shutdown() throws ComponentShutdownException {
 		
@@ -176,7 +236,10 @@ public class RequestDispatcher
 
 		super.shutdown();
 	}	
-		
+
+	/**	
+	 * @see fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherManagementI#createRequestSubmissionAndNotificationPorts(String, String)
+	 */
 	@Override
 	public void createRequestSubmissionAndNotificationPorts(String requestSubmissionOutboundPortUri,
 			String requestNotificationIntboundPortUri) throws Exception {
@@ -204,7 +267,10 @@ public class RequestDispatcher
 		// notify Admission Controller
 		this.rdmnop.notifyCreateRequestSubmissionAndNotificationPorts(appURI, rdURI);
 	}
-	
+
+	/**	
+	 * @see fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherManagementI#destroyRequestSubmissionAndNotificationPorts()
+	 */
 	@Override
 	public void destroyRequestSubmissionAndNotificationPorts() throws Exception {
 
@@ -222,17 +288,27 @@ public class RequestDispatcher
 	protected HashMap<String, Long> beginningTime = new HashMap<>();
 	protected HashMap<String, Long> executionTime = new HashMap<>();
 	
+	/**
+	 * Class permettant la gestion de de la moyenne du temps d'execution des requetes selon la technique de la moyenne mouvante . 
+	 *
+	 */
 	private class Average {
 		
 		private final int N = 4;
 		private ArrayList<Double> observedValue;
 		private int internalCounter;
-		
+		/**
+		 * Crée l'objet Average
+		 */
 		public Average() {
 			this.observedValue = new ArrayList<>();
 			this.internalCounter = 1;
 		}
-		
+		/**
+		 * Permet de calculer la Moyenne du temps d'execution des requetes
+		 * @param newObservedValue temps d'execution d'une requête.
+		 * @return Moyenne du temps d'execution des requetes.
+		 */
 		public int calculateAverage(double newObservedValue) {
 			
 			double sum = 0.0;
@@ -249,18 +325,29 @@ public class RequestDispatcher
 			return (int) Math.round(sum / N);
 		}
 	}
-	
+	/**
+	 *  Class permettant la gestion de la moyenne du temps d'execution des requetes selon la technique du lissage exceptionnel .  
+	 */
 	private class Smoothing {
 		
 		private final double ALPHA = 0.7;		
 		private double observedValue;
 		private double oldSmoothedValue;		
 		private int internalCounter;
-		
+		/**
+		 * Permet de cree l'objet Smoothing
+		 */
 		public Smoothing() {
 			this.internalCounter = 0;
 		}
 		
+		/**
+		 * Permet de calculer la Moyenne du temps d'execution des requetes
+		 * 
+		 * @param newMesurmentValue temps d'execution d'une requête.
+		 * @return Moyenne du temps d'execution des requetes.
+
+		 */
 		public int calculateExponentialSmoothing(double newMesurmentValue) {
 			
 			if (internalCounter > 1) {
@@ -306,7 +393,18 @@ public class RequestDispatcher
 			return cse[i];
 		}*/		
 	}
-
+	/**
+	 * TODO -> verifier
+	 * Permet de récuperer les requetes et de les répartir aux avm(s).
+	 * 
+	 * Met a jour le nombre de requetes et le temps correspondant au début de la requete 
+	 * et permettant de faire la moyenne.
+	 * 
+	 * @see fr.upmc.datacenter.software.interfaces.RequestSubmissionHandlerI#acceptRequestSubmission(RequestI)
+	 * 
+	 * @param r requete a soumettre a l'AVM
+	 * @throws Exception
+	 */
 	@Override
 	public void acceptRequestSubmission(RequestI r) throws Exception {
 		
@@ -320,8 +418,18 @@ public class RequestDispatcher
 		beginningTime.put(r.getRequestURI(), System.currentTimeMillis());
 		
 		this.rsop.get(getNextApplicationVM()).submitRequest(r);		
-	}	
+	}
 	
+	/**
+	 * Permet de récuperer les requetes du requestGenerator et de les répartir aux avm(s).
+	 * 
+	 * Met a jour le nombre de requetes et le temps correspondant au début de la requete ( permettant de faire la moyenne) .
+	 * 
+	 * @see fr.upmc.datacenter.software.interfaces.RequestSubmissionHandlerI#acceptRequestSubmissionAndNotify(RequestI)
+	 * 
+	 * @param r requete a soumettre a l'AVM
+	 * @throws Exception
+	 */
 	@Override
 	public void acceptRequestSubmissionAndNotify(RequestI r) throws Exception {
 		
@@ -338,11 +446,26 @@ public class RequestDispatcher
 		this.rsop.get(getNextApplicationVM()).submitRequestAndNotify(r);
 	}
 	
+	/**
+	 * Permet de savoir à quel avm on doit envoyer la requete.
+	 * @return l'indice de l'avm a qui envoyer la requete.
+	 */
 	public int getNextApplicationVM() {
 		
 		return (applicationVMSelector++ % availableApplicationVm);		
 	}	
 	
+	/**
+	 * Permet de récuperer les requetes qui viennent de finir et de les renvoyés au requestGenerateur.
+	 * 
+	 * Met a jour le nombre de requetes et le temps correspondant a la fin de la requete 
+	 * et lance le calcul de la moyenne du temps d'executions des requetes.
+	 * 
+	 * @see fr.upmc.datacenter.software.interfaces.RequestNotificationHandlerI#acceptRequestTerminationNotification(RequestI)
+	 * 
+	 * @param r requete
+	 * @throws Exception
+	 */
 	@Override
 	public void acceptRequestTerminationNotification(RequestI r) throws Exception {
 		
@@ -373,12 +496,26 @@ public class RequestDispatcher
 		this.rnop.notifyRequestTermination(r);
 	}
 	
+	/**
+	 * Permet d'obtenir les informations dynamique du dispatcher (notamment ce qui est relatif a la moyenne du temps d'executions des requetes du dispatcher)
+	 *  
+	 * @return l'objet du type RequestDispatcherDynamicState
+	 * @throws Exception
+	 */
 	public RequestDispatcherDynamicStateI getDynamicState() throws Exception {
 				
 		return new RequestDispatcherDynamicState(rdURI, exponentialSmoothing, calculatedAverage, availableApplicationVm,
 				totalRequestSubmitted, totalRequestTerminated);
 	}	
-
+	/**
+	 * Permet d'envoyer les données dynamiques (RequestDispatcherDynamicState) toutes les millisecondes (interval) pour un nombre maximum d'envoi (numberOfPushes). 
+	 * 
+	 * @see fr.upmc.datacenter.interfaces.PushModeControllingI#startLimitedPushing(int, int)
+	 * 
+	 * @param interval délai entre les envoies
+	 * @param numberOfPushes nombre maximum d'envoi de données dynamique
+	 * @throws Exception
+	 */
 	@Override
 	public void startLimitedPushing(int interval, int numberOfPushes) throws Exception {
 		
@@ -404,7 +541,13 @@ public class RequestDispatcher
 					TimeManagement.acceleratedDelay(interval),
 					TimeUnit.MILLISECONDS) ;
 	}
-	
+	/**
+	 * Envoie de données dynamiques.
+	 * 
+	 * @param interval délai entre les envoies
+	 * @param numberOfRemainingPushes nombre maximum d'envoi de données dynamique
+	 * @throws Exception
+	 */
 	public void	sendDynamicState(final int interval, int numberOfRemainingPushes) throws Exception {
 			
 		this.sendDynamicState();
@@ -431,6 +574,16 @@ public class RequestDispatcher
 		}
 	}
 	
+	/**
+	 * Permet d'envoyer les données dynamiques (RequestDispatcherDynamicState) toutes les millisecondes (interval) sans restriction. 
+	 * 
+	 * 
+	 * @see fr.upmc.datacenter.interfaces.PushModeControllingI#startUnlimitedPushing(int)
+	 * 
+	 * @param interval délai entre les envoies
+	 * @param numberOfPushes nombre maximum d'envoi de données dynamique
+	 * @throws Exception
+	 */
 	@Override
 	public void startUnlimitedPushing(int interval) throws Exception {		
 		final RequestDispatcher rd = this;
@@ -452,7 +605,11 @@ public class RequestDispatcher
 						TimeUnit.MILLISECONDS
 				);		
 	}
-	
+	/**
+	 * Envoie de données dynamiques.
+	 * 
+	 * @throws Exception
+	 */
 	public void sendDynamicState() throws Exception {
 		
 		if (this.rddsdip.connected()) {
@@ -460,7 +617,13 @@ public class RequestDispatcher
 			this.rddsdip.send(rdds);
 		}
 	}
-
+	/**
+	 * Arrête l'envoie de données dynamiques.
+	 * 
+	 * @see fr.upmc.datacenter.interfaces.PushModeControllingI#stopPushing()
+	 * 
+	 * @throws Exception
+	 */
 	@Override
 	public void stopPushing() throws Exception {
 		
