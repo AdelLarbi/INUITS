@@ -55,7 +55,9 @@ import fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherMan
 import fr.upmc.inuits.software.requestdispatcher.ports.RequestDispatcherManagementNotificationInboundPort;
 import fr.upmc.inuits.software.requestdispatcher.ports.RequestDispatcherManagementOutboundPort;
 import fr.upmc.inuits.utils.Javassist;
-
+/**
+ * La class <code>AdmissionController</code> represente le composant AdmissionController qui gère l'acces aux ressources du centre de calcul par les applications .
+ */
 public class AdmissionController 
 	extends AbstractComponent 
 	implements ComputerStateDataConsumerI, ApplicationSubmissionHandlerI, 
@@ -134,7 +136,25 @@ public class AdmissionController
 	protected int numberOfProcessors;
 	protected int numberOfCoresPerProcessor;	
 	protected boolean[][] reservedCores;
-		
+		/**
+		 * Permet la creation du composant AdmissionController
+		 * @param acURI uri de l'admission controller
+		 * @param computersURI uri du computer 
+		 * @param computerServicesInboundPortURI uri du port computerServicesInboundPortURI
+		 * @param computerServicesOutboundPortURI uri du port computerStaticStateDataInboundPortURI
+		 * @param computerStaticStateDataInboundPortURI uri du port computerStaticStateDataInboundPortURI
+		 * @param computerStaticStateDataOutboundPortURI uri du port computerStaticStateDataOutboundPortURI
+		 * @param computerDynamicStateDataInboundPortURI uri du port computerDynamicStateDataInboundPortURI
+		 * @param computerDynamicStateDataOutboundPortURI uri du port computerDynamicStateDataOutboundPortURI
+		 * @param appsURI uri de l'application
+		 * @param applicationManagementOutboundPortURI uri du port applicationManagementOutboundPortURI
+		 * @param applicationSubmissionInboundPortURI uri du port applicationSubmissionInboundPortURI
+		 * @param applicationNotificationOutboundPortURI uri du port applicationNotificationOutboundPortURI
+		 * @param autonomicControllerAVMsManagementInboundPortURI uri du port autonomicControllerAVMsManagementInboundPortURI
+		 * @param autonomicControllerCoordinationInboundPortURI uri du port autonomicControllerCoordinationInboundPortURI
+		 * @param autonomicControllerCoordinationOutboundPortURI uri du port autonomicControllerCoordinationOutboundPortURI
+		 * @throws Exception
+		 */
 	public AdmissionController(
 			String acURI,	
 			ArrayList<String> computersURI,			
@@ -312,6 +332,13 @@ public class AdmissionController
 		assert this.atccip != null && this.atccip instanceof AutonomicControllerCoordinationI;
 	}
 	
+	/**
+	 * initialise la reservation des corps
+	 * @see fr.upmc.components.AbstractComponent#start()
+	 * 
+	 * pre pas de preCondition
+	 * post this.reservedCores != null
+	 */
 	@Override
 	public void start() throws ComponentStartException {
 		
@@ -338,21 +365,24 @@ public class AdmissionController
 		assert this.reservedCores != null;
 	}
 	
+	/**
+	 * Methode permettant l'arrêt du composant AdmissionController, en déconnectant les différents ports.
+	 * 
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	true				// pas plus de  preconditions.
+	 * post	true				// pas plus de postconditions.
+	 * </pre>
+	 * 
+	 * @see fr.upmc.components.AbstractComponent#shutdown()
+	 * @throws ComponentShutdownException capture toute erreurs liée à la déconnexion
+	 */
 	@Override
 	public void shutdown() throws ComponentShutdownException {
 		
-		try {		
-			for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
-				if (this.csop[i].connected()) {
-					this.csop[i].doDisconnection();//FIXME
-				}
-				if (this.cssdop[i].connected()) {
-					this.cssdop[i].doDisconnection();//FIXME
-				}
-				if (this.cdsdop[i].connected()) {
-					this.cdsdop[i].doDisconnection();//FIXME
-				}
-			}
+		try {
 			for (ApplicationManagementOutboundPort thisAmop : amop.values()) {
 				if (thisAmop.connected()) {
 					thisAmop.doDisconnection();
@@ -388,6 +418,9 @@ public class AdmissionController
 		super.shutdown();
 	}
 
+	/**
+	 * permet d'afficher les données static.
+	 */
 	@Override
 	public void acceptComputerStaticData(String computerURI, ComputerStaticStateI staticState) throws Exception {
 		
@@ -421,6 +454,9 @@ public class AdmissionController
 		}
 	}
 
+	/**
+	 * permet d'afficher les données dynamiques.
+	 */
 	@Override
 	public void acceptComputerDynamicData(String computerURI, ComputerDynamicStateI currentDynamicState)
 			throws Exception {
@@ -457,6 +493,9 @@ public class AdmissionController
 		}			
 	}
 
+	/**
+	 * @see fr.upmc.inuits.software.application.interfaces.ApplicationSubmissionHandlerI#acceptApplicationSubmissionAndNotify(String, int)
+	 */
 	@Override
 	public void acceptApplicationSubmissionAndNotify(String appUri, int mustHaveCores) throws Exception {
 				
@@ -479,7 +518,11 @@ public class AdmissionController
 			wait(ANALYSE_DATA_TIMER);			
 		}					
 	}
-	
+	/**
+	 * Permet de verifier que le nombre de core demandée par l'application pour sont éxécution est disponible.
+	 * @param mustHaveCores nombre de core dont a besoin l'application pour s'executer.
+	 * @return un booleen true s'il y a assez de core pour l'application
+	 */
 	public boolean isResourcesAvailable(int mustHaveCores) {		
 		int availableCores = 0;
 		
@@ -499,6 +542,12 @@ public class AdmissionController
 		return false;
 	}
 
+	/**
+	 * Si l'application est est accepter on deploie les composant et on alloue les corps
+	 * @param appUri
+	 * @param mustHaveCores
+	 * @throws Exception
+	 */
 	public void acceptApplication(String appUri, int mustHaveCores) throws Exception {
 		
 		this.logMessage("Admission controller allow application " + appUri + " to be executed.");
@@ -510,11 +559,17 @@ public class AdmissionController
 		this.logMessage("Admission controller allocated " + mustHaveCores + " cores for " + appUri);						
 	}
 	
+	/**
+	 * Alloue les cores
+	 * @param appUri
+	 * @param coresCount
+	 * @throws Exception
+	 */
 	public void allocateCores(String appUri, int coresCount) throws Exception {
 				
 		this.logMessage("Admission controller allocating " + coresCount + " for " + appUri + "...");
 		
-		AllocatedCore[] ac = this.csop[computerIndex].allocateCores(coresCount); // FIXME index not only 0 !		
+		AllocatedCore[] ac = this.csop[computerIndex].allocateCores(coresCount);		
 		
 		for (int i = 0; i < AVMS_TO_ALLOCATE_COUNT; i++) {
 			this.avmOutPort.get(appUri + i).allocateCores(ac);		
@@ -523,11 +578,20 @@ public class AdmissionController
 		this.mustHaveCoresPerApp.put(appUri, ac);
 	}
 	
+	/**
+	 * Message pour afficher qu'une application est rejetée par manque de ressource.
+	 * @param appUri
+	 */
 	public void rejectApplication(String appUri) {
 		
 		this.logMessage("Admission controller can't accept application " + appUri + " because of lack of resources.");		
 	}		
-
+	/**
+	 * Permet de deployer les composents AVM et Dispatcher .
+	 * @param appUri uri de l'app
+	 * @param applicationVMCount nombre d'avm
+	 * @throws Exception 
+	 */
 	public void deployComponents(String appUri, int applicationVMCount) throws Exception {
 				
 		final String RD_URI = "rd-" + appUri;
@@ -777,6 +841,11 @@ public class AdmissionController
 				DynamicComponentCreationConnector.class.getCanonicalName());	
 	}
 	
+	/**
+	 * Prepare l'autonomicController
+	 * @param atcUri
+	 * @throws Exception
+	 */
 	protected void prepareAtCDeployment(String atcUri) throws Exception {
 		
 		this.portToAutonomicControllerJVM.put(atcUri, new DynamicComponentCreationOutboundPort(this));
@@ -815,6 +884,12 @@ public class AdmissionController
 		}
 	}
 
+	/**
+	 * Permet de deployer une nouvelle AVM
+	 * @param appUri
+	 * @param rdUri
+	 * @throws Exception
+	 */
 	public void deployNewAVM(String appUri, String rdUri) throws Exception {
 		
 		// Create component
@@ -838,7 +913,9 @@ public class AdmissionController
 		
 		// Wait to accept this creation request from RD		
 	}
-	
+	/**
+	 * @see fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherManagementNotificationHandlerI#acceptCreateRequestSubmissionAndNotificationPorts(String, String)
+	 */
 	@Override
 	public void acceptCreateRequestSubmissionAndNotificationPorts(String appUri, String rdUri) throws Exception {
 		
@@ -885,6 +962,7 @@ public class AdmissionController
 		rop.doDisconnection();
 	}
 	
+
 	@Override
 	public void acceptRequestRemoveAVM(String appUri, String rdUri) throws Exception {
 
