@@ -27,7 +27,7 @@ import fr.upmc.inuits.software.application.ports.ApplicationSubmissionOutboundPo
 import fr.upmc.inuits.utils.Javassist;
 /**
  * Class representant une application qui veut soumettre ses requetes aux Centre de calcul.
- *
+ * TEST
  */
 public class Application 
 extends AbstractComponent
