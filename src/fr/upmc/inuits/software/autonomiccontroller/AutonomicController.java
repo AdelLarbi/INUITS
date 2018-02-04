@@ -35,7 +35,11 @@ import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerMana
 import fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherDynamicStateI;
 import fr.upmc.inuits.software.requestdispatcher.interfaces.RequestDispatcherStateDataConsumerI;
 import fr.upmc.inuits.software.requestdispatcher.ports.RequestDispatcherDynamicStateDataOutboundPort;
-
+/**
+ * 
+ * La classe qui permet controler la pérformence du centre de calcul et essayer de maintenire une valeur cible
+ *
+ */
 public class AutonomicController 
 	extends AbstractComponent 
 	implements AutonomicControllerManagementI, AutonomicControllerServicesI, AutonomicControllerCoordinationHandlerI, 
@@ -43,6 +47,7 @@ public class AutonomicController
 
 	public static int DEBUG_LEVEL = 1;
 	
+	/** le temps entre chaque analyse de données */
 	protected final int ANALYSE_DATA_TIMER = 1000;//500	
 	
 	protected final String atcURI;
@@ -67,12 +72,66 @@ public class AutonomicController
 	protected AutonomicControllerCoordinationOutboundPort atccop;
 	protected AutonomicControllerCoordinationInboundPort atccip;
 	
+	/** Utils pour calculer la moyenne */
 	protected double exponentialSmoothing;
 	protected double averageExecutionTime;
 	protected int availableAVMsCount;
 	
+	/** Les coeur réserver par ordinateurs */
 	protected HashMap<String, Boolean[][]> reservedCoresPerComputer;
 		
+	/**
+	 * Contructeur qui initialise le controlleur autonomic
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre  atcURI != null && atcURI.length() > 0;
+	 * pre computersURI != null && computersURI.size() > 0;
+	 * pre computerServicesOutboundPortURI != null && computerServicesOutboundPortURI.size() > 0;
+	 * pre computerStaticStateDataOutboundPortURI != null && computerStaticStateDataOutboundPortURI.size() > 0;
+	 * pre computerDynamicStateDataOutboundPortURI != null && computerDynamicStateDataOutboundPortURI.size() > 0;
+	 * pre requestDispatcherDynamicStateDataOutboundPortURI != null 
+	 *		&& requestDispatcherDynamicStateDataOutboundPortURI.length() > 0;
+	 * pre autonomicControllerManagementInboundPortURI != null;
+	 * pre autonomicControllerAVMsManagementOutboundPortURI != null 
+	 *		&& autonomicControllerAVMsManagementOutboundPortURI.length() > 0;				
+	 * pre autonomicControllerCoordinationOutboundPortURI != null 
+	 *		&& autonomicControllerCoordinationOutboundPortURI.length() > 0;						
+	 * pre autonomicControllerCoordinationInboundPortURI != null 
+	 *		&& autonomicControllerCoordinationInboundPortURI.length() > 0;
+	 *
+	 * post this.atcURI != null;
+	 * post  this.applicationURI != null;
+     * post this.computerServicesOutboundPortURI != null && this.computerServicesOutboundPortURI.size() > 0;
+	 * post this.computerStaticStateDataOutboundPortURI != null && this.computerStaticStateDataOutboundPortURI.size() > 0;
+	 * post this.computerDynamicStateDataOutboundPortURI != null && this.computerDynamicStateDataOutboundPortURI.size() > 0;
+	 * post this.requestDispatcherDynamicStateDataOutboundPortURI != null && this.requestDispatcherDynamicStateDataOutboundPortURI.length() > 0;
+	 * post this.requestDispatcherURI != null && this.requestDispatcherURI.length() > 0;
+	 * post this.cssdop != null && this.cssdop[0] instanceof DataRequiredI.PullI; // or : ComputerStaticStateDataI
+	 * post this.cdsdop != null && this.cdsdop[0] instanceof ControlledDataRequiredI.ControlledPullI;
+	 * post this.rddsdop != null && this.rddsdop instanceof ControlledDataRequiredI.ControlledPullI;
+	 * post this.atcmip != null && this.atcmip instanceof AutonomicControllerManagementI;
+	 * post this.atcamop != null && this.atcamop instanceof AutonomicControllerAVMsManagementI;
+	 * post this.atccop != null && this.atccop instanceof AutonomicControllerCoordinationI;
+	 * post this.atccip != null && this.atccip instanceof AutonomicControllerCoordinationI;
+	 *		
+	 * </pre>	
+	 * 
+	 * @param atcURI identifiant du controlleur autonomic
+	 * @param computersURI identifiants des computers
+	 * @param computerServicesOutboundPortURI manipuler les coeurs et les fréquences
+	 * @param computerStaticStateDataOutboundPortURI avoir les données statique depuis l'ordinateur
+	 * @param computerDynamicStateDataOutboundPortURI avoir les données dynamique depuis l'ordinateur
+	 * @param applicationURI identifiant de l'application
+	 * @param requestDispatcherURI identifiant de ripartiteur de reuquetes 
+	 * @param requestDispatcherDynamicStateDataOutboundPortURI avoir les données dynamique depuis le ripartiteur de requetes
+	 * @param autonomicControllerManagementInboundPortURI gerer la connection avet le controleur autonomique
+	 * @param autonomicControllerAVMsManagementOutboundPortURI gerer les avm (ajout, supression)
+	 * @param autonomicControllerCoordinationOutboundPortURI envoyer des demandes pour avoir les avm disponibles
+	 * @param autonomicControllerCoordinationInboundPortURI recevoir des demandes pour avoir les avm disponibles
+	 * @throws Exception
+	 */
 	public AutonomicController(
 			String atcURI,
 			ArrayList<String> computersURI,			
@@ -161,11 +220,11 @@ public class AutonomicController
 		this.atccop.publishPort();
 		
 		// To receive coordination data
-		//this.addOfferedInterface(AutonomicControllerReceiverI.class);
 		this.atccip = new AutonomicControllerCoordinationInboundPort(autonomicControllerCoordinationInboundPortURI, this);
 		this.addPort(this.atccip);
 		this.atccip.publishPort();
 		
+		// init
 		this.exponentialSmoothing = -1;
 		this.averageExecutionTime = -1;
 		this.availableAVMsCount = -1;
@@ -187,6 +246,9 @@ public class AutonomicController
 		assert this.atccip != null && this.atccip instanceof AutonomicControllerCoordinationI;
 	}
 
+	/**
+	 * lancer le détecteur de variation de la moyenne
+	 */
 	@Override
 	public void start() throws ComponentStartException {
 		
@@ -195,21 +257,24 @@ public class AutonomicController
 		controlResources();			
 	}
 	
+	/**
+	 * Methode permettant l'arrêt du composant AutonomicController, en déconnectant les différents ports.
+	 * 
+	 * 
+	 * <p><strong>Contract</strong></p>
+	 * 
+	 * <pre>
+	 * pre	true				// pas plus de  preconditions.
+	 * post	true				// pas plus de postconditions.
+	 * </pre>
+	 * 
+	 * @see fr.upmc.components.AbstractComponent#shutdown()
+	 * @throws ComponentShutdownException capture toute erreurs liée à la déconnexion
+	 */
 	@Override
 	public void shutdown() throws ComponentShutdownException {
 		
-		try {
-			for (int i = 0; i < TOTAL_COMPUTERS_USED; i++) {
-				if (this.csop[i].connected()) {
-					//this.csop[i].doDisconnection(); //FIXME to handle many computers ! (add dynamic ports in computer component)
-				}
-				if (this.cssdop[i].connected()) {
-					//this.cssdop[i].doDisconnection(); //FIXME
-				}
-				if (this.cdsdop[i].connected()) {
-					//this.cdsdop[i].doDisconnection(); //FIXME
-				}
-			}
+		try {			
 			if (this.rddsdop.connected()) {
 				this.rddsdop.doDisconnection();
 			}
@@ -226,6 +291,9 @@ public class AutonomicController
 		super.shutdown();
 	}
 	
+	/**
+	 * Faire une connexion entre l'ordinateur et le AutonomicController pour pouvoir gérer les coeurs et les fréquences
+	 */
 	@Override
 	public void doConnectionWithComputerForServices(ArrayList<String> computerServicesInboundPortUri) throws Exception {
 
@@ -237,6 +305,9 @@ public class AutonomicController
 		}
 	}
 
+	/**
+	 * Faire une connexion entre l'ordinateur et le AutonomicController pour avoir les données statique de l'ordinateur
+	 */
 	@Override
 	public void doConnectionWithComputerForStaticState(ArrayList<String> computerStaticStateInboundPortUri) 
 			throws Exception {
@@ -249,6 +320,9 @@ public class AutonomicController
 		}
 	}
 	
+	/**
+	 * Faire une connexion entre l'ordinateur et le AutonomicController pour avoir les données dynamique de l'ordinateur
+	 */
 	@Override
 	public void doConnectionWithComputerForDynamicState(ArrayList<String> computerDynamicStateInboundPortUri, 
 			boolean isStartPushing) throws Exception {
@@ -273,6 +347,9 @@ public class AutonomicController
 		}		
 	}
 	
+	/**
+	 * Faire une connexion entre le dispatcher et le AutonomicController pour avoir les données dynamique de l'ordinateur
+	 */
 	@Override
 	public void doConnectionWithRequestDispatcherForDynamicState(String requestDispatcherDynamicStateInboundPortUri, 
 			boolean isStartPushing) throws Exception {
@@ -294,6 +371,9 @@ public class AutonomicController
 		}
 	}
 	
+	/**
+	 * Faire une connexion entre le controleur d'admission et le AutonomicController pour gérer les avm (ajout, suppression)
+	 */
 	@Override
 	public void doConnectionWithAdmissionControllerForAVMsManagement(
 			String admissionControllerAtCAVMsManagementInboundPortUri) throws Exception {
@@ -304,10 +384,12 @@ public class AutonomicController
 				AutonomicControllerAVMsManagementConnector.class.getCanonicalName());	
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see fr.upmc.datacenter.hardware.computers.interfaces.ComputerStateDataConsumerI#acceptComputerStaticData(java.lang.String, fr.upmc.datacenter.hardware.computers.interfaces.ComputerStaticStateI)
+	 */
 	@Override
 	public void acceptComputerStaticData(String computerURI, ComputerStaticStateI staticState) throws Exception {
-			
-		//TODO
 		
 		if (DEBUG_LEVEL == 4) {
 			StringBuffer sb = new StringBuffer();
@@ -336,6 +418,10 @@ public class AutonomicController
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see fr.upmc.datacenter.hardware.computers.interfaces.ComputerStateDataConsumerI#acceptComputerStaticData(java.lang.String, fr.upmc.datacenter.hardware.computers.interfaces.ComputerStaticStateI)
+	 */
 	@Override
 	public synchronized void acceptComputerDynamicData(String computerURI, ComputerDynamicStateI currentDynamicState)
 			throws Exception {					
@@ -381,6 +467,9 @@ public class AutonomicController
 		}			
 	}
 	
+	/**
+	 * Recupérer les données dynamiques depuis le RequestDispatcher (la moyenne, les AVMs disponibles, le nombre total des requets, les requets terminés 
+	 */
 	@Override
 	public synchronized void acceptRequestDispatcherDynamicData(String rdURI, RequestDispatcherDynamicStateI currentDynamicState)
 			throws Exception {
@@ -399,7 +488,7 @@ public class AutonomicController
 				sb.append("  exponential smoothing  : [" + exponentialSmoothing + "]\n");
 				sb.append("  average execution time : [" + averageExecutionTime + "]\n");								
 				sb.append("  available AVMs count   : [" + availableAVMsCount + "]\n");
-				sb.append("  terminated/submitted   : [" + + totalRequestTerminated + "/" + totalRequestSubmitted + "]\n");
+				sb.append("  waiting / total        : [" + (totalRequestSubmitted - totalRequestTerminated) + "/" + totalRequestSubmitted + "]\n");
 				sb.append("  the success rate       : [" + totalRequestTerminated * 100 / totalRequestSubmitted + " %]\n");
 				 
 				//sb.append("  current time millis : " + System.currentTimeMillis() + "\n");			
@@ -409,6 +498,12 @@ public class AutonomicController
 		}			
 	}		
 	
+	/**
+	 * Vérifier s'il existe des coeurs disponibles
+	 * @param computerUri l'id de l'ordinateur
+	 * @param mustHaveCores les coeurs qu'il faut avoir
+	 * @return vrai ou faux s'il y des coeurs libres
+	 */
 	public synchronized boolean isResourcesAvailable(String computerUri, int mustHaveCores) {		
 		
 		int availableCores = 0;
@@ -430,6 +525,12 @@ public class AutonomicController
 		return false;
 	}
 
+	/**
+	 * Utiliser pour la coordination entre controleur autonomiques et le controleur d'admission, en passant des données
+	 * @param originSenderUri l'id du controleur qui à initialiser l'appel (utilisé comme condition d'arrêt
+	 * @param thisSenderUri l'id du controleur qui à transmet l'information
+	 * @param availableAVMs la liste des AVMs disponibles
+	 */
 	@Override
 	public void acceptSentDataAndNotify(String originSenderUri, String thisSenderUri, ArrayList<String> availableAVMs)
 			throws Exception {
@@ -473,6 +574,9 @@ public class AutonomicController
 	// Archive allocated cores history
 	HashMap<Integer,ArrayList<AllocatedCore[]>> allocatedCoresHistory = new HashMap<>();
 	
+	/**
+	 * Une tâche récursive pour controler les recources
+	 */
 	public void controlResources() {
 		
 		this.scheduleTask(
@@ -481,7 +585,7 @@ public class AutonomicController
 					@Override
 					public void run() {
 						try {
-							applyAdaptationPolicy();//TODO stop if no more request submission
+							applyAdaptationPolicy();
 							
 						} catch (Exception e) {							
 							e.printStackTrace();
@@ -493,6 +597,10 @@ public class AutonomicController
 				}, CONTROL_RESOURCES_TIMER, TimeUnit.MILLISECONDS);
 	}
 	
+	/**
+	 * La politique de gestion de recources
+	 * @throws Exception
+	 */
 	protected void applyAdaptationPolicy() throws Exception {
 		// uncomment to see difference
 		//int average = (int) this.exponentialSmoothing;
@@ -552,6 +660,10 @@ public class AutonomicController
 		}		
 	}
 
+	/**
+	 * augmenter la fréquence des coeurs
+	 * @return vrai ou faux si l'augmentation est possible 
+	 */
 	@Override
 	public boolean increaseFrequency() throws Exception {
 		
@@ -575,6 +687,10 @@ public class AutonomicController
 		return canIncreaseFrequency;				
 	}
 
+	/**
+	 * Baisseer la fréquence des coeurs
+	 * @return vrai ou faux si la baisse est possible 
+	 */
 	@Override
 	public boolean decreaseFrequency() throws Exception {
 		
@@ -598,6 +714,10 @@ public class AutonomicController
 		return canDecreaseFrequency;		
 	}
 
+	/**
+	 * Ajouter des cours
+	 * @return vrai ou faux si l'ajout des coeurs est possible 
+	 */
 	@Override
 	public boolean addCores() throws Exception {
 
@@ -641,6 +761,10 @@ public class AutonomicController
 		return canAddCores;
 	}
 
+	/**
+	 * Enlever des cours
+	 * @return vrai ou faux si la supression des coeurs est possible 
+	 */
 	@Override
 	public boolean removeCores() throws Exception {
 
@@ -668,6 +792,10 @@ public class AutonomicController
 		return canRemoveCores;
 	}
 
+	/**
+	 * Ajouter des AVM
+	 * @return vrai ou faux si l'ajout des AVM est possible 
+	 */
 	@Override
 	public boolean addAVMs() throws Exception {
 		
@@ -689,6 +817,10 @@ public class AutonomicController
 		return canAddAVM;
 	}
 
+	/**
+	 * Retrancher des AVM
+	 * @return vrai ou faux si cette opération est possible 
+	 */
 	@Override
 	public boolean removeAVMs() throws Exception {
 		
