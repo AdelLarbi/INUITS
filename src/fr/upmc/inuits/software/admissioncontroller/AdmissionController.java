@@ -122,6 +122,7 @@ public class AdmissionController
 	
 	protected final int TOTAL_COMPUTERS_USED;
 	protected final int TOTAL_APPLICATION_EXECUTION_REQUESTED;	
+	protected int TOTAL_APPLICATION_ACCEPTED;
 	
 	protected int numberOfProcessors;
 	protected int numberOfCoresPerProcessor;	
