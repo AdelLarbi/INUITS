@@ -23,6 +23,9 @@ import fr.upmc.datacenterclient.requestgenerator.connectors.RequestGeneratorMana
 import fr.upmc.datacenterclient.requestgenerator.ports.RequestGeneratorManagementOutboundPort;
 import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 
+/*
+ * Test Multi-Jvms of Request dispatcher 
+ */
 public class TestPartOneQuestionOneDCVM
 	extends AbstractDistributedCVM {
 	
@@ -190,12 +193,14 @@ public class TestPartOneQuestionOneDCVM
 						
 			this.requestDispatcher[0] = new RequestDispatcher(				
 					"rd" + 0,		
-					"requestDispatcherManagementIntboundPortURI" + 0, //FIXME
+					"requestDispatcherManagementIntboundPortURI" + 0,
+					"requestDispatcherManagementNotificationOutboundPortURI" + 0,
+					"app" + 0,
 					RD_REQUEST_SUBMISSION_IN_PORT_URI[0],
 					RD0_REQUEST_SUBMISSION_OUT_PORT_URI,
 					RD0_REQUEST_NOTIFICATION_IN_PORT_URI,
 					RD_REQUEST_NOTIFICATION_OUT_PORT_URI[0],
-					"requestDispatcherDynamicStateDataInboundPortURI" + 0); //FIXME
+					"requestDispatcherDynamicStateDataInboundPortURI" + 0);
 			
 			this.addDeployedComponent(this.requestDispatcher[0]);
 			
@@ -214,12 +219,14 @@ public class TestPartOneQuestionOneDCVM
 			
 			this.requestDispatcher[1] = new RequestDispatcher(				
 					"rd" + 1,				
-					"requestDispatcherManagementIntboundPortURI" + 1, //FIXME
+					"requestDispatcherManagementIntboundPortURI" + 1,
+					"requestDispatcherManagementNotificationOutboundPortURI" + 1,
+					"app" + 1,
 					RD_REQUEST_SUBMISSION_IN_PORT_URI[1],
 					RD1_REQUEST_SUBMISSION_OUT_PORT_URI,
 					RD1_REQUEST_NOTIFICATION_IN_PORT_URI,
 					RD_REQUEST_NOTIFICATION_OUT_PORT_URI[1],
-					"requestDispatcherDynamicStateDataInboundPortURI" + 1); //FIXME
+					"requestDispatcherDynamicStateDataInboundPortURI" + 1);
 			
 			this.addDeployedComponent(this.requestDispatcher[1]);
 			

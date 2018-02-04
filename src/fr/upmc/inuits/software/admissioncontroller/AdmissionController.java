@@ -66,6 +66,7 @@ public class AdmissionController
 	
 	protected final int ANALYSE_DATA_TIMER = 1000; //1000			
 	protected final int AVMS_TO_ALLOCATE_COUNT = 2;
+	protected final int MAXIMUM_AVMS_TO_ALLOCATE_COUNT = 20;
 		
 	protected final String AC_URI;
 	
@@ -121,8 +122,14 @@ public class AdmissionController
 	protected AutonomicControllerCoordinationOutboundPort atccop;
 	
 	protected final int TOTAL_COMPUTERS_USED;
-	protected final int TOTAL_APPLICATION_EXECUTION_REQUESTED;	
+	protected final int TOTAL_APPLICATION_EXECUTION_REQUESTED;
+	protected int computerIndex; 
+	// useful for coordination
 	protected int totalApplicationAccepted;
+	// Useful for coordination (save tail)	
+	protected String savedLastAutonomicControllerCoordinationInPortUri;
+	// List of AVM's ids created at the beginning by the admission controller
+	protected ArrayList<String> availableAVMsList;
 	
 	protected int numberOfProcessors;
 	protected int numberOfCoresPerProcessor;	
@@ -177,7 +184,13 @@ public class AdmissionController
 		
 		this.TOTAL_COMPUTERS_USED = computersURI.size();
 		this.TOTAL_APPLICATION_EXECUTION_REQUESTED = appsURI.size();			
-		this.totalApplicationAccepted = 0;
+		this.computerIndex = 0;
+		
+		this.totalApplicationAccepted = 0;		
+		this.availableAVMsList = new ArrayList<>();
+		for (int i = 0; i < this.MAXIMUM_AVMS_TO_ALLOCATE_COUNT; i++) {
+			availableAVMsList.add("added-avm-" + i);
+		}
 		
 		this.avmManagementInPortUri = new HashMap<>();
 		this.avmManagementOutPortUri = new HashMap<>();	
@@ -501,7 +514,7 @@ public class AdmissionController
 				
 		this.logMessage("Admission controller allocating " + coresCount + " for " + appUri + "...");
 		
-		AllocatedCore[] ac = this.csop[0].allocateCores(coresCount); // FIXME index not only 0 !		
+		AllocatedCore[] ac = this.csop[computerIndex].allocateCores(coresCount); // FIXME index not only 0 !		
 		
 		for (int i = 0; i < AVMS_TO_ALLOCATE_COUNT; i++) {
 			this.avmOutPort.get(appUri + i).allocateCores(ac);		
@@ -514,10 +527,8 @@ public class AdmissionController
 		
 		this.logMessage("Admission controller can't accept application " + appUri + " because of lack of resources.");		
 	}		
-	
-	String saved_AUTONOMIC_CONTROLLER_COORDINATION_IN_PORT_URI;
-	
-	public void deployComponents(String appUri, int applicationVMCount) throws Exception {						 			
+
+	public void deployComponents(String appUri, int applicationVMCount) throws Exception {
 				
 		final String RD_URI = "rd-" + appUri;
 		final String ATC_URI = "atc-" + appUri;
@@ -665,29 +676,30 @@ public class AdmissionController
 		this.atcmOutPort.get(ATC_URI).doConnectionWithRequestDispatcherForDynamicState(RD_DYNAMIC_STATE_DATA_IN_PORT_URI, true);
 		this.atcmOutPort.get(ATC_URI).doConnectionWithAdmissionControllerForAVMsManagement(atcAvmsManagementInPortUri.get(appUri));
 		
-		//FIXME
+		// is second application or more
 		if (totalApplicationAccepted > 0) {
-
-			this.doPortDisconnection(ADMISSION_CONTROLLER_COORDINATION_OUT_BOUND_PORT_URI);
-			
+			// disconnect the admission controller's outBound port to connect it to the new one
+			this.doPortDisconnection(ADMISSION_CONTROLLER_COORDINATION_OUT_BOUND_PORT_URI);			
+			// always connect the new autonomic controller's outBound port to the last autonomic controller's inBound port
 			rop.doPortConnection(
 					AUTONOMIC_CONTROLLER_COORDINATION_OUT_PORT_URI,
-					saved_AUTONOMIC_CONTROLLER_COORDINATION_IN_PORT_URI,
+					savedLastAutonomicControllerCoordinationInPortUri,
 					AutonomicControllerCoordinationConnector.class.getCanonicalName());					
 			
+		// is first application	
 		} else {
 			rop.doPortConnection(
 					AUTONOMIC_CONTROLLER_COORDINATION_OUT_PORT_URI,
 					ADMISSION_CONTROLLER_COORDINATION_IN_BOUND_PORT_URI,
 					AutonomicControllerCoordinationConnector.class.getCanonicalName());
-		}
-		
+		}		
+		// always connect the admission controller's outBound port to the new autonomic controller's inBound port 
 		this.doPortConnection(
 				ADMISSION_CONTROLLER_COORDINATION_OUT_BOUND_PORT_URI,
 				AUTONOMIC_CONTROLLER_COORDINATION_IN_PORT_URI,
 				AutonomicControllerCoordinationConnector.class.getCanonicalName());
 		
-		this.saved_AUTONOMIC_CONTROLLER_COORDINATION_IN_PORT_URI = AUTONOMIC_CONTROLLER_COORDINATION_IN_PORT_URI;
+		this.savedLastAutonomicControllerCoordinationInPortUri = AUTONOMIC_CONTROLLER_COORDINATION_IN_PORT_URI;
 		
 		rop.doDisconnection();
 		
@@ -807,6 +819,7 @@ public class AdmissionController
 		
 		// Create component
 		int i = avmIndexPerApp.get(appUri);
+		
 		final String AVM_URI = "avm-" + i + "-" + appUri;
 		
 		this.portToApplicationVMJVM.get(appUri + i).createComponent(
@@ -823,8 +836,7 @@ public class AdmissionController
 				this.rdRequestSubmissionOutPortUri.get(rdUri).get(0), 
 				this.rdRequestNotificationInPortUri.get(rdUri).get(0));		
 		
-		// Wait to accept this creation request from RD
-		//Thread.sleep(1000L);		
+		// Wait to accept this creation request from RD		
 	}
 	
 	@Override
@@ -907,24 +919,24 @@ public class AdmissionController
 			this.avmOutPort.get(appUri + i).allocateCores(allocatedCore);
 		}		
 	}
-
+	
 	@Override
 	public void acceptSentDataAndNotify(String originSenderUri, String thisSenderUri, ArrayList<String> availableAVMs)
 			throws Exception {
 		
 		this.logMessage("~~~~~~~ " + this.AC_URI + " accepting data from " + thisSenderUri);
-		
-		/*System.out.println("****************this.atcURI = " + this.AC_URI);
-		System.out.println("****************originSenderUri = " + originSenderUri);
-		System.out.println("****************thisSenderUri = " + thisSenderUri);*/
-		
+				
 		if (this.AC_URI != originSenderUri) {
-			/*System.out.println("_______________________________________________");
-			System.out.println("AC:" + availableAVMs.size());
-			System.out.println("_______________________________________________");*/
-						
-			availableAVMs.add("World");
-			this.atccop.sendDataAndNotify(originSenderUri, this.AC_URI, availableAVMs);	
-		}		
+			// first AVM request, send the existing list			
+			if (availableAVMs == null) {				
+				this.atccop.sendDataAndNotify(originSenderUri, this.AC_URI, this.availableAVMsList);
+			// otherwise passe to next component 	
+			} else {
+				this.atccop.sendDataAndNotify(originSenderUri, this.AC_URI, availableAVMs);
+			}
+		// when a user pick an AVM we have to update
+		} else {
+			this.availableAVMsList = availableAVMs;
+		}
 	}
 }

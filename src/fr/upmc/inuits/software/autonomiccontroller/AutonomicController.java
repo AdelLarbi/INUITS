@@ -436,19 +436,21 @@ public class AutonomicController
 
 		this.logMessage("~~~~~~~ " + this.atcURI + " accepting data from " + thisSenderUri);
 		
-		
-		/*System.out.println("****************this.atcURI = " + this.atcURI);
-		System.out.println("****************originSenderUri = " + originSenderUri);
-		System.out.println("****************thisSenderUri = " + thisSenderUri);*/
-		
+		// passe data to next component
 		if (this.atcURI != originSenderUri) {
-			// TODO Auto-generated method stub
 			this.atccop.sendDataAndNotify(originSenderUri, this.atcURI, availableAVMs);
-			
+		
+		// stop condition : this made a whole loop	
 		} else {
-			/*System.out.println("_______________________________________________");
-			System.out.println("ATC:" + availableAVMs.size());
-			System.out.println("_______________________________________________");*/	
+			// pick an AVM and send request to admission controller to update
+			if (availableAVMs != null && availableAVMs.size() > 0) {				
+				showLogMessageL3("____Adding AVMs...");
+				//this.atcamop.doRequestAddAVM(availableAVMs.remove(0), this.allocatedCoresHistory);
+				this.atccop.sendDataAndNotify("admissionController", this.atcURI, availableAVMs);
+				
+			} else {
+				this.logMessage("No more AVMs available.");		
+			}
 		}		
 	}
 	
@@ -492,7 +494,7 @@ public class AutonomicController
 	}
 	
 	protected void applyAdaptationPolicy() throws Exception {
-		
+		// uncomment to see difference
 		//int average = (int) this.exponentialSmoothing;
 		int average = (int) this.averageExecutionTime;
 				
@@ -500,15 +502,6 @@ public class AutonomicController
 			// The higher threshold is crossed upwards.	
 			if (averageExecutionTime >= HIGHER_THRESHOLD) {								
 				showLogMessageL3("__[The higher threshold " + HIGHER_THRESHOLD + " is crossed upwards : " + average + "]");
-				
-				
-				this.logMessage("~~~~~~~ " + this.atcURI + " asked for coordination.");
-				
-				ArrayList<String> data = new ArrayList<>();
-				data.add("Hello");
-				this.atccop.sendDataAndNotify(this.atcURI, this.atcURI, data);
-				
-				
 				
 				// 1- Increase frequency if possible.
 				if (increaseFrequency()) {							
@@ -679,7 +672,10 @@ public class AutonomicController
 	public boolean addAVMs() throws Exception {
 		
 		showLogMessageL3("____Adding AVMs...");
-				
+			
+		// get an AVM id if exists using coordination between autonomic controller
+		//this.atccop.sendDataAndNotify(this.atcURI, this.atcURI, null);
+		
 		boolean canAddAVM = false;
 		
 		if (this.availableAVMsCount < MAXIMUM_ALLOWED_VM_COUNT) {

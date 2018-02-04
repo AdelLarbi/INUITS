@@ -23,7 +23,7 @@ import fr.upmc.datacenterclient.requestgenerator.connectors.RequestGeneratorMana
 import fr.upmc.datacenterclient.requestgenerator.ports.RequestGeneratorManagementOutboundPort;
 import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 
-public class TestPartOneQuestionOne extends AbstractCVM {
+public class TestRequestDispatcher extends AbstractCVM {
 
 	public static final String C_SERVICES_IN_PORT_URI = "cs-ip";
 	public static final String C_SERVICES_OUT_PORT_URI = "cs-op";
@@ -53,7 +53,7 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 	protected ApplicationVMManagementOutboundPort[] avmOutPort = new ApplicationVMManagementOutboundPort[4];
 	protected RequestGeneratorManagementOutboundPort[] rgmOutPort = new RequestGeneratorManagementOutboundPort[2];
 
-	public TestPartOneQuestionOne() throws Exception {
+	public TestRequestDispatcher() throws Exception {
 		super();
 	}
 
@@ -155,13 +155,14 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 					
 		this.requestDispatcher[0] = new RequestDispatcher(				
 				"rd" + 0,		
-				"requestDispatcherManagementIntboundPortURI" + 0, //FIXME
+				"requestDispatcherManagementIntboundPortURI" + 0,
+				"requestDispatcherManagementNotificationOutboundPortURI" + 0,
 				"app" + 0,
 				RD_REQUEST_SUBMISSION_IN_PORT_URI[0],
 				RD0_REQUEST_SUBMISSION_OUT_PORT_URI,
 				RD0_REQUEST_NOTIFICATION_IN_PORT_URI,
 				RD_REQUEST_NOTIFICATION_OUT_PORT_URI[0],
-				"requestDispatcherDynamicStateDataInboundPortURI" + 0); //FIXME
+				"requestDispatcherDynamicStateDataInboundPortURI" + 0);
 		
 		this.addDeployedComponent(this.requestDispatcher[0]);
 		
@@ -180,13 +181,14 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 		
 		this.requestDispatcher[1] = new RequestDispatcher(				
 				"rd" + 1,				
-				"requestDispatcherManagementIntboundPortURI" + 1, //FIXME
+				"requestDispatcherManagementIntboundPortURI" + 1,
+				"requestDispatcherManagementNotificationOutboundPortURI" + 1,
 				"app" + 1,
 				RD_REQUEST_SUBMISSION_IN_PORT_URI[1],
 				RD1_REQUEST_SUBMISSION_OUT_PORT_URI,
 				RD1_REQUEST_NOTIFICATION_IN_PORT_URI,
 				RD_REQUEST_NOTIFICATION_OUT_PORT_URI[1],
-				"requestDispatcherDynamicStateDataInboundPortURI" + 1); //FIXME
+				"requestDispatcherDynamicStateDataInboundPortURI" + 1);
 
 		
 		this.addDeployedComponent(this.requestDispatcher[1]);
@@ -195,7 +197,7 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 		this.requestDispatcher[1].toggleTracing();
 		this.requestDispatcher[1].toggleLogging();
 		// --------------------------------------------------------------------
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 2; i++) {
 			this.applicationVM[i].doPortConnection(
 					AVM_REQUEST_NOTIFICATION_OUT_PORT_URI[i],
 					RD_REQUEST_NOTIFICATION_IN_PORT_URI[i],
@@ -220,12 +222,12 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 					AVM_REQUEST_SUBMISSION_IN_PORT_URI[i],
 					RequestSubmissionConnector.class.getCanonicalName());
 		}		
-		for (int i = 2; i < 4; i++) {
+		/*for (int i = 2; i < 4; i++) {
 			this.requestDispatcher[1].doPortConnection(
 					RD_REQUEST_SUBMISSION_OUT_PORT_URI[i],
 					AVM_REQUEST_SUBMISSION_IN_PORT_URI[i],
 					RequestSubmissionConnector.class.getCanonicalName());
-		}
+		}*/
 		// --------------------------------------------------------------------
 		super.deploy();
 	}
@@ -303,7 +305,7 @@ public class TestPartOneQuestionOne extends AbstractCVM {
 	public static void main(String[] args) {
 		
 		try {
-			final TestPartOneQuestionOne test = new TestPartOneQuestionOne();
+			final TestRequestDispatcher test = new TestRequestDispatcher();
 			test.deploy();
 			
 			System.out.println("starting...");

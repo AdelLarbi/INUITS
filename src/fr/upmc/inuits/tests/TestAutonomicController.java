@@ -25,7 +25,7 @@ import fr.upmc.inuits.software.autonomiccontroller.connectors.AutonomicControlle
 import fr.upmc.inuits.software.autonomiccontroller.ports.AutonomicControllerManagementOutboundPort;
 import fr.upmc.inuits.software.requestdispatcher.RequestDispatcher;
 
-public class MyTest extends AbstractCVM {
+public class TestAutonomicController extends AbstractCVM {
 
 	public static final String C_SERVICES_OUT_PORT_URI = "cs-op";
 	public static final ArrayList<String> C_SERVICES_IN_PORT_URI = new ArrayList<>();	
@@ -83,7 +83,7 @@ public class MyTest extends AbstractCVM {
 
 	Computer computer;
 	
-	public MyTest() throws Exception {
+	public TestAutonomicController() throws Exception {
 		super();
 	}
 
@@ -182,6 +182,7 @@ public class MyTest extends AbstractCVM {
 		this.requestDispatcher = new RequestDispatcher(				
 				"rd0",				
 				"RD_MANAGMEMENT_IN_PORT_URI",
+				"requestDispatcherManagementNotificationOutboundPortURI",
 				"app0",
 				RD_REQUEST_SUBMISSION_IN_PORT_URI,
 				RD_REQUEST_SUBMISSION_OUT_PORT_URI,
@@ -204,8 +205,10 @@ public class MyTest extends AbstractCVM {
 				"app0",
 				"rd0", 
 				ATC_RD_DYNAMIC_STATE_DATA_OUT_PORT_URI,
-				ATC_MANAGEMENT_IN_PORT_URI,
-				"AC_ATC_AVMS_MANAGEMENT_OUT_PORT_URI"); // Test should throws error when requesting Add() or Remove() AVM. 
+				ATC_MANAGEMENT_IN_PORT_URI, // Test should throws error because it's not connected to an Admission Controller
+				"AC_ATC_AVMS_MANAGEMENT_OUT_PORT_URI",
+				"autonomicControllerCoordinationOutboundPortURI",
+				"autonomicControllerCoordinationInboundPortURI");  
 		
 		this.addDeployedComponent(this.autonomicController);
 		
@@ -357,19 +360,19 @@ public class MyTest extends AbstractCVM {
 		}
 	}
 	
-	public void foo() throws Exception {
+	/*public void foo() throws Exception {
 						
 		System.out.println("-- FOO"); //t=20, a=4
 		//addCores(16);
 		this.rgmOutPort.startGeneration();				
 		Thread.sleep(50000L);
 		this.rgmOutPort.stopGeneration();
-	}
+	}*/
 
 	public static void main(String[] args) {
 				
 		try {
-			final MyTest test = new MyTest();
+			final TestAutonomicController test = new TestAutonomicController();
 			test.deploy();
 			
 			System.out.println("starting...");
@@ -379,9 +382,9 @@ public class MyTest extends AbstractCVM {
 				@Override
 				public void run() {
 					try {
-						//test.scenarioUniqueApplicationAndTwoAVMs();
+						test.scenarioUniqueApplicationAndTwoAVMs();
 						//test.scenarioUniqueApplicationAndTwoAVMs_addCors();	
-						test.foo();
+						//test.foo();
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}

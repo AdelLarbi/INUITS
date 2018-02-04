@@ -51,7 +51,7 @@ public class RequestDispatcher
 	
 	protected RequestDispatcherDynamicStateDataInboundPort rddsdip;
 	
-	/** future of the task scheduled to push dynamic data. TODO */
+	/** future of the task scheduled to push dynamic data. */
 	protected ScheduledFuture<?> pushingFuture;
 	
 	/** Variables et objets utilisé dans le calcule du temps moyens de l'execution des requêtes */

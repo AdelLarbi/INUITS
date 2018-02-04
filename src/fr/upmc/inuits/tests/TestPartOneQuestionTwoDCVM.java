@@ -21,15 +21,23 @@ import fr.upmc.inuits.software.application.connectors.ApplicationServicesConnect
 import fr.upmc.inuits.software.application.connectors.ApplicationSubmissionConnector;
 import fr.upmc.inuits.software.application.ports.ApplicationServicesOutboundPort;
 
+/*
+ * Test Multi-Jvms of Admission controller and autonomic controller 
+ */
 public class TestPartOneQuestionTwoDCVM
 	extends AbstractDistributedCVM {
 	
 	protected static String	FIRST_JVM_URI = "first";
 	protected static String	SECOND_JVM_URI = "second";
 
-	public static final String C_SERVICES_IN_PORT_URI = "cs-ip";
-	public static final String C_STATIC_STATE_DATA_IN_PORT_URI = "cssd-ip";
-	public static final String C_DYNAMIC_STATE_DATA_IN_PORT_URI = "cdsd-ip";
+	public static final ArrayList<String> C_SERVICES_IN_PORT_URI = new ArrayList<>();
+	public static final ArrayList<String> C_STATIC_STATE_DATA_IN_PORT_URI = new ArrayList<>();
+	public static final ArrayList<String> C_DYNAMIC_STATE_DATA_IN_PORT_URI = new ArrayList<>();
+	{
+		C_SERVICES_IN_PORT_URI.add("cs-ip");
+		C_STATIC_STATE_DATA_IN_PORT_URI.add("cssd-ip");
+		C_DYNAMIC_STATE_DATA_IN_PORT_URI.add("cdsd-ip");
+	}
 	
 	public static final ArrayList<String> AC_SERVICES_OUT_PORT_URI = new ArrayList<>();
 	public static final ArrayList<String> AC_STATIC_STATE_DATA_OUT_PORT_URI = new ArrayList<>();
@@ -37,6 +45,9 @@ public class TestPartOneQuestionTwoDCVM
 	public static final ArrayList<String> AC_APPLICATION_MANAGEMENT_OUT_PORT_URI = new ArrayList<>();
 	public static final ArrayList<String> AC_APPLICATION_SUBMISSION_IN_PORT_URI = new ArrayList<>();
 	public static final ArrayList<String> AC_APPLICATION_NOTIFICATION_OUT_PORT_URI = new ArrayList<>();
+	public static final ArrayList<String> AC_AVMS_MANAGEMENT_IN_PORT_URI = new ArrayList<>();
+	public static final String AC_COORDINATION_IN_PORT_URI = "acc-ip";
+	public static final String AC_COORDINATION_OUT_PORT_URI = "acc-op";
 	{
 		AC_SERVICES_OUT_PORT_URI.add("acs-op");
 		AC_STATIC_STATE_DATA_OUT_PORT_URI.add("acssd-op");
@@ -47,6 +58,8 @@ public class TestPartOneQuestionTwoDCVM
 		AC_APPLICATION_SUBMISSION_IN_PORT_URI.add("a2cas-ip");		
 		AC_APPLICATION_NOTIFICATION_OUT_PORT_URI.add("acan-op");
 		AC_APPLICATION_NOTIFICATION_OUT_PORT_URI.add("a2can-op");
+		AC_AVMS_MANAGEMENT_IN_PORT_URI.add("ac1avm-ip");
+		AC_AVMS_MANAGEMENT_IN_PORT_URI.add("ac2avm-ip");
 	}
 	
 	public static final String A1_MANAGEMENT_IN_PORT_URI = "a1m-ip";
@@ -98,27 +111,39 @@ public class TestPartOneQuestionTwoDCVM
 			
 			
 			Computer computer = new Computer(
-					computersURI.get(0), 
+					computersURI.get(0),
 					admissibleFrequencies, 
 					processingPower, 
-					1500, 
-					1500, 
+					3000, 
+					2000, 
 					numberOfProcessors, 
 					numberOfCores, 
-					C_SERVICES_IN_PORT_URI, 
-					C_STATIC_STATE_DATA_IN_PORT_URI, 
-					C_DYNAMIC_STATE_DATA_IN_PORT_URI);		
+					C_SERVICES_IN_PORT_URI.get(0), 
+					C_STATIC_STATE_DATA_IN_PORT_URI.get(0), 
+					C_DYNAMIC_STATE_DATA_IN_PORT_URI.get(0));		
 			
 			this.addDeployedComponent(computer);			
 			// --------------------------------------------------------------------
+			ArrayList<String> appsURI = new ArrayList<>();
+			appsURI.add("app0");
+			appsURI.add("app1");
+			
 			this.admissionController = new AdmissionController(								
+					"admissionController",
 					computersURI,
+					C_SERVICES_IN_PORT_URI,
 					AC_SERVICES_OUT_PORT_URI,
+					C_STATIC_STATE_DATA_IN_PORT_URI,
 					AC_STATIC_STATE_DATA_OUT_PORT_URI, 
+					C_DYNAMIC_STATE_DATA_IN_PORT_URI,
 					AC_DYNAMIC_STATE_DATA_OUT_PORT_URI,
+					appsURI,
 					AC_APPLICATION_MANAGEMENT_OUT_PORT_URI,
 					AC_APPLICATION_SUBMISSION_IN_PORT_URI,
-					AC_APPLICATION_NOTIFICATION_OUT_PORT_URI);
+					AC_APPLICATION_NOTIFICATION_OUT_PORT_URI,
+					AC_AVMS_MANAGEMENT_IN_PORT_URI,
+					AC_COORDINATION_IN_PORT_URI,
+					AC_COORDINATION_OUT_PORT_URI);
 			
 			this.addDeployedComponent(this.admissionController);
 			
@@ -133,8 +158,7 @@ public class TestPartOneQuestionTwoDCVM
 			
 			this.application1 = new Application(				
 					"app0",
-					0,
-					500.0,
+					1000.0, //500.0
 					6000000000L,
 					A1_MANAGEMENT_IN_PORT_URI,
 					A1_SERVICES_IN_PORT_URI,
@@ -155,7 +179,6 @@ public class TestPartOneQuestionTwoDCVM
 			
 			this.application2 = new Application(				
 					"app1",
-					1,
 					500.0,
 					6000000000L,
 					A2_MANAGEMENT_IN_PORT_URI,
@@ -197,17 +220,17 @@ public class TestPartOneQuestionTwoDCVM
 			
 			this.admissionController.doPortConnection(				
 					AC_SERVICES_OUT_PORT_URI.get(0),
-					C_SERVICES_IN_PORT_URI,
+					C_SERVICES_IN_PORT_URI.get(0),
 					ComputerServicesConnector.class.getCanonicalName());
 			
 			this.admissionController.doPortConnection(
 					AC_STATIC_STATE_DATA_OUT_PORT_URI.get(0),
-					C_STATIC_STATE_DATA_IN_PORT_URI,
+					C_STATIC_STATE_DATA_IN_PORT_URI.get(0),
 					DataConnector.class.getCanonicalName());
 
 			this.admissionController.doPortConnection(
 					AC_DYNAMIC_STATE_DATA_OUT_PORT_URI.get(0),
-					C_DYNAMIC_STATE_DATA_IN_PORT_URI,
+					C_DYNAMIC_STATE_DATA_IN_PORT_URI.get(0),
 					ControlledDataConnector.class.getCanonicalName());
 			
 			this.admissionController.doPortConnection(				

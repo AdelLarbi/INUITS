@@ -21,7 +21,7 @@ import fr.upmc.inuits.software.application.connectors.ApplicationServicesConnect
 import fr.upmc.inuits.software.application.connectors.ApplicationSubmissionConnector;
 import fr.upmc.inuits.software.application.ports.ApplicationServicesOutboundPort;
 
-public class TestPartOneQuestionTwo extends AbstractCVM {
+public class TestAdmissionController extends AbstractCVM {
 
 	public static final ArrayList<String> C_SERVICES_IN_PORT_URI = new ArrayList<>();
 	public static final ArrayList<String> C_STATIC_STATE_DATA_IN_PORT_URI = new ArrayList<>();
@@ -74,7 +74,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	protected ApplicationServicesOutboundPort asMockUpOutPort1;
 	protected ApplicationServicesOutboundPort asMockUpOutPort2;	
 	
-	public TestPartOneQuestionTwo() throws Exception {
+	public TestAdmissionController() throws Exception {
 		super();
 	}
 
@@ -287,7 +287,7 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 	public static void main(String[] args) {
 		
 		try {
-			final TestPartOneQuestionTwo test = new TestPartOneQuestionTwo();
+			final TestAdmissionController test = new TestAdmissionController();
 			test.deploy();
 			
 			System.out.println("starting...");
@@ -297,10 +297,10 @@ public class TestPartOneQuestionTwo extends AbstractCVM {
 				@Override
 				public void run() {
 					try {
-						//test.scenarioUniqueApplicationAndThreeAVMs_accept();
+						test.scenarioUniqueApplicationAndThreeAVMs_accept();
 						//test.scenarioUniqueApplicationAndThreeAVMs_refuse();
 						
-						test.scenarioTwoApplicationsSimultaneouslyAndThreeAVMsEach_accept();
+						//test.scenarioTwoApplicationsSimultaneouslyAndThreeAVMsEach_accept();
 						//test.scenarioTwoApplicationsSimultaneouslyAndThreeAVMsEach_refuse();
 						
 						//test.scenarioOneApplicationThenAnotherAndThreeAVMsEach_accept();
